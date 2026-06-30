@@ -138,24 +138,24 @@ public:
         DWORD depth
         )
     { 
-        Init(width, height, depth);
-    }
+		Init(width, height, depth);
+	}
 
-    void Init(
-        DWORD width,
-        DWORD height,
-        DWORD depth
-        )
-    {
+	void Init(
+		DWORD width,
+		DWORD height,
+		DWORD depth
+		)
+	{
         m_Width = width; 
         m_Height = height; 
         m_Depth = depth;
-        m_MaskU = 0;
-        m_MaskV = 0;
-        m_MaskW = 0;
-        m_u = 0;
-        m_v = 0;
-        m_w = 0;
+		m_MaskU = 0;
+		m_MaskV = 0;
+		m_MaskW = 0;
+		m_u = 0;
+		m_v = 0;
+		m_w = 0;
 
         DWORD i = 1;
         DWORD j = 1;
@@ -449,13 +449,13 @@ void WINAPI XGUnswizzleBox(
     DWORD       Width,        // The width of the entire source texture.
     DWORD       Height,       // The height of the entire source texture.
     DWORD       Depth,        // The depth of the entire destination texture.
-    CONST D3DBOX * pBox,     // The rectangle within the texture to copy.
+    CONST D3DBOX * pBox,      // RXDK: const to match the swizzler.cpp definition (reads only)
     LPVOID      pDest,        // The destination buffer
     DWORD       RowPitch,     // Byte offset from the left edge of one row to
                                 // the left edge of the next row
     DWORD       SlicePitch,   // Byte offset from the top-left of one slice to
                                 // the top-left of the next deepest slice
-    CONST XGPOINT3D * pPoint, // Where to copy the rectangle to
+    CONST XGPOINT3D * pPoint, // RXDK: const to match the swizzler.cpp definition
     DWORD       BytesPerPixel
     );
 
@@ -649,16 +649,6 @@ typedef HRESULT (*SASM_ResolverCallback)(LPVOID pResolverUserData,
 //   original shader. Use this if you suspect that your vertex shader is
 //   being optimized incorrectly. (There can be a substantial speed and
 //   memory penalty for using this flag.)
-// 
-// SASM_USE_V1_OPTIMIZER
-//   Use old (non-graph-based) version of the vertex shader optimizer.
-// 
-// SASM_USE_V2_OPTIMIZER
-//   Use new (graph-based) version of the vertex shader optimizer.
-//
-// SASM_PACKMATRIX_ROWMAJOR
-// SASM_PACKMATRIX_COLUMNMAJOR
-//
 //-------------------------------------------------------------------------
 
 #define SASM_DEBUG                                  (1 << 0)
@@ -677,10 +667,6 @@ typedef HRESULT (*SASM_ResolverCallback)(LPVOID pResolverUserData,
 #define SASM_SKIPPREPROCESSOR                       (1 << 13)
 #define SASM_DISABLE_GLOBAL_OPTIMIZATIONS           (1 << 14)
 #define SASM_VERIFY_OPTIMIZATIONS                   (1 << 15)
-#define SASM_USE_V1_OPTIMIZER                       (1 << 16)
-#define SASM_USE_V2_OPTIMIZER                       (1 << 17)
-#define SASM_PACKMATRIX_ROWMAJOR                    (1 << 18)
-#define SASM_PACKMATRIX_COLUMNMAJOR                 (1 << 19)
 
 //-------------------------------------------------------------------------
 // SASMT values:
@@ -716,13 +702,10 @@ typedef HRESULT (*SASM_ResolverCallback)(LPVOID pResolverUserData,
 #define SASMT_VERTEXSTATESHADER         3
 #define SASMT_INVALIDSHADER             0xff
 #define SASMT_SCREENSPACE               0x100
-#define SASMT_FRAGMENT                  0x200
 #define SASMT_SHADERTYPEMASK            0xff
 
 #define SASMT_SHADERTYPE(X) ((X) & SASMT_SHADERTYPEMASK)
 #define SASMT_ISSCREENSPACE(X) (((X) & SASMT_SCREENSPACE) != 0)
-#define SASMT_ISFRAGMENT(X) (((X) & SASMT_FRAGMENT) != 0)
-
 
 //-------------------------------------------------------------------------
 // XGAssembleShader:
@@ -784,87 +767,20 @@ XGAssembleShader(
 
 #define AssembleShader XGAssembleShader
 
-//-------------------------------------------------------------------------
-// XGCompileShader:
-// ------------------------
-// Compiles HLSL shader into either assembly or binary form
-//
-// Parameters:
-//
-//  pSourceFileName
-//      Source file name - used in error messages
-//  pSrcData
-//      A pointer to the source data
-//  SrcDataLen
-//      The source data length
-//  Flags
-//      SASM_xxx flags
-//  pEntryName
-//      Entry point name to compile (i.e. main)
-//  pTargetName
-//      Name of target assembly to compile to (i.e. vs.1.1, xvs.1.1)
-//          vs.1.1 - DX8 vs.1.1 target
-//         xvs.1.1 - vs.1.1 and dph, negative constants, oB* registers
-//        xvss.1.1 - xvs.1.1 with pragma screenspace (all constants available)
-//      Note: Pixel shader compilation (ps.1.1 and xps.1.1) is not currently supported.
-//  pConstants
-//      If constants are declared in the shader, they are written here. Pass NULL if
-//      you don't care.
-//  pCompiledShader
-//      The shader microcode is written here. Pass NULL if you don't care.
-//  pErrorLog
-//      Errors are written here. Pass NULL if you don't care.
-//  pAsmListing
-//      A human-readable listing of DX8 asm is written here. Pass NULL if you don't want it.
-//  pMachineListing
-//      A human-readable listing of machine code is written here. Pass NULL if you don't want it.
-//  pResolver
-//      Used by the preprocessor. Can be NULL if you don't use #include in your source file.
-//  pResolverUserData
-//      Passed unmodified to the pResolver function.
-//  pShaderType
-//      Returns the type of shader that was assembled. Pass NULL if you don't care.
-//
-// Return value:
-//    Returns S_OK if no errors.
-//    Returns a failure code if an error occured. For problems with the
-//    HLSL syntax, human-readable errors and warnings are
-//    written to the pErrorLog.
-//-------------------------------------------------------------------------
-
-HRESULT WINAPI
-XGCompileShader(
-    LPCSTR pSourceFileName,
-    LPCVOID pSrcData,
-    UINT SrcDataLen,
-    DWORD Flags,
-    LPCSTR pEntryName,
-    LPCSTR pTargetName, 
-    LPXGBUFFER* pConstants,
-    LPXGBUFFER* pCompiledShader,
-    LPXGBUFFER* pErrorLog,
-    LPXGBUFFER* pAsmListing,
-    LPXGBUFFER* pMachineListing,
-    SASM_ResolverCallback pResolver,
-    LPVOID pResolverUserData,
-    LPDWORD pShaderType
-    );
-
-#define CompileShader XGCompileShader
 
 //XGSpliceVertexShaders:
-//  Splice together shaders in the ppShaderArray, return it in *pNewShader.
-//  If pcbNewShaderBufferSize is provided and is too small, it will be changed to the minimum allowable buffer size, and will return S_FALSE. 
-//      pNewShader can be NULL in this case. If pcbNewShaderBufferSize is NULL or points to a non-zero size, pNewShader must not be NULL.
-//  The return value will be S_OK or S_FALSE. If optimizing in low-mem conditions, it can run out of memory, and will return an error code.
-//  If bad params are passed, it will assert.
+//	Splice together shaders in the ppShaderArray, return it in *pNewShader.
+//	If pcbNewShaderBufferSize is provided and is too small, it will be changed to the minimum allowable buffer size, and will return S_FALSE. 
+//		pNewShader can be NULL in this case. If pcbNewShaderBufferSize is NULL or points to a non-zero size, pNewShader must not be NULL.
+//	The return value will be S_OK or S_FALSE. If optimizing in low-mem conditions, it can run out of memory, and will return an error code.
+//	If bad params are passed, it will assert.
 HRESULT WINAPI XGSpliceVertexShaders (
-    /*             OUT  */  DWORD*   pNewShader,              //pointer to buffer to fill with output
-    /* OPTIONAL IN OUT  */  DWORD*   pcbNewShaderBufferSize, //How many bytes long the shader buffer is
-    /* OPTIONAL    OUT  */  DWORD*   pNewInstructionCount,   //how many instrucitons are in the newly-spliced shader
-    /*    IN      */  CONST DWORD* CONST*  ppShaderArray,          //arrray of pointers to shaders to splice together
-    /*          IN      */  DWORD    NumShaders,             //num of shaders in ppShaderArray
-    /*          IN      */  BOOL     bOptimizeResults        //TRUE to optimize, FALSE to not optimize
+	/*			   OUT  */  DWORD*   pNewShader,			  //pointer to buffer to fill with output
+	/* OPTIONAL IN OUT  */  DWORD*   pcbNewShaderBufferSize, //How many bytes long the shader buffer is
+ 	/* OPTIONAL    OUT  */  DWORD*   pNewInstructionCount,   //how many instrucitons are in the newly-spliced shader
+	/*    IN      */  CONST DWORD* CONST*  ppShaderArray,          //arrray of pointers to shaders to splice together
+	/*		    IN      */  DWORD    NumShaders,             //num of shaders in ppShaderArray
+	/*		    IN      */  BOOL     bOptimizeResults        //TRUE to optimize, FALSE to not optimize
 );
 
 
@@ -1070,7 +986,7 @@ HRESULT WINAPI XGCompressRect(
  *
  ****************************************************************************/
 
-DWORD WINAPI XGSetSurfaceHeader(
+VOID WINAPI XGSetSurfaceHeader(
     UINT Width,
     UINT Height,
     D3DFORMAT Format,
@@ -1086,7 +1002,7 @@ DWORD WINAPI XGSetSurfaceHeader(
  *
  ****************************************************************************/
 
-DWORD WINAPI XGSetTextureHeader(
+VOID WINAPI XGSetTextureHeader(
     UINT Width,
     UINT Height,
     UINT Levels,
@@ -1105,7 +1021,7 @@ DWORD WINAPI XGSetTextureHeader(
  *
  ****************************************************************************/
 
-DWORD WINAPI XGSetCubeTextureHeader(
+VOID WINAPI XGSetCubeTextureHeader(
     UINT EdgeLength,
     UINT Levels,
     DWORD Usage,
@@ -1123,7 +1039,7 @@ DWORD WINAPI XGSetCubeTextureHeader(
  *
  ****************************************************************************/
 
-DWORD WINAPI XGSetVolumeTextureHeader(
+VOID WINAPI XGSetVolumeTextureHeader(
     UINT Width,
     UINT Height,
     UINT Depth,
@@ -1166,7 +1082,7 @@ VOID WINAPI XGSetIndexBufferHeader(
     UINT Data
     );
 
-#ifdef _XBOX
+#ifdef _XBOX_
 
 /*****************************************************************************
  * 
@@ -1205,7 +1121,7 @@ VOID WINAPI XGSetFixupHeader(
     UINT Data
     );
 
-#endif // _XBOX
+#endif // _XBOX_
 
 #ifdef __cplusplus
 }

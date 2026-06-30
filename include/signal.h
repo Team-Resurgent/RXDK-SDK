@@ -1,164 +1,398 @@
-/***
-*signal.h - defines signal values and routines
-*
-*       Copyright (c) 1985-2001, Microsoft Corporation. All rights reserved.
-*
-*Purpose:
-*       This file defines the signal values and declares the signal functions.
-*       [ANSI/System V]
-*
-*       [Public]
-*
-*Revision History:
-*       06-03-87  JMB   Added MSSDK_ONLY comment on OS/2 related constants
-*       06-08-87  JCR   Changed SIG_RRR to SIG_SGE
-*       08-07-87  SKS   Signal handlers are now of type "void", not "int"
-*       10/20/87  JCR   Removed "MSC40_ONLY" entries and "MSSDK_ONLY" comments
-*       12-11-87  JCR   Added "_loadds" functionality
-*       12-18-87  JCR   Added _FAR_ to declarations
-*       02-10-88  JCR   Cleaned up white space
-*       08-22-88  GJF   Modified to also work for the 386 (small model only)
-*       12-06-88  SKS   Add _CDECL to SIG_DFL, SIG_IGN, SIG_SGE, SIG_ACK
-*       05-03-89  JCR   Added _INTERNAL_IFSTRIP for relinc usage
-*       08-15-89  GJF   Cleanup, now specific to OS/2 2.0 (i.e., 386 flat model)
-*       10-30-89  GJF   Fixed copyright
-*       11-02-89  JCR   Changed "DLL" to "_DLL"
-*       03-01-90  GJF   Added #ifndef _INC_SIGNAL and #include <cruntime.h>
-*                       stuff. Also, removed some (now) useless preprocessor
-*                       directives.
-*       03-15-90  GJF   Replaced _cdecl with _CALLTYPE1 in #defines and
-*                       prototypes.
-*       07-27-90  GJF   Added definition for SIG_DIE (internal action code,
-*                       not valid as an argument to signal()).
-*       09-25-90  GJF   Added _pxcptinfoptrs stuff.
-*       10-09-90  GJF   Added arg type specification (int) to pointer-to-
-*                       signal-handler-type usages
-*       08-20-91  JCR   C++ and ANSI naming
-*       07-17-92  GJF   Removed unsupported signals: SIGUSR1, SIGUSR2, SIGUSR3.
-*       08-05-92  GJF   Function calling type and variable type macros.
-*       01-21-93  GJF   Removed support for C6-386's _cdecl.
-*       04-06-93  SKS   Replace __cdecl/2 with __cdecl, _CRTVAR1 with nothing
-*       04-07-93  SKS   Add _CRTIMP keyword for CRT DLL model
-*       10-12-93  GJF   Support NT and Cuda versions. Replaced MTHREAD with
-*                       _MT.
-*       06-06-94  SKS   Change if def(_MT) to if def(_MT) || def(_DLL)
-*                       This will support single-thread apps using MSVCRT*.DLL
-*       02-11-95  CFW   Add _CRTBLD to avoid users getting wrong headers.
-*       02-14-95  CFW   Clean up Mac merge.
-*       12-14-95  JWM   Add "#pragma once".
-*       02-24-97  GJF   Cleaned out obsolete support for _NTSDK. Also, 
-*                       detab-ed.
-*       09-30-97  JWM   Restored not-so-obsolete _CRTAPI1 support.
-*       10-07-97  RDL   Added IA64.
-*       05-13-99  PML   Remove _CRTAPI1
-*       05-17-99  PML   Remove all Macintosh support.
-*
-****/
+/*
+Copyright (c) 1991, 1993
+The Regents of the University of California.  All rights reserved.
+All or some portions of this file are derived from material licensed
+to the University of California by American Telephone and Telegraph
+Co. or Unix System Laboratories, Inc. and are reproduced herein with
+the permission of UNIX System Laboratories, Inc.
 
-#if     _MSC_VER > 1000 /*IFSTRIP=IGN*/
-#pragma once
-#endif
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+3. Neither the name of the University nor the names of its contributors
+may be used to endorse or promote products derived from this software
+without specific prior written permission.
 
-#ifndef _INC_SIGNAL
-#define _INC_SIGNAL
-
-#if     !defined(_WIN32)
-#error ERROR: Only Win32 target supported!
-#endif
-
-#ifndef _CRTBLD
-/* This version of the header files is NOT for user programs.
- * It is intended for use when building the C runtimes ONLY.
- * The version intended for public use will not have this message.
+THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
  */
-#error ERROR: Use of C runtime library internal header file.
-#endif  /* _CRTBLD */
+#ifndef _SIGNAL_H_
+#define _SIGNAL_H_
 
-#ifdef  __cplusplus
-extern "C" {
+#include <sys/cdefs.h>
+#define __need_size_t
+#include <stddef.h>
+#include <sys/_types.h>
+#include <sys/_sigset.h>
+#include <sys/_timespec.h>
+
+_BEGIN_STD_C
+
+typedef int  sig_atomic_t; /* Atomic entity type (ANSI) */
+
+typedef void (*_sig_func_ptr)(int);
+
+#define SIG_DFL ((_sig_func_ptr)0)    /* Default action */
+#define SIG_IGN ((_sig_func_ptr)1)    /* Ignore action */
+#define SIG_ERR ((_sig_func_ptr) - 1) /* Error return */
+
+#if __POSIX_VISIBLE
+
+#ifndef _PID_T_DECLARED
+typedef __pid_t pid_t; /* process id */
+#define _PID_T_DECLARED
 #endif
 
-#ifndef _INTERNAL_IFSTRIP_
-#include <cruntime.h>
-#endif  /* _INTERNAL_IFSTRIP_ */
-
-
-/* Define _CRTIMP */
-
-#ifndef _CRTIMP
-#ifdef  CRTDLL
-#define _CRTIMP __declspec(dllexport)
-#else   /* ndef CRTDLL */
-#ifdef  _DLL
-#define _CRTIMP __declspec(dllimport)
-#else   /* ndef _DLL */
-#define _CRTIMP
-#endif  /* _DLL */
-#endif  /* CRTDLL */
-#endif  /* _CRTIMP */
-
-/* Define __cdecl for non-Microsoft compilers */
-
-#if     ( !defined(_MSC_VER) && !defined(__cdecl) )
-#define __cdecl
+#ifndef _UID_T_DECLARED
+typedef __uid_t uid_t; /* user id */
+#define _UID_T_DECLARED
 #endif
 
-#ifndef _SIG_ATOMIC_T_DEFINED
-typedef int sig_atomic_t;
-#define _SIG_ATOMIC_T_DEFINED
+#if !defined(_SIGSET_T_DECLARED)
+#define _SIGSET_T_DECLARED
+typedef __sigset_t sigset_t;
 #endif
 
-#define NSIG 23     /* maximum signal number + 1 */
+union sigval {
+    int   sival_int; /* Integer signal value */
+    void *sival_ptr; /* Pointer signal value */
+};
 
+/* Signal Actions, P1003.1b-1993, p. 64 */
+/* si_code values, p. 66 */
 
-/* Signal types */
+#define SI_USER    1 /* Sent by a user. kill(), abort(), etc */
+#define SI_QUEUE   2 /* Sent by sigqueue() */
+#define SI_TIMER   3 /* Sent by expiration of a timer_settime() timer */
+#define SI_ASYNCIO 4 /* Indicates completion of asycnhronous IO */
+#define SI_MESGQ   5 /* Indicates arrival of a message at an empty queue */
 
-#define SIGINT          2       /* interrupt */
-#define SIGILL          4       /* illegal instruction - invalid function image */
-#define SIGFPE          8       /* floating point exception */
-#define SIGSEGV         11      /* segment violation */
-#define SIGTERM         15      /* Software termination signal from kill */
-#define SIGBREAK        21      /* Ctrl-Break sequence */
-#define SIGABRT         22      /* abnormal termination triggered by abort call */
+typedef struct {
+    int          si_signo;  /* Signal number */
+    int          si_code;   /* Cause of the signal */
+    int          si_errno;  /* If non-zero, the errno */
+    __pid_t      si_pid;    /* Sending process ID */
+    uid_t        si_uid;    /* Real UID of sending process */
+    void        *si_addr;   /* Address of faulting instruction */
+    int          si_status; /* Exit value or signal */
+    long         si_band;   /* Band event for SIGPOLL */
+    union sigval si_value;  /* Signal value */
+} siginfo_t;
 
+typedef void (*_sig_action_ptr)(int, siginfo_t *, void *);
 
-/* signal action codes */
+/*
+ * Possible values for sa_flags in sigaction below.
+ */
 
-#define SIG_DFL (void (__cdecl *)(int))0           /* default signal action */
-#define SIG_IGN (void (__cdecl *)(int))1           /* ignore signal */
-#define SIG_SGE (void (__cdecl *)(int))3           /* signal gets error */
-#define SIG_ACK (void (__cdecl *)(int))4           /* acknowledge */
+#define SA_NOCLDSTOP (1 << 0)
+#define SA_ONSTACK   (1 << 1)
+#define SA_RESETHAND (1 << 2)
+#define SA_RESTART   (1 << 3)
+#define SA_SIGINFO   (1 << 4)
+#define SA_NOCLDWAIT (1 << 5)
+#define SA_NODEFER   (1 << 6)
 
-#ifndef _INTERNAL_IFSTRIP_
-/* internal use only! not valid as an argument to signal() */
+struct sigaction {
+    union {
+        void (*sa_handler)(int);
+        void (*sa_sigaction)(int, siginfo_t *, void *);
+    };
+    sigset_t sa_mask;
+    int      sa_flags;
+};
 
-#define SIG_GET (void (__cdecl *)(int))2           /* accept signal */
-#define SIG_DIE (void (__cdecl *)(int))5           /* terminate process */
+/*
+ * Possible values for ss_flags in stack_t below.
+ */
+#define SS_ONSTACK 0x1
+#define SS_DISABLE 0x2
+
+/*
+ * Structure used in sigaltstack call.
+ */
+typedef struct sigaltstack {
+    void  *ss_sp;    /* Stack base or pointer.  */
+    int    ss_flags; /* Flags.  */
+    size_t ss_size;  /* Stack size.  */
+} stack_t;
+
+#define SIG_SETMASK 0 /* set mask with sigprocmask() */
+#define SIG_BLOCK   1 /* set of signals to block */
+#define SIG_UNBLOCK 2 /* set of signals to unblock */
+
+#endif /* __POSIX_VISIBLE */
+
+#if defined(_POSIX_REALTIME_SIGNALS) || __POSIX_VISIBLE >= 199309
+
+/* sigev_notify values
+   NOTE: P1003.1c/D10, p. 34 adds SIGEV_THREAD.  */
+
+#define SIGEV_NONE 1   /* No asynchronous notification shall be delivered */
+                       /*   when the event of interest occurs. */
+#define SIGEV_SIGNAL 2 /* A queued signal, with an application defined */
+                       /*  value, shall be delivered when the event of */
+                       /*  interest occurs. */
+#define SIGEV_THREAD 3 /* A notification function shall be called to */
+                       /*   perform notification. */
+
+/*  Signal Generation and Delivery, P1003.1b-1993, p. 63
+    NOTE: P1003.1c/D10, p. 34 adds sigev_notify_function and
+          sigev_notify_attributes to the sigevent structure.  */
+
+struct sigevent {
+    int          sigev_notify; /* Notification type */
+    int          sigev_signo;  /* Signal number */
+    union sigval sigev_value;  /* Signal value */
+    void         (*sigev_notify_function)(union sigval);
+    /* Notification function */
+    void        *sigev_notify_attributes; /* Notification Attributes */
+};
+#endif /* defined(_POSIX_REALTIME_SIGNALS) || __POSIX_VISIBLE >= 199309 */
+
+#if __BSD_VISIBLE || __XSI_VISIBLE >= 4 || __POSIX_VISIBLE >= 200809
+
+/*
+ * Minimum and default signal stack constants. Allow for target overrides
+ * from <sys/features.h>.
+ */
+#ifndef MINSIGSTKSZ
+#define MINSIGSTKSZ 2048
+#endif
+#ifndef SIGSTKSZ
+#define SIGSTKSZ 8192
 #endif
 
-/* signal error value (returned by signal call on error) */
+#endif
 
-#define SIG_ERR (void (__cdecl *)(int))-1          /* signal error value */
+#define SIGHUP    1     /* hangup */
+#define SIGINT    2     /* interrupt */
+#define SIGQUIT   3     /* quit */
+#define SIGILL    4     /* illegal instruction (not reset when caught) */
+#define SIGTRAP   5     /* trace trap (not reset when caught) */
+#define SIGIOT    6     /* IOT instruction */
+#define SIGABRT   6     /* used by abort, replace SIGIOT in the future */
+#define SIGEMT    7     /* EMT instruction */
+#define SIGFPE    8     /* floating point exception */
+#define SIGKILL   9     /* kill (cannot be caught or ignored) */
+#define SIGBUS    10    /* bus error */
+#define SIGSEGV   11    /* segmentation violation */
+#define SIGSYS    12    /* bad argument to system call */
+#define SIGPIPE   13    /* write on a pipe with no one to read it */
+#define SIGALRM   14    /* alarm clock */
+#define SIGTERM   15    /* software termination signal from kill */
+#define SIGURG    16    /* urgent condition on IO channel */
+#define SIGSTOP   17    /* sendable stop signal not from tty */
+#define SIGTSTP   18    /* stop signal from tty */
+#define SIGCONT   19    /* continue a stopped process */
+#define SIGCHLD   20    /* to parent on child stop or exit */
+#define SIGCLD    20    /* System V name for SIGCHLD */
+#define SIGTTIN   21    /* to readers pgrp upon background tty read */
+#define SIGTTOU   22    /* like TTIN for output if (tp->t_local&LTOSTOP) */
+#define SIGIO     23    /* input/output possible signal */
+#define SIGPOLL   SIGIO /* System V name for SIGIO */
+#define SIGXCPU   24    /* exceeded CPU time limit */
+#define SIGXFSZ   25    /* exceeded file size limit */
+#define SIGVTALRM 26    /* virtual time alarm */
+#define SIGPROF   27    /* profiling time alarm */
+#define SIGWINCH  28    /* window changed */
+#define SIGLOST   29    /* resource lost (eg, record-lock lost) */
+#define SIGUSR1   30    /* user defined signal 1 */
+#define SIGUSR2   31    /* user defined signal 2 */
+#define _NSIG     32
 
+#ifdef __GNU_VISIBLE
+#define NSIG _NSIG
+#endif
 
-/* pointer to exception information pointers structure */
+/* Using __MISC_VISIBLE until POSIX Issue 8 is officially released */
+#if __MISC_VISIBLE
+#if __SIZEOF_INT__ >= 4
+#define SIG2STR_MAX 17 /* (sizeof("RTMAX+") + sizeof("4294967295") - 1) */
+#else
+#define SIG2STR_MAX 12 /* (sizeof("RTMAX+") + sizeof("65535") - 1) */
+#endif
+#endif
 
-#if     defined(_MT) || defined(_DLL)
-extern void * * __cdecl __pxcptinfoptrs(void);
-#define _pxcptinfoptrs  (*__pxcptinfoptrs())
-#else   /* ndef _MT && ndef _DLL */
-extern void * _pxcptinfoptrs;
-#endif  /* _MT || _DLL */
+#if __BSD_VISIBLE
+typedef _sig_func_ptr sig_t; /* BSD naming */
+#endif
 
+#if __GNU_VISIBLE
+typedef _sig_func_ptr sighandler_t; /* glibc naming */
+#endif
 
-/* Function prototypes */
+#if __POSIX_VISIBLE
+int kill(__pid_t pid, int sig) __picolibc_export;
+#endif
+#if __XSI_VISIBLE >= 500 || __GNU_VISIBLE || __BSD_VISIBLE
+int killpg(__pid_t pid, int sig) __picolibc_export;
+#endif
+#if __POSIX_VISIBLE >= 200809L
+void psiginfo(const siginfo_t *, const char *) __picolibc_export;
+#endif
+#if __BSD_VISIBLE || __SVID_VISIBLE
+void psignal(int, const char *) __picolibc_export;
+#endif
+int raise(int) __picolibc_export;
+int __fallback_raise(int) __picolibc_export;
+#if __MISC_VISIBLE
+int sig2str(int, char *) __picolibc_export;
+#endif
+#if __POSIX_VISIBLE
+int sigaction(int, const struct sigaction * __restrict,
+              struct sigaction * __restrict) __picolibc_export;
 
-_CRTIMP void (__cdecl * __cdecl signal(int, void (__cdecl *)(int)))(int);
-_CRTIMP int __cdecl raise(int);
+int sigaddset(sigset_t *, const int) __picolibc_export;
 
-
-#ifdef  __cplusplus
+static __inline int
+__sigaddset(sigset_t *what, int sig)
+{
+    *what |= (sigset_t)1 << sig;
+    return 0;
 }
+
+#define sigaddset(what, sig) __sigaddset(what, sig)
+
+#endif
+#if __BSD_VISIBLE || __XSI_VISIBLE >= 4 || __POSIX_VISIBLE >= 200809
+int sigaltstack(const stack_t * __restrict, stack_t * __restrict) __picolibc_export;
+#endif
+#if __POSIX_VISIBLE
+
+int sigdelset(sigset_t *, const int) __nonnull((1)) __picolibc_export;
+
+static __inline int
+__sigdelset(sigset_t *what, int sig)
+{
+    *what &= ~(sigset_t)1 << sig;
+    return 0;
+}
+
+#define sigdelset(what, sig) __sigdelset(what, sig)
+
+int sigemptyset(sigset_t *) __nonnull((1)) __picolibc_export;
+
+static __inline int
+__sigemptyset(sigset_t *what)
+{
+    *what = 0;
+    return 0;
+}
+
+#define sigemptyset(what) __sigemptyset(what)
+
+int sigfillset(sigset_t *) __nonnull((1)) __picolibc_export;
+
+static __inline int
+__sigfillset(sigset_t *what)
+{
+    *what = ~(sigset_t)0;
+    return 0;
+}
+
+#define sigfillset(what) __sigfillset(what)
+
+int sigismember(const sigset_t *, int) __nonnull((1)) __picolibc_export;
+
+static __inline int
+__sigismember(const sigset_t *what, int sig)
+{
+    return (*(what) >> sig) & 1;
+}
+
+#define sigismember(what, sig) __sigismember(what, sig)
+
+#endif
+_sig_func_ptr signal(int, _sig_func_ptr) __picolibc_export;
+_sig_func_ptr __fallback_signal(int, _sig_func_ptr) __picolibc_export;
+#if __POSIX_VISIBLE
+int sigpending(sigset_t *) __picolibc_export;
+int sigprocmask(int, const sigset_t *, sigset_t *) __picolibc_export;
+int __fallback_sigprocmask(int, const sigset_t *, sigset_t *) __picolibc_export;
+#endif
+#if __POSIX_VISIBLE >= 199309L
+int sigqueue(__pid_t, int, const union sigval) __picolibc_export;
+#endif
+#if __POSIX_VISIBLE
+int sigsuspend(const sigset_t *) __picolibc_export;
+#endif
+#if __POSIX_VISIBLE >= 199309L
+int sigtimedwait(const sigset_t *, siginfo_t *, const struct timespec *) __picolibc_export;
+#endif
+#if __POSIX_VISIBLE >= 199506L
+int sigwait(const sigset_t *, int *) __picolibc_export;
+#endif
+#if __POSIX_VISIBLE >= 199309L
+int sigwaitinfo(const sigset_t *, siginfo_t *) __picolibc_export;
+#endif
+#if __MISC_VISIBLE
+int str2sig(const char * __restrict, int * __restrict) __picolibc_export;
 #endif
 
-#endif  /* _INC_SIGNAL */
+#if __GNU_VISIBLE
+
+int sigandset(sigset_t *dest, const sigset_t *left, const sigset_t *right)
+    __nonnull((1, 2, 3)) __picolibc_export;
+
+static __inline int
+__sigandset(sigset_t *dest, const sigset_t *left, const sigset_t *right)
+{
+    *dest = *left & *right;
+    return 0;
+}
+
+#define sigandset(d, l, r) __sigandset(d, l, r)
+
+int sigorset(sigset_t *dest, const sigset_t *left, const sigset_t *right)
+    __nonnull((1, 2, 3)) __picolibc_export;
+
+static __inline int
+__sigorset(sigset_t *dest, const sigset_t *left, const sigset_t *right)
+{
+    *dest = *left | *right;
+    return 0;
+}
+
+#define sigorset(d, l, r) __sigorset(d, l, r)
+
+int signotset(sigset_t *dest, const sigset_t *left) __nonnull((1, 2)) __picolibc_export;
+
+static __inline int
+__signotset(sigset_t *dest, const sigset_t *left)
+{
+    *dest = ~(*left);
+    return 0;
+}
+
+#define signotset(d, l) __signotset(d, l)
+
+int sigisemptyset(const sigset_t *set) __nonnull((1)) __picolibc_export;
+
+static __inline int
+__sigisemptyset(const sigset_t *set)
+{
+    return *set == 0;
+}
+
+#define sigisemptyset(s) __sigisemptyset(s)
+
+#endif
+
+_END_STD_C
+
+#endif /* _SIGNAL_H_ */

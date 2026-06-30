@@ -1,155 +1,63 @@
-//
-// setjmp.h
-//
-//      Copyright (c) Microsoft Corporation. All rights reserved.
-//
-// The C Standard Library <setjmp.h> header.
-//
-#pragma once
-#define _INC_SETJMP
+/*
+Copyright (c) 1991, 1993
+The Regents of the University of California.  All rights reserved.
+All or some portions of this file are derived from material licensed
+to the University of California by American Telephone and Telegraph
+Co. or Unix System Laboratories, Inc. and are reproduced herein with
+the permission of UNIX System Laboratories, Inc.
 
-#include <vcruntime.h>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+3. Neither the name of the University nor the names of its contributors
+may be used to endorse or promote products derived from this software
+without specific prior written permission.
 
-#ifdef _M_CEE
-    // The reason why simple setjmp won't work here is that there may
-    // be case when CLR stubs are on the stack e.g. function call just
-    // after jitting, and not unwinding CLR will result in bad state of
-    // CLR which then can AV or do something very bad.
-    #include <setjmpex.h>
-#endif
+THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+ */
+/*
+        setjmp.h
+        stubs for future use.
+*/
 
-#pragma warning(push)
-#pragma warning(disable: _VCRUNTIME_DISABLED_WARNINGS)
+#ifndef _SETJMP_H_
+#define _SETJMP_H_
 
-_CRT_BEGIN_C_HEADER
+#include <sys/cdefs.h>
+#include <sys/_sigset.h>
+#include <machine/setjmp.h>
 
+_BEGIN_STD_C
 
+typedef struct {
+    int        savesigs;
+    __sigset_t sigs;
+    jmp_buf    jmpb;
+} sigjmp_buf[1];
 
-// Definitions specific to particular setjmp implementations.
-#if defined _M_IX86
+__noreturn void     longjmp(jmp_buf __jmpb, int __retval) __picolibc_export;
+__returns_twice int setjmp(jmp_buf __jmpb) __picolibc_export;
+void                __sigjmp_getsigs(sigjmp_buf jmpb, int savesigs) __picolibc_export;
+void                __sigjmp_setsigs(sigjmp_buf jmpb) __picolibc_export;
 
-    #define _JBLEN  16
-    #define _JBTYPE int
+#define sigsetjmp(__e, __s)  (__sigjmp_getsigs((__e), (__s)), setjmp((__e)[0].jmpb))
+#define siglongjmp(__e, __v) (__sigjmp_setsigs((__e)), longjmp((__e)[0].jmpb, (__v)))
 
-    typedef struct __JUMP_BUFFER
-    {
-        unsigned long Ebp;
-        unsigned long Ebx;
-        unsigned long Edi;
-        unsigned long Esi;
-        unsigned long Esp;
-        unsigned long Eip;
-        unsigned long Registration;
-        unsigned long TryLevel;
-        unsigned long Cookie;
-        unsigned long UnwindFunc;
-        unsigned long UnwindData[6];
-    } _JUMP_BUFFER;
+_END_STD_C
 
-#elif defined _M_X64
-
-    typedef struct _VCRT_ALIGN(16) _SETJMP_FLOAT128
-    {
-        unsigned __int64 Part[2];
-    } SETJMP_FLOAT128;
-
-    #define _JBLEN  16
-    typedef SETJMP_FLOAT128 _JBTYPE;
-
-    typedef struct _JUMP_BUFFER
-    {
-        unsigned __int64 Frame;
-        unsigned __int64 Rbx;
-        unsigned __int64 Rsp;
-        unsigned __int64 Rbp;
-        unsigned __int64 Rsi;
-        unsigned __int64 Rdi;
-        unsigned __int64 R12;
-        unsigned __int64 R13;
-        unsigned __int64 R14;
-        unsigned __int64 R15;
-        unsigned __int64 Rip;
-        unsigned long MxCsr;
-        unsigned short FpCsr;
-        unsigned short Spare;
-
-        SETJMP_FLOAT128 Xmm6;
-        SETJMP_FLOAT128 Xmm7;
-        SETJMP_FLOAT128 Xmm8;
-        SETJMP_FLOAT128 Xmm9;
-        SETJMP_FLOAT128 Xmm10;
-        SETJMP_FLOAT128 Xmm11;
-        SETJMP_FLOAT128 Xmm12;
-        SETJMP_FLOAT128 Xmm13;
-        SETJMP_FLOAT128 Xmm14;
-        SETJMP_FLOAT128 Xmm15;
-    } _JUMP_BUFFER;
-
-#elif defined _M_ARM64
-
-    #define _JBLEN  24
-    #define _JBTYPE unsigned __int64
-
-    typedef struct _JUMP_BUFFER {
-        unsigned __int64 Frame;
-        unsigned __int64 Reserved;
-        unsigned __int64 X19;   // x19 -- x28: callee saved registers
-        unsigned __int64 X20;
-        unsigned __int64 X21;
-        unsigned __int64 X22;
-        unsigned __int64 X23;
-        unsigned __int64 X24;
-        unsigned __int64 X25;
-        unsigned __int64 X26;
-        unsigned __int64 X27;
-        unsigned __int64 X28;
-        unsigned __int64 Fp;    // x29 frame pointer
-        unsigned __int64 Lr;    // x30 link register
-        unsigned __int64 Sp;    // x31 stack pointer
-        unsigned __int32 Fpcr;  // fp control register
-        unsigned __int32 Fpsr;  // fp status register
-
-        double D[8]; // D8-D15 FP regs
-    } _JUMP_BUFFER;
-
-
-
-#endif
-
-
-
-// Define the buffer type for holding the state information
-#ifndef _JMP_BUF_DEFINED
-    #define _JMP_BUF_DEFINED
-    typedef _JBTYPE jmp_buf[_JBLEN];
-#endif
-
-
-
-#ifndef _INC_SETJMPEX
-    #define setjmp _setjmp
-#endif
-
-
-
-// Function prototypes
-int __cdecl setjmp(
-    _Out_ jmp_buf _Buf
-    );
-
-#ifdef __cplusplus
-    __declspec(noreturn) void __cdecl longjmp(
-        _In_reads_(_JBLEN) jmp_buf _Buf,
-        _In_ int     _Value
-        ) noexcept(false);
-#else
-    __declspec(noreturn) void __cdecl longjmp(
-        _In_reads_(_JBLEN) jmp_buf _Buf,
-        _In_ int     _Value
-        );
-#endif
-
-
-_CRT_END_C_HEADER
-
-#pragma warning(pop) // _VCRUNTIME_DISABLED_WARNINGS
+#endif /* _SETJMP_H_ */

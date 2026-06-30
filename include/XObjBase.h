@@ -273,7 +273,7 @@ typedef LPCSTR    LPCOLESTR;
 #ifndef __IUnknown_FWD_DEFINED__
 #define __IUnknown_FWD_DEFINED__
 typedef interface IUnknown IUnknown;
-#endif  /* __IUnknown_FWD_DEFINED__ */
+#endif 	/* __IUnknown_FWD_DEFINED__ */
 
 
 #ifndef __IUnknown_INTERFACE_DEFINED__
@@ -339,7 +339,7 @@ EXTERN_C const IID IID_IUnknown;
         END_INTERFACE
     };
     
-#else   /* C style interface */
+#else 	/* C style interface */
 
     typedef struct IUnknownVtbl
     {
@@ -369,21 +369,21 @@ EXTERN_C const IID IID_IUnknown;
 #ifdef COBJMACROS
 
 
-#define IUnknown_QueryInterface(This,riid,ppvObject)    \
+#define IUnknown_QueryInterface(This,riid,ppvObject)	\
     (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
 
-#define IUnknown_AddRef(This)   \
+#define IUnknown_AddRef(This)	\
     (This)->lpVtbl -> AddRef(This)
 
-#define IUnknown_Release(This)  \
+#define IUnknown_Release(This)	\
     (This)->lpVtbl -> Release(This)
 
 #endif /* COBJMACROS */
 
 
-#endif  /* C style interface */
+#endif 	/* C style interface */
 
-#endif  /* __IUnknown_INTERFACE_DEFINED__ */
+#endif 	/* __IUnknown_INTERFACE_DEFINED__ */
 
 
 /* interface __MIDL_itf_unknwn_0005 */
@@ -395,7 +395,7 @@ EXTERN_C const IID IID_IUnknown;
 #ifndef __ISequentialStream_FWD_DEFINED__
 #define __ISequentialStream_FWD_DEFINED__
 typedef interface ISequentialStream ISequentialStream;
-#endif  /* __ISequentialStream_FWD_DEFINED__ */
+#endif 	/* __ISequentialStream_FWD_DEFINED__ */
 
 
 #ifndef __ISequentialStream_INTERFACE_DEFINED__
@@ -425,7 +425,7 @@ EXTERN_C const IID IID_ISequentialStream;
         
     };
     
-#else   /* C style interface */
+#else 	/* C style interface */
 
     typedef struct ISequentialStreamVtbl
     {
@@ -467,36 +467,36 @@ EXTERN_C const IID IID_ISequentialStream;
 #ifdef COBJMACROS
 
 
-#define ISequentialStream_QueryInterface(This,riid,ppvObject)   \
+#define ISequentialStream_QueryInterface(This,riid,ppvObject)	\
     (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
 
-#define ISequentialStream_AddRef(This)  \
+#define ISequentialStream_AddRef(This)	\
     (This)->lpVtbl -> AddRef(This)
 
-#define ISequentialStream_Release(This) \
+#define ISequentialStream_Release(This)	\
     (This)->lpVtbl -> Release(This)
 
 
-#define ISequentialStream_Read(This,pv,cb,pcbRead)  \
+#define ISequentialStream_Read(This,pv,cb,pcbRead)	\
     (This)->lpVtbl -> Read(This,pv,cb,pcbRead)
 
-#define ISequentialStream_Write(This,pv,cb,pcbWritten)  \
+#define ISequentialStream_Write(This,pv,cb,pcbWritten)	\
     (This)->lpVtbl -> Write(This,pv,cb,pcbWritten)
 
 #endif /* COBJMACROS */
 
 
-#endif  /* C style interface */
+#endif 	/* C style interface */
 
 
-#endif  /* __ISequentialStream_INTERFACE_DEFINED__ */
+#endif 	/* __ISequentialStream_INTERFACE_DEFINED__ */
 
 
 
 #ifndef __IStream_FWD_DEFINED__
 #define __IStream_FWD_DEFINED__
 typedef interface IStream IStream;
-#endif  /* __IStream_FWD_DEFINED__ */
+#endif 	/* __IStream_FWD_DEFINED__ */
 
 
 #ifndef __IStream_INTERFACE_DEFINED__
@@ -520,29 +520,29 @@ typedef struct tagSTATSTG
     CLSID clsid;
     DWORD grfStateBits;
     DWORD reserved;
-    }   STATSTG;
+    }	STATSTG;
 
 typedef 
 enum tagSTGTY
-    {   STGTY_STORAGE   = 1,
-    STGTY_STREAM    = 2,
-    STGTY_LOCKBYTES = 3,
-    STGTY_PROPERTY  = 4
-    }   STGTY;
+    {	STGTY_STORAGE	= 1,
+	STGTY_STREAM	= 2,
+	STGTY_LOCKBYTES	= 3,
+	STGTY_PROPERTY	= 4
+    }	STGTY;
 
 typedef 
 enum tagSTREAM_SEEK
-    {   STREAM_SEEK_SET = 0,
-    STREAM_SEEK_CUR = 1,
-    STREAM_SEEK_END = 2
-    }   STREAM_SEEK;
+    {	STREAM_SEEK_SET	= 0,
+	STREAM_SEEK_CUR	= 1,
+	STREAM_SEEK_END	= 2
+    }	STREAM_SEEK;
 
 typedef 
 enum tagLOCKTYPE
-    {   LOCK_WRITE  = 1,
-    LOCK_EXCLUSIVE  = 2,
-    LOCK_ONLYONCE   = 4
-    }   LOCKTYPE;
+    {	LOCK_WRITE	= 1,
+	LOCK_EXCLUSIVE	= 2,
+	LOCK_ONLYONCE	= 4
+    }	LOCKTYPE;
 
 
 EXTERN_C const IID IID_IStream;
@@ -591,7 +591,7 @@ EXTERN_C const IID IID_IStream;
         
     };
     
-#else   /* C style interface */
+#else 	/* C style interface */
 
     typedef struct IStreamVtbl
     {
@@ -678,63 +678,63 @@ EXTERN_C const IID IID_IStream;
 #ifdef COBJMACROS
 
 
-#define IStream_QueryInterface(This,riid,ppvObject) \
+#define IStream_QueryInterface(This,riid,ppvObject)	\
     (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
 
-#define IStream_AddRef(This)    \
+#define IStream_AddRef(This)	\
     (This)->lpVtbl -> AddRef(This)
 
-#define IStream_Release(This)   \
+#define IStream_Release(This)	\
     (This)->lpVtbl -> Release(This)
 
 
-#define IStream_Read(This,pv,cb,pcbRead)    \
+#define IStream_Read(This,pv,cb,pcbRead)	\
     (This)->lpVtbl -> Read(This,pv,cb,pcbRead)
 
-#define IStream_Write(This,pv,cb,pcbWritten)    \
+#define IStream_Write(This,pv,cb,pcbWritten)	\
     (This)->lpVtbl -> Write(This,pv,cb,pcbWritten)
 
 
-#define IStream_Seek(This,dlibMove,dwOrigin,plibNewPosition)    \
+#define IStream_Seek(This,dlibMove,dwOrigin,plibNewPosition)	\
     (This)->lpVtbl -> Seek(This,dlibMove,dwOrigin,plibNewPosition)
 
-#define IStream_SetSize(This,libNewSize)    \
+#define IStream_SetSize(This,libNewSize)	\
     (This)->lpVtbl -> SetSize(This,libNewSize)
 
-#define IStream_CopyTo(This,pstm,cb,pcbRead,pcbWritten) \
+#define IStream_CopyTo(This,pstm,cb,pcbRead,pcbWritten)	\
     (This)->lpVtbl -> CopyTo(This,pstm,cb,pcbRead,pcbWritten)
 
-#define IStream_Commit(This,grfCommitFlags) \
+#define IStream_Commit(This,grfCommitFlags)	\
     (This)->lpVtbl -> Commit(This,grfCommitFlags)
 
-#define IStream_Revert(This)    \
+#define IStream_Revert(This)	\
     (This)->lpVtbl -> Revert(This)
 
-#define IStream_LockRegion(This,libOffset,cb,dwLockType)    \
+#define IStream_LockRegion(This,libOffset,cb,dwLockType)	\
     (This)->lpVtbl -> LockRegion(This,libOffset,cb,dwLockType)
 
-#define IStream_UnlockRegion(This,libOffset,cb,dwLockType)  \
+#define IStream_UnlockRegion(This,libOffset,cb,dwLockType)	\
     (This)->lpVtbl -> UnlockRegion(This,libOffset,cb,dwLockType)
 
-#define IStream_Stat(This,pstatstg,grfStatFlag) \
+#define IStream_Stat(This,pstatstg,grfStatFlag)	\
     (This)->lpVtbl -> Stat(This,pstatstg,grfStatFlag)
 
-#define IStream_Clone(This,ppstm)   \
+#define IStream_Clone(This,ppstm)	\
     (This)->lpVtbl -> Clone(This,ppstm)
 
 #endif /* COBJMACROS */
 
 
-#endif  /* C style interface */
+#endif 	/* C style interface */
 
 
-#endif  /* __IStream_INTERFACE_DEFINED__ */
+#endif 	/* __IStream_INTERFACE_DEFINED__ */
 
 
 #ifndef __IClassFactory_FWD_DEFINED__
 #define __IClassFactory_FWD_DEFINED__
 typedef interface IClassFactory IClassFactory;
-#endif  /* __IClassFactory_FWD_DEFINED__ */
+#endif 	/* __IClassFactory_FWD_DEFINED__ */
 
 
 #ifndef __IClassFactory_INTERFACE_DEFINED__
@@ -764,7 +764,7 @@ EXTERN_C const IID IID_IClassFactory;
         
     };
     
-#else   /* C style interface */
+#else 	/* C style interface */
 
     typedef struct IClassFactoryVtbl
     {
@@ -804,36 +804,36 @@ EXTERN_C const IID IID_IClassFactory;
 #ifdef COBJMACROS
 
 
-#define IClassFactory_QueryInterface(This,riid,ppvObject)   \
+#define IClassFactory_QueryInterface(This,riid,ppvObject)	\
     (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
 
-#define IClassFactory_AddRef(This)  \
+#define IClassFactory_AddRef(This)	\
     (This)->lpVtbl -> AddRef(This)
 
-#define IClassFactory_Release(This) \
+#define IClassFactory_Release(This)	\
     (This)->lpVtbl -> Release(This)
 
 
-#define IClassFactory_CreateInstance(This,pUnkOuter,riid,ppvObject) \
+#define IClassFactory_CreateInstance(This,pUnkOuter,riid,ppvObject)	\
     (This)->lpVtbl -> CreateInstance(This,pUnkOuter,riid,ppvObject)
 
-#define IClassFactory_LockServer(This,fLock)    \
+#define IClassFactory_LockServer(This,fLock)	\
     (This)->lpVtbl -> LockServer(This,fLock)
 
 #endif /* COBJMACROS */
 
 
-#endif  /* C style interface */
+#endif 	/* C style interface */
 
 
-#endif  /* __IClassFactory_INTERFACE_DEFINED__ */
+#endif 	/* __IClassFactory_INTERFACE_DEFINED__ */
 
 
 
 #ifndef __IPersist_FWD_DEFINED__
 #define __IPersist_FWD_DEFINED__
 typedef interface IPersist IPersist;
-#endif  /* __IPersist_FWD_DEFINED__ */
+#endif 	/* __IPersist_FWD_DEFINED__ */
 
 
 #ifndef __IPersist_INTERFACE_DEFINED__
@@ -858,7 +858,7 @@ EXTERN_C const IID IID_IPersist;
         
     };
     
-#else   /* C style interface */
+#else 	/* C style interface */
 
     typedef struct IPersistVtbl
     {
@@ -892,26 +892,26 @@ EXTERN_C const IID IID_IPersist;
 #ifdef COBJMACROS
 
 
-#define IPersist_QueryInterface(This,riid,ppvObject)    \
+#define IPersist_QueryInterface(This,riid,ppvObject)	\
     (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
 
-#define IPersist_AddRef(This)   \
+#define IPersist_AddRef(This)	\
     (This)->lpVtbl -> AddRef(This)
 
-#define IPersist_Release(This)  \
+#define IPersist_Release(This)	\
     (This)->lpVtbl -> Release(This)
 
 
-#define IPersist_GetClassID(This,pClassID)  \
+#define IPersist_GetClassID(This,pClassID)	\
     (This)->lpVtbl -> GetClassID(This,pClassID)
 
 #endif /* COBJMACROS */
 
 
-#endif  /* C style interface */
+#endif 	/* C style interface */
 
 
-#endif  /* __IPersist_INTERFACE_DEFINED__ */
+#endif 	/* __IPersist_INTERFACE_DEFINED__ */
 
 
 
@@ -919,7 +919,7 @@ EXTERN_C const IID IID_IPersist;
 #ifndef __IPersistStream_FWD_DEFINED__
 #define __IPersistStream_FWD_DEFINED__
 typedef interface IPersistStream IPersistStream;
-#endif  /* __IPersistStream_FWD_DEFINED__ */
+#endif 	/* __IPersistStream_FWD_DEFINED__ */
 
 
 #ifndef __IPersistStream_INTERFACE_DEFINED__
@@ -953,7 +953,7 @@ EXTERN_C const IID IID_IPersistStream;
         
     };
     
-#else   /* C style interface */
+#else 	/* C style interface */
 
     typedef struct IPersistStreamVtbl
     {
@@ -1003,39 +1003,39 @@ EXTERN_C const IID IID_IPersistStream;
 #ifdef COBJMACROS
 
 
-#define IPersistStream_QueryInterface(This,riid,ppvObject)  \
+#define IPersistStream_QueryInterface(This,riid,ppvObject)	\
     (This)->lpVtbl -> QueryInterface(This,riid,ppvObject)
 
-#define IPersistStream_AddRef(This) \
+#define IPersistStream_AddRef(This)	\
     (This)->lpVtbl -> AddRef(This)
 
-#define IPersistStream_Release(This)    \
+#define IPersistStream_Release(This)	\
     (This)->lpVtbl -> Release(This)
 
 
-#define IPersistStream_GetClassID(This,pClassID)    \
+#define IPersistStream_GetClassID(This,pClassID)	\
     (This)->lpVtbl -> GetClassID(This,pClassID)
 
 
-#define IPersistStream_IsDirty(This)    \
+#define IPersistStream_IsDirty(This)	\
     (This)->lpVtbl -> IsDirty(This)
 
-#define IPersistStream_Load(This,pStm)  \
+#define IPersistStream_Load(This,pStm)	\
     (This)->lpVtbl -> Load(This,pStm)
 
-#define IPersistStream_Save(This,pStm,fClearDirty)  \
+#define IPersistStream_Save(This,pStm,fClearDirty)	\
     (This)->lpVtbl -> Save(This,pStm,fClearDirty)
 
-#define IPersistStream_GetSizeMax(This,pcbSize) \
+#define IPersistStream_GetSizeMax(This,pcbSize)	\
     (This)->lpVtbl -> GetSizeMax(This,pcbSize)
 
 #endif /* COBJMACROS */
 
 
-#endif  /* C style interface */
+#endif 	/* C style interface */
 
 
-#endif  /* __IPersistStream_INTERFACE_DEFINED__ */
+#endif 	/* __IPersistStream_INTERFACE_DEFINED__ */
 
 
 

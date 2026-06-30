@@ -1,18 +1,10 @@
-#ifdef DEBUG_KEYBOARD
-#ifndef XKBD_H
-#define XKBD_H
-/************************************************************************
-*                                                                       *
-*   Xkbd.h -- This module defines the Xbox Keyboard API support         *
-*                                                                       *
-*   IMPORTANT:                                                          *
-*   These API's are for use on development platform only to be used as  *
-*   a debugging aid.  At this time, there are no plans for keyboard     *
-*   support  with shipping Xbox titles.                                 *
-*                                                                       *
-*   Copyright (c) 2000 - 2001 Microsoft Corp. All rights reserved.      *
-*                                                                       *
-************************************************************************/
+﻿#pragma once
+
+#include "xbox.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern      XPP_DEVICE_TYPE XDEVICE_TYPE_DEBUG_KEYBOARD_TABLE;
 #define     XDEVICE_TYPE_DEBUG_KEYBOARD (&XDEVICE_TYPE_DEBUG_KEYBOARD_TABLE)
@@ -85,7 +77,7 @@ typedef struct _XINPUT_DEBUG_KEYQUEUE_PARAMETERS
 
 XBOXAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 XInputDebugInitKeyboardQueue(
     IN PXINPUT_DEBUG_KEYQUEUE_PARAMETERS pParameters OPTIONAL
     );
@@ -110,7 +102,7 @@ XInputDebugInitKeyboardQueue(
 
 XBOXAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 XInputDebugGetKeystroke(
 #ifndef SINGLE_KEYBOARD_ONLY
     IN HANDLE hDevice,
@@ -377,5 +369,7 @@ XInputDebugGetKeystroke(
  * 0xFF : reserved
  */
 
-#endif //XKBD_H
-#endif //DEBUG_KEYBOARD
+#ifdef __cplusplus
+}
+#endif
+

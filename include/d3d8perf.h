@@ -12,16 +12,13 @@
 #ifndef _D3D8PERF_H_
 #define _D3D8PERF_H_
 
-#pragma warning( push )
-#pragma warning( disable : 4201 ) 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /*
  * This file exposes the extra functionality implemented in the
- * performance-instrumented and debug version of the Direct3D library
+ * performance-instrumented and debug version of the Direct3D library 
  * (d3d8i.lib and d3d8d.lib).
  */
 
@@ -137,7 +134,6 @@ typedef enum _D3DPERF_APICounters
     API_D3DDEVICE_GETBACKMATERIAL,
     API_D3DDEVICE_GETCCSTATUS,
     API_D3DDEVICE_GETCREATIONPARAMETERS,
-    API_D3DDEVICE_GETDEPTHCLIPPLANES,
     API_D3DDEVICE_GETDEPTHSTENCILSURFACE,
     API_D3DDEVICE_GETDEVICECAPS,
     API_D3DDEVICE_GETDIRECT3D,
@@ -177,7 +173,6 @@ typedef enum _D3DPERF_APICounters
     API_D3DDEVICE_GETVERTEXSHADERSIZE,
     API_D3DDEVICE_GETVERTEXSHADERTYPE,
     API_D3DDEVICE_GETVIEWPORT,
-    API_D3DDEVICE_GETVIEWPORTOFFSETANDSCALE,
     API_D3DDEVICE_GETVISIBILITYTESTRESULT,
     API_D3DDEVICE_INSERTCALLBACK,
     API_D3DDEVICE_INSERTFENCE,
@@ -201,7 +196,6 @@ typedef enum _D3DPERF_APICounters
     API_D3DDEVICE_SENDCC,
     API_D3DDEVICE_SETBACKBUFFERSCALE,
     API_D3DDEVICE_SETBACKMATERIAL,
-    API_D3DDEVICE_SETDEPTHCLIPPLANES,
     API_D3DDEVICE_SETGAMMARAMP,
     API_D3DDEVICE_SETINDICES,
     API_D3DDEVICE_SETLIGHT,
@@ -242,9 +236,6 @@ typedef enum _D3DPERF_APICounters
     API_D3DDEVICE_SETRENDERSTATE_YUVENABLE,
     API_D3DDEVICE_SETRENDERSTATE_ZBIAS,
     API_D3DDEVICE_SETRENDERSTATE_ZENABLE,
-    API_D3DDEVICE_SETRENDERSTATE_PRESENTATIONINTERVAL,
-    API_D3DDEVICE_SETRENDERSTATE_STIPPLEENABLE,
-    API_D3DDEVICE_SETRENDERSTATE_SAMPLEALPHA,
     API_D3DDEVICE_SETRENDERSTATENOTINLINE,
     API_D3DDEVICE_SETRENDERTARGET,
     API_D3DDEVICE_SETSCISSORS,
@@ -276,15 +267,6 @@ typedef enum _D3DPERF_APICounters
     API_D3DDEVICE_SUSPEND,
     API_D3DDEVICE_SWITCHTEXTURE,
     API_D3DDEVICE_UPDATEOVERLAY,
-    API_D3DDEVICE_SETOVERSCANCOLOR,
-    API_D3DDEVICE_GETOVERSCANCOLOR,
-    API_D3DDEVICE_SETFLICKERFILTER,
-    API_D3DDEVICE_SETSOFTDISPLAYFILTER,
-    API_D3DDEVICE_SETSTIPPLE,
-    API_D3DDEVICE_GETSTIPPLE,
-    API_D3DDEVICE_SETWAITCALLBACK,
-    API_D3DDEVICE_GETPUSHDISTANCE,
-    API_D3DDEVICE_SETTIMERCALLBACK,
 
     /* D3DResource APIs */
 
@@ -395,8 +377,7 @@ typedef void (WINAPI *PFNDumpFrameRateInfoHandler)(void);
 
 // m_dwDumpFPSInfoMask flags which specify what data to display during default
 // m_pfnDumpFrameRateInfoHandler callback. By default everything is enabled
-// except D3DPERF_DUMP_FPS_PERFPROFILE and D3DPERF_DUMP_FPS_PERFEVENTS, which
-// have much higher overheads.
+// except D3DPERF_DUMP_FPS_PERFPROFILE which has a much higher overhead.
 //
 // To use set m_FrameRateIntervalTime to 10000 (10ms) or similar.
 //
@@ -426,7 +407,6 @@ typedef enum _D3DPERFPROF
     D3DPERF_PROF_GPU,
     D3DPERF_PROF_FE,
     D3DPERF_PROF_BE,
-    D3DPERF_PROF_SWAPSTALL,
     D3DPERF_PROF_MAX
 } D3DPERFPROF;
 
@@ -467,7 +447,7 @@ typedef enum _D3DPERFEventsType
 } D3DPERFEventsType;
 
 // D3D performance event structure.
-//
+// 
 typedef struct _D3DPERFEvent
 {
     WORD Type;                          // Event type. D3DPERFEventsType or
@@ -513,18 +493,14 @@ typedef struct _D3DPERF
     DWORD m_BreakCount;
     D3DPERF_PerformanceCounters m_Breakperfctr;
 
-    // Pushbuffer location at D3DPERF_Reset (vendor d3d8i / stats.cpp)
+    // Pushbuffer location at D3DPERF_Reset call
     DWORD *m_pPutLocationAtReset;
-
-    // Version number, for communication with xbdm
-    DWORD m_Version;
 
     // Count of dwords skipped jumping back to pushbuffer start
     ULONGLONG m_PushBufferEndDwordsSkipped;
 
     // Interval time to dump framerate information in milliseconds
     DWORD m_FrameRateIntervalTime;
-
     // Mask which controls what information D3DPERF_DumpFrameRateInfo
     // (default m_pfnDumpFrameRateInfoHandler handler) spits out.
     DWORD m_dwDumpFPSInfoMask;
@@ -552,12 +528,12 @@ typedef struct _D3DPERF
     ULONGLONG m_TSCProfileStartTime;
 
     // Perf state bitmask history over last 10ms where it then wraps.
-    // 0x3 means gpu (1 << D3DPERF_PROF_GPU) and (1 << D3DPERF_PROF_FE) were busy.
+    // 0x2 means gpu (1 << D3DPERF_PROF_GPU) and (1 << D3DPERF_PROF_FE) were busy.
     // Cleared in D3DPERF_StartPerfProfile and D3DPERF_Reset calls.
     WORD m_ProfileData[105000];
 
     // Total busy counts for each unit read while profiler was enabled
-    DWORD m_ProfileBusyCounts[16];
+    DWORD m_ProfileBusyCounts[D3DPERF_PROF_MAX];
 
 
     // Performance monitoring members.
@@ -617,7 +593,7 @@ typedef struct _D3DPERF
 typedef struct _D3DSTATENAME
 {
     DWORD m_State;
-    const char *m_Name;
+    char *m_Name;
 
 } D3DSTATENAME;
 
@@ -627,10 +603,10 @@ typedef struct _D3DSTATENAME
 typedef struct _D3DPERFNAMES
 {
     // Array of string of human-readable names for the above counters.
-    const char *m_PerformanceCounterNames[D3DPERF_MAX];
+    char *m_PerformanceCounterNames[D3DPERF_MAX];
 
     // An array of human-readable names for the above counters.
-    const char *m_APICounterNames[D3DAPI_MAX];
+    char *m_APICounterNames[D3DAPI_MAX];
 
     // Human-readable names for the renderstate counters.
     D3DSTATENAME m_RenderStateNames[D3DRS_MAX];
@@ -706,21 +682,6 @@ BOOL WINAPI D3DPERF_StartPerfProfile();
 void WINAPI D3DPERF_StopPerfProfile();
 void WINAPI D3DPERF_DumpPerfProfCounts();
 
-// Routines for capturing push-buffer and timing data for later 
-// performance analysis.
-//
-HRESULT WINAPI D3DPERF_StartTimingCapture(const char *szFileName, DWORD Flags);
-HRESULT WINAPI D3DPERF_StopTimingCapture();
-
-HRESULT WINAPI D3DPERF_StartPushBufferCapture(const char *szFileName, DWORD Flags);
-HRESULT WINAPI D3DPERF_StopPushBufferCapture();
-
-BOOL WINAPI D3DPERF_QueryRepeatFrame();
-
-void WINAPI D3DPERF_SetMarker(D3DCOLOR Color, const char *szName, ...);
-INT WINAPI D3DPERF_BeginEvent(D3DCOLOR Color, const char *szName, ...);
-INT WINAPI D3DPERF_EndEvent();
-
 // Routine to spew current list of performance monitoring events.
 // Setting D3DPERF_DUMP_FPS_PERFEVENTS will cause D3DPERF_DumpFrameRateInfo to
 // dump this information also. Looks something like:
@@ -790,7 +751,7 @@ __inline void WINAPI D3DPERF_SetWaitCycleTimeThreshold(
 // any outstanding requests to the gpu will try to write
 // back to pPerf->pD3DPerfEvents.
 //
-__inline DWORD WINAPI D3DPERF_StartCountingPerfEvent(
+__inline BOOL WINAPI D3DPERF_StartCountingPerfEvent(
     DWORD EventCount
     )
 {
@@ -821,7 +782,7 @@ __inline DWORD WINAPI D3DPERF_StartCountingPerfEvent(
     // record mask (-1 is all)
     if(!pPerf->RecordD3DPerfEvents)
     {
-        pPerf->RecordD3DPerfEvents = (DWORD)(
+        pPerf->RecordD3DPerfEvents =
             (1 << D3DPERFEvent_Header) |
             (1 << D3DPERFEvent_Present) |
             (1 << D3DPERFEvent_BlockUntilIdle) |
@@ -833,7 +794,7 @@ __inline DWORD WINAPI D3DPERF_StartCountingPerfEvent(
             (1 << D3DPERFEvent_User4) | (1 << D3DPERFEvent_User5) |
             (1 << D3DPERFEvent_User6) | (1 << D3DPERFEvent_User7) |
             (1 << D3DPERFEvent_User8) | (1 << D3DPERFEvent_User9) |
-            (1 << D3DPERFEvent_User10));
+            (1 << D3DPERFEvent_User10);
     }
 
     return pPerf->RecordD3DPerfEvents;
@@ -877,7 +838,7 @@ void WINAPI D3DPERF_PerfEventEnd(
     D3DPERFEvent *pD3DPerfEvent, BOOL RecordGpuTime);
 
 // D3DPERF_BlockTimer / PERFEVENT_BLOCKTIMER
-//
+// 
 // Convenient struct+macro for inserting user-defined perf events.
 // Will time the period spanning the life of the object.
 //
@@ -924,7 +885,5 @@ struct D3DPERF_BlockTimer
 #ifdef __cplusplus
 }
 #endif
-
-#pragma warning( pop )
 
 #endif _D3D8PERF_H_

@@ -19,17 +19,18 @@
 #define DSFX_PARAM_TYPE_INTEGER    0x1
 #define DSFX_PARAM_TYPE_FLOAT      0x2
 
-typedef struct _FX_PARAM_DESCRIPTION 
-{
-    BYTE    ParameterName[255];
-    BYTE    ParameterDesc[255];
-    BYTE    UnitsName[64];
-    DWORD   dwOffset;
-    DWORD   dwDefaultValue;
-    DWORD   dwParameterType;
-    DWORD   dwParameterMin;
-    DWORD   dwParameterMax;
-    BOOL    bIsAtomic;
+typedef struct _FX_PARAM_DESCRIPTION {
+
+    BYTE  ParameterName[255];
+	BYTE  ParameterDesc[255];
+    BYTE  UnitsName[64];
+	DWORD dwOffset;
+	DWORD dwDefaultValue;
+    DWORD dwParameterType;
+    DWORD dwParameterMin;
+    DWORD dwParameterMax;
+    BOOL  bIsAtomic;
+
 } FX_PARAM_DESCRIPTION, *PFX_PARAM_DESCRIPTION;
 
 
@@ -506,31 +507,6 @@ typedef struct _DSFX_SPLITTER_PARAMS
 typedef const DSFX_SPLITTER_PARAMS *LPCDSFX_SPLITTER_PARAMS;
 
 //
-// 2x1 mixer
-//
-                            
-typedef struct _DSFX_MIXER_2x1_STATE
-{
-    DWORD       dwScratchOffset;
-    DWORD       dwScratchLength;
-    DWORD       dwYMemoryOffset;
-    DWORD       dwYMemoryLength;
-    DWORD       dwFlags;
-    DWORD       dwInMixbinPtrs[2];
-    DWORD       dwOutMixbinPtrs[1];
-} DSFX_MIXER_2x1_STATE, *LPDSFX_MIXER_2x1_STATE;
-
-typedef const DSFX_MIXER_2x1_STATE *LPCDSFX_MIXER_2x1_STATE;
-
-typedef struct _DSFX_MIXER_2x1_PARAMS
-{
-    DSFX_MIXER_2x1_STATE State;
-    DWORD                dwGains[2];
-} DSFX_MIXER_2x1_PARAMS, *LPDSFX_MIXER_2x1_PARAMS;
-
-typedef const DSFX_MIXER_2x1_PARAMS *LPCDSFX_MIXER_2x1_PARAMS;
-
-//
 // Sample Rate Converter
 //
 
@@ -545,13 +521,12 @@ typedef struct _DSFX_SAMPLE_RATE_CONVERTER_STATE
     DWORD       dwOutMixbinPtrs[1];
 } DSFX_SAMPLE_RATE_CONVERTER_STATE, *LPDSFX_SAMPLE_RATE_CONVERTER_STATE;
 
-typedef const DSFX_SAMPLE_RATE_CONVERTER_STATE *LPCDSFX_SAMPLE_RATE_CONVERTER_STATE;
+typedef const DSFX_SPLITTER_STATE *LPCDSFX_SPLITTER_STATE;
 
 typedef struct _DSFX_SAMPLE_RATE_CONVERTER_PARAMS
 {
     DSFX_SAMPLE_RATE_CONVERTER_STATE State;
     DWORD               dwConversionRatio;
-    DWORD               dwAmplificationFactor;
     DWORD               dwReserved[4];
     DWORD               dwScratchSampleOffset;
 } DSFX_SAMPLE_RATE_CONVERTER_PARAMS, *LPDSFX_SAMPLE_RATE_CONVERTER_PARAMS;

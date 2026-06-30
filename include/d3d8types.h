@@ -48,17 +48,6 @@ typedef struct _D3DVECTOR {
 #endif
 typedef struct _D3DVECTOR *LPD3DVECTOR;
 
-#ifndef D3DVECTOR4_DEFINED
-typedef struct _D3DVECTOR4 {
-    float x;
-    float y;
-    float z;
-    float w;
-} D3DVECTOR4;
-#define D3DVECTOR4_DEFINED
-#endif
-typedef struct _D3DVECTOR4 *LPD3DVECTOR4;
-
 #ifndef D3DCOLORVALUE_DEFINED
 typedef struct _D3DCOLORVALUE {
     float r;
@@ -152,57 +141,15 @@ typedef struct _D3DLIGHT8 {
 
 #define D3DZ_MAX_D16         65535.0
 #define D3DZ_MAX_D24S8       16777215.0
-#define D3DZ_MAX_F16         511.9375
+#define D3DZ_MAX_F16         511.9375   
 
 // We can't use the whole available range for the 24-bit floating point z
-// because the maximum value is very, very close to the IEEE single
+// because the maximum value is very, very close to the IEEE single 
 // precision maximum.  Any calculation using the value will cause an overflow.
 //
 // Back off a bit from the max (3.4028e38),
 //
 #define D3DZ_MAX_F24S8       1.0e30
-
-typedef DWORD D3DSHADERCONSTANTMODE;            // Xbox extension
-
-#define D3DSCM_96CONSTANTS                  0
-#define D3DSCM_192CONSTANTS                 1
-#define D3DSCM_192CONSTANTSANDFIXEDPIPELINE 2
-#define D3DSCM_NORESERVEDCONSTANTS          0x10    // Flag
-
-// Primitives supported by draw-primitive API
-typedef enum _D3DPRIMITIVETYPE {
-    D3DPT_POINTLIST             = 1,
-    D3DPT_LINELIST              = 2,
-    D3DPT_LINELOOP              = 3,  // Xbox extension
-    D3DPT_LINESTRIP             = 4,
-    D3DPT_TRIANGLELIST          = 5,
-    D3DPT_TRIANGLESTRIP         = 6,
-    D3DPT_TRIANGLEFAN           = 7,
-    D3DPT_QUADLIST              = 8,  // Xbox extension
-    D3DPT_QUADSTRIP             = 9,  // Xbox extension
-    D3DPT_POLYGON               = 10, // Xbox extension
-
-    D3DPT_MAX                   = 11,
-    D3DPT_FORCE_DWORD           = 0x7fffffff, /* force 32-bit size enum */
-} D3DPRIMITIVETYPE;
-
-typedef enum _D3DTRANSFORMSTATETYPE {
-    D3DTS_VIEW          = 0,
-    D3DTS_PROJECTION    = 1,
-    D3DTS_TEXTURE0      = 2,
-    D3DTS_TEXTURE1      = 3,
-    D3DTS_TEXTURE2      = 4,
-    D3DTS_TEXTURE3      = 5,
-    D3DTS_WORLD         = 6,
-    D3DTS_WORLD1        = 7,
-    D3DTS_WORLD2        = 8,
-    D3DTS_WORLD3        = 9,
-
-    D3DTS_MAX           = 10,
-    D3DTS_FORCE_DWORD   = 0x7fffffff, /* force 32-bit size enum */
-} D3DTRANSFORMSTATETYPE;
-
-#define D3DTS_WORLDMATRIX(index) (D3DTRANSFORMSTATETYPE)(index + D3DTS_WORLD)
 
 /*
  * The following defines the rendering states
@@ -213,6 +160,7 @@ typedef enum _D3DSHADEMODE {
     D3DSHADE_GOURAUD            = 0x1d01,
     D3DSHADE_FORCE_DWORD        = 0x7fffffff, /* force 32-bit size enum */
 } D3DSHADEMODE;
+
 
 typedef enum _D3DFILLMODE {
     D3DFILL_POINT               = 0x1b00,
@@ -254,6 +202,36 @@ typedef enum _D3DBLENDOP {
     D3DBLENDOP_REVSUBTRACTSIGNED= 0xf005,       // Xbox extension
     D3DBLENDOP_FORCE_DWORD      = 0x7fffffff, /* force 32-bit size enum */
 } D3DBLENDOP;
+
+typedef enum _D3DTEXTUREADDRESS {
+    D3DTADDRESS_WRAP            = 1,
+    D3DTADDRESS_MIRROR          = 2,
+    D3DTADDRESS_CLAMP           = 3,
+    D3DTADDRESS_BORDER          = 4,
+    D3DTADDRESS_CLAMPTOEDGE     = 5, // Xbox extension
+
+    // D3DTADDRESS_MIRRORONCE not supported on Xbox
+
+    D3DTADDRESS_MAX             = 6,
+    D3DTADDRESS_FORCE_DWORD     = 0x7fffffff, /* force 32-bit size enum */
+} D3DTEXTUREADDRESS;
+
+typedef enum _D3DTEXTURECOLORKEYOP {            // Xbox extension
+    D3DTCOLORKEYOP_DISABLE      = 0,
+    D3DTCOLORKEYOP_ALPHA        = 1,
+    D3DTCOLORKEYOP_RGBA         = 2,
+    D3DTCOLORKEYOP_KILL         = 3,
+
+    D3DTCOLORKEYOP_MAX          = 4,
+    D3DTCOLORKEYOP_FORCE_DWORD  = 0x7fffffff, /* force 32-bit size enum */
+} D3DTEXTURECOLORKEYOP;
+
+typedef enum _D3DTEXTUREALPHAKILL {             // Xbox extension
+    D3DTALPHAKILL_DISABLE       = 0,
+    D3DTALPHAKILL_ENABLE        = 4,
+
+    D3DTALPHAKILL_FORCE_DWORD   = 0x7fffffff, /* force 32-bit size enum */
+} D3DTEXTUREALPHAKILL;
 
 typedef enum _D3DCULL {
     D3DCULL_NONE                = 0,
@@ -310,6 +288,23 @@ typedef enum _D3DSWATHWIDTH {                   // Xbox extension
     D3DSWATH_FORCE_DWORD        = 0x7fffffff, /* force 32-bit size enum */
 } D3DSWATHWIDTH;
 
+typedef enum _D3DPALETTESIZE {                  // Xbox extension
+    D3DPALETTE_256              = 0,
+    D3DPALETTE_128              = 1,
+    D3DPALETTE_64               = 2,
+    D3DPALETTE_32               = 3,
+
+    D3DPALETTE_MAX              = 4,
+    D3DPALETTE_FORCE_DWORD      = 0x7fffffff, /* force 32-bit size enum */
+} D3DPALETTESIZE;
+
+typedef DWORD D3DSHADERCONSTANTMODE;            // Xbox extension
+
+#define D3DSCM_96CONSTANTS                  0
+#define D3DSCM_192CONSTANTS                 1
+#define D3DSCM_192CONSTANTSANDFIXEDPIPELINE 2
+#define D3DSCM_NORESERVEDCONSTANTS          0x10    // Flag
+
 typedef enum _D3DLOGICOP {                      // Xbox extension
     D3DLOGICOP_NONE             = 0,
     D3DLOGICOP_CLEAR            = 0x1500,
@@ -338,62 +333,40 @@ typedef enum _D3DZBUFFERTYPE {
     D3DZB_FORCE_DWORD           = 0x7fffffff, /* force 32-bit size enum */
 } D3DZBUFFERTYPE;
 
-// The D3DVERTEXBLENDFLAGS type is used with D3DRS_VERTEXBLEND state.
-//
-typedef enum _D3DVERTEXBLENDFLAGS
-{
-    D3DVBF_DISABLE           = 0,     // Disable vertex blending
-    D3DVBF_1WEIGHTS          = 1,     // 2 matrix blending
-    D3DVBF_2WEIGHTS          = 3,     // 3 matrix blending
-    D3DVBF_3WEIGHTS          = 5,     // 4 matrix blending
-    D3DVBF_2WEIGHTS2MATRICES = 2,     // Xbox extension
-    D3DVBF_3WEIGHTS3MATRICES = 4,     // Xbox extension
-    D3DVBF_4WEIGHTS4MATRICES = 6,     // Xbox extension
+// Primitives supported by draw-primitive API
+typedef enum _D3DPRIMITIVETYPE {
+    D3DPT_POINTLIST             = 1,
+    D3DPT_LINELIST              = 2,
+    D3DPT_LINELOOP              = 3,  // Xbox extension
+    D3DPT_LINESTRIP             = 4,
+    D3DPT_TRIANGLELIST          = 5,
+    D3DPT_TRIANGLESTRIP         = 6,
+    D3DPT_TRIANGLEFAN           = 7,
+    D3DPT_QUADLIST              = 8,  // Xbox extension
+    D3DPT_QUADSTRIP             = 9,  // Xbox extension
+    D3DPT_POLYGON               = 10, // Xbox extension
 
-    D3DVBF_MAX               = 7,
-    D3DVBF_FORCE_DWORD       = 0x7fffffff, // force 32-bit size enum
-} D3DVERTEXBLENDFLAGS;
+    D3DPT_MAX                   = 11,
+    D3DPT_FORCE_DWORD           = 0x7fffffff, /* force 32-bit size enum */
+} D3DPRIMITIVETYPE;
 
-// Values for material source
-typedef enum _D3DMATERIALCOLORSOURCE
-{
-    D3DMCS_MATERIAL         = 0,            // Color from material is used
-    D3DMCS_COLOR1           = 1,            // Diffuse vertex color is used
-    D3DMCS_COLOR2           = 2,            // Specular vertex color is used
-    D3DMCS_FORCE_DWORD      = 0x7fffffff,   // force 32-bit size enum
-} D3DMATERIALCOLORSOURCE;
+typedef enum _D3DTRANSFORMSTATETYPE {
+    D3DTS_VIEW          = 0,
+    D3DTS_PROJECTION    = 1,
+    D3DTS_TEXTURE0      = 2,
+    D3DTS_TEXTURE1      = 3,
+    D3DTS_TEXTURE2      = 4,
+    D3DTS_TEXTURE3      = 5,
+    D3DTS_WORLD         = 6,
+    D3DTS_WORLD1        = 7,
+    D3DTS_WORLD2        = 8,
+    D3DTS_WORLD3        = 9,
 
-//
-// Values for D3DRS_DEPTHCLIPCONTROL renderstate (Xbox extension)
-//
-#define D3DDCC_CULLPRIMITIVE 0x001
-#define D3DDCC_CLAMP         0x010
-#define D3DDCC_IGNORE_W_SIGN 0x100
+    D3DTS_MAX           = 10,
+    D3DTS_FORCE_DWORD   = 0x7fffffff, /* force 32-bit size enum */
+} D3DTRANSFORMSTATETYPE;
 
-/* Flags to construct D3DRS_COLORWRITEENABLE */
-#define D3DCOLORWRITEENABLE_RED     (1L<<16)
-#define D3DCOLORWRITEENABLE_GREEN   (1L<<8)
-#define D3DCOLORWRITEENABLE_BLUE    (1L<<0)
-#define D3DCOLORWRITEENABLE_ALPHA   (1L<<24)
-#define D3DCOLORWRITEENABLE_ALL     0x01010101 // Xbox extension
-
-/* Flags to construct D3DRS_SAMPLEALPHA */
-#define D3DSAMPLEALPHA_TOCOVERAGE   0x0010
-#define D3DSAMPLEALPHA_TOONE        0x0100
-
-// Bias to apply to the texture coordinate set to apply a wrap to.
-#define D3DRENDERSTATE_WRAPBIAS     D3DRS_WRAP0
-
-/* Flags to construct the WRAP render states */
-#define D3DWRAP_U   0x00000010L
-#define D3DWRAP_V   0x00001000L
-#define D3DWRAP_W   0x00100000L
-
-/* Flags to construct the WRAP render states for 1D thru 4D texture coordinates */
-#define D3DWRAPCOORD_0   0x00000010L    // same as D3DWRAP_U
-#define D3DWRAPCOORD_1   0x00001000L    // same as D3DWRAP_V
-#define D3DWRAPCOORD_2   0x00100000L    // same as D3DWRAP_W
-#define D3DWRAPCOORD_3   0x01000000L
+#define D3DTS_WORLDMATRIX(index) (D3DTRANSFORMSTATETYPE)(index + D3DTS_WORLD)
 
 typedef enum _D3DRENDERSTATETYPE {
 
@@ -403,14 +376,14 @@ typedef enum _D3DRENDERSTATETYPE {
 
     // The following pixel-shader renderstates are all Xbox extensions:
 
-    D3DRS_PSALPHAINPUTS0                = 0,   // Pixel shader, Stage 0 alpha inputs
-    D3DRS_PSALPHAINPUTS1                = 1,   // Pixel shader, Stage 1 alpha inputs
-    D3DRS_PSALPHAINPUTS2                = 2,   // Pixel shader, Stage 2 alpha inputs
-    D3DRS_PSALPHAINPUTS3                = 3,   // Pixel shader, Stage 3 alpha inputs
-    D3DRS_PSALPHAINPUTS4                = 4,   // Pixel shader, Stage 4 alpha inputs
-    D3DRS_PSALPHAINPUTS5                = 5,   // Pixel shader, Stage 5 alpha inputs
-    D3DRS_PSALPHAINPUTS6                = 6,   // Pixel shader, Stage 6 alpha inputs
-    D3DRS_PSALPHAINPUTS7                = 7,   // Pixel shader, Stage 7 alpha inputs
+    D3DRS_PSALPHAINPUTS0                = 0,   // Pixel shader, Stage 0 alpha inputs                         
+    D3DRS_PSALPHAINPUTS1                = 1,   // Pixel shader, Stage 1 alpha inputs                         
+    D3DRS_PSALPHAINPUTS2                = 2,   // Pixel shader, Stage 2 alpha inputs                         
+    D3DRS_PSALPHAINPUTS3                = 3,   // Pixel shader, Stage 3 alpha inputs                         
+    D3DRS_PSALPHAINPUTS4                = 4,   // Pixel shader, Stage 4 alpha inputs                         
+    D3DRS_PSALPHAINPUTS5                = 5,   // Pixel shader, Stage 5 alpha inputs                         
+    D3DRS_PSALPHAINPUTS6                = 6,   // Pixel shader, Stage 6 alpha inputs                         
+    D3DRS_PSALPHAINPUTS7                = 7,   // Pixel shader, Stage 7 alpha inputs                         
     D3DRS_PSFINALCOMBINERINPUTSABCD     = 8,   // Pixel shader, Final combiner inputs ABCD
     D3DRS_PSFINALCOMBINERINPUTSEFG      = 9,   // Pixel shader, Final combiner inputs EFG
     D3DRS_PSCONSTANT0_0                 = 10,  // Pixel shader, C0 in stage 0
@@ -429,162 +402,142 @@ typedef enum _D3DRENDERSTATETYPE {
     D3DRS_PSCONSTANT1_5                 = 23,  // Pixel shader, C1 in stage 5
     D3DRS_PSCONSTANT1_6                 = 24,  // Pixel shader, C1 in stage 6
     D3DRS_PSCONSTANT1_7                 = 25,  // Pixel shader, C1 in stage 7
-    D3DRS_PSALPHAOUTPUTS0               = 26,  // Pixel shader, Stage 0 alpha outputs
-    D3DRS_PSALPHAOUTPUTS1               = 27,  // Pixel shader, Stage 1 alpha outputs
-    D3DRS_PSALPHAOUTPUTS2               = 28,  // Pixel shader, Stage 2 alpha outputs
-    D3DRS_PSALPHAOUTPUTS3               = 29,  // Pixel shader, Stage 3 alpha outputs
-    D3DRS_PSALPHAOUTPUTS4               = 30,  // Pixel shader, Stage 4 alpha outputs
-    D3DRS_PSALPHAOUTPUTS5               = 31,  // Pixel shader, Stage 5 alpha outputs
-    D3DRS_PSALPHAOUTPUTS6               = 32,  // Pixel shader, Stage 6 alpha outputs
-    D3DRS_PSALPHAOUTPUTS7               = 33,  // Pixel shader, Stage 7 alpha outputs
-    D3DRS_PSRGBINPUTS0                  = 34,  // Pixel shader, Stage 0 RGB inputs
-    D3DRS_PSRGBINPUTS1                  = 35,  // Pixel shader, Stage 1 RGB inputs
-    D3DRS_PSRGBINPUTS2                  = 36,  // Pixel shader, Stage 2 RGB inputs
-    D3DRS_PSRGBINPUTS3                  = 37,  // Pixel shader, Stage 3 RGB inputs
-    D3DRS_PSRGBINPUTS4                  = 38,  // Pixel shader, Stage 4 RGB inputs
-    D3DRS_PSRGBINPUTS5                  = 39,  // Pixel shader, Stage 5 RGB inputs
-    D3DRS_PSRGBINPUTS6                  = 40,  // Pixel shader, Stage 6 RGB inputs
-    D3DRS_PSRGBINPUTS7                  = 41,  // Pixel shader, Stage 7 RGB inputs
-    D3DRS_PSCOMPAREMODE                 = 42,  // Pixel shader, Compare modes for clipplane texture mode
+    D3DRS_PSALPHAOUTPUTS0               = 26,  // Pixel shader, Stage 0 alpha outputs                        
+    D3DRS_PSALPHAOUTPUTS1               = 27,  // Pixel shader, Stage 1 alpha outputs                        
+    D3DRS_PSALPHAOUTPUTS2               = 28,  // Pixel shader, Stage 2 alpha outputs                        
+    D3DRS_PSALPHAOUTPUTS3               = 29,  // Pixel shader, Stage 3 alpha outputs                        
+    D3DRS_PSALPHAOUTPUTS4               = 30,  // Pixel shader, Stage 4 alpha outputs                        
+    D3DRS_PSALPHAOUTPUTS5               = 31,  // Pixel shader, Stage 5 alpha outputs                        
+    D3DRS_PSALPHAOUTPUTS6               = 32,  // Pixel shader, Stage 6 alpha outputs                        
+    D3DRS_PSALPHAOUTPUTS7               = 33,  // Pixel shader, Stage 7 alpha outputs                        
+    D3DRS_PSRGBINPUTS0                  = 34,  // Pixel shader, Stage 0 RGB inputs                           
+    D3DRS_PSRGBINPUTS1                  = 35,  // Pixel shader, Stage 1 RGB inputs                           
+    D3DRS_PSRGBINPUTS2                  = 36,  // Pixel shader, Stage 2 RGB inputs                           
+    D3DRS_PSRGBINPUTS3                  = 37,  // Pixel shader, Stage 3 RGB inputs                           
+    D3DRS_PSRGBINPUTS4                  = 38,  // Pixel shader, Stage 4 RGB inputs                           
+    D3DRS_PSRGBINPUTS5                  = 39,  // Pixel shader, Stage 5 RGB inputs                           
+    D3DRS_PSRGBINPUTS6                  = 40,  // Pixel shader, Stage 6 RGB inputs                           
+    D3DRS_PSRGBINPUTS7                  = 41,  // Pixel shader, Stage 7 RGB inputs                           
+    D3DRS_PSCOMPAREMODE                 = 42,  // Pixel shader, Compare modes for clipplane texture mode     
     D3DRS_PSFINALCOMBINERCONSTANT0      = 43,  // Pixel shader, C0 in final combiner
     D3DRS_PSFINALCOMBINERCONSTANT1      = 44,  // Pixel shader, C1 in final combiner
-    D3DRS_PSRGBOUTPUTS0                 = 45,  // Pixel shader, Stage 0 RGB outputs
-    D3DRS_PSRGBOUTPUTS1                 = 46,  // Pixel shader, Stage 1 RGB outputs
-    D3DRS_PSRGBOUTPUTS2                 = 47,  // Pixel shader, Stage 2 RGB outputs
-    D3DRS_PSRGBOUTPUTS3                 = 48,  // Pixel shader, Stage 3 RGB outputs
-    D3DRS_PSRGBOUTPUTS4                 = 49,  // Pixel shader, Stage 4 RGB outputs
-    D3DRS_PSRGBOUTPUTS5                 = 50,  // Pixel shader, Stage 5 RGB outputs
-    D3DRS_PSRGBOUTPUTS6                 = 51,  // Pixel shader, Stage 6 RGB outputs
-    D3DRS_PSRGBOUTPUTS7                 = 52,  // Pixel shader, Stage 7 RGB outputs
-    D3DRS_PSCOMBINERCOUNT               = 53,  // Pixel shader, Active combiner count (Stages 0-7)
+    D3DRS_PSRGBOUTPUTS0                 = 45,  // Pixel shader, Stage 0 RGB outputs                          
+    D3DRS_PSRGBOUTPUTS1                 = 46,  // Pixel shader, Stage 1 RGB outputs                          
+    D3DRS_PSRGBOUTPUTS2                 = 47,  // Pixel shader, Stage 2 RGB outputs                          
+    D3DRS_PSRGBOUTPUTS3                 = 48,  // Pixel shader, Stage 3 RGB outputs                          
+    D3DRS_PSRGBOUTPUTS4                 = 49,  // Pixel shader, Stage 4 RGB outputs                          
+    D3DRS_PSRGBOUTPUTS5                 = 50,  // Pixel shader, Stage 5 RGB outputs                          
+    D3DRS_PSRGBOUTPUTS6                 = 51,  // Pixel shader, Stage 6 RGB outputs                          
+    D3DRS_PSRGBOUTPUTS7                 = 52,  // Pixel shader, Stage 7 RGB outputs                          
+    D3DRS_PSCOMBINERCOUNT               = 53,  // Pixel shader, Active combiner count (Stages 0-7)           
                                                // Pixel shader, Reserved
-    D3DRS_PSDOTMAPPING                  = 55,  // Pixel shader, Input mapping for dot product modes
-    D3DRS_PSINPUTTEXTURE                = 56,  // Pixel shader, Texture source for some texture modes
-
-    D3DRS_PS_MAX                        = 57,
-
-    D3DRS_ZFUNC                         = 57,  // D3DCMPFUNC
-    D3DRS_ALPHAFUNC                     = 58,  // D3DCMPFUNC
-    D3DRS_ALPHABLENDENABLE              = 59,  // TRUE to enable alpha blending
-    D3DRS_ALPHATESTENABLE               = 60,  // TRUE to enable alpha tests
+    D3DRS_PSDOTMAPPING                  = 55,  // Pixel shader, Input mapping for dot product modes          
+    D3DRS_PSINPUTTEXTURE                = 56,  // Pixel shader, Texture source for some texture modes        
+                                        
+    D3DRS_PS_MAX                        = 57,  
+                                        
+    D3DRS_ZFUNC                         = 57,  // D3DCMPFUNC 
+    D3DRS_ALPHAFUNC                     = 58,  // D3DCMPFUNC 
+    D3DRS_ALPHABLENDENABLE              = 59,  // TRUE to enable alpha blending 
+    D3DRS_ALPHATESTENABLE               = 60,  // TRUE to enable alpha tests 
     D3DRS_ALPHAREF                      = 61,  // BYTE
-    D3DRS_SRCBLEND                      = 62,  // D3DBLEND
-    D3DRS_DESTBLEND                     = 63,  // D3DBLEND
-    D3DRS_ZWRITEENABLE                  = 64,  // TRUE to enable Z writes
-    D3DRS_DITHERENABLE                  = 65,  // TRUE to enable dithering
-    D3DRS_SHADEMODE                     = 66,  // D3DSHADEMODE
+    D3DRS_SRCBLEND                      = 62,  // D3DBLEND 
+    D3DRS_DESTBLEND                     = 63,  // D3DBLEND 
+    D3DRS_ZWRITEENABLE                  = 64,  // TRUE to enable Z writes 
+    D3DRS_DITHERENABLE                  = 65,  // TRUE to enable dithering 
+    D3DRS_SHADEMODE                     = 66,  // D3DSHADEMODE 
     D3DRS_COLORWRITEENABLE              = 67,  // D3DCOLORWRITEENABLE_ALPHA, etc. per-channel write enable
-    D3DRS_STENCILZFAIL                  = 68,  // D3DSTENCILOP to do if stencil test passes and Z test fails
-    D3DRS_STENCILPASS                   = 69,  // D3DSTENCILOP to do if both stencil and Z tests pass
+    D3DRS_STENCILZFAIL                  = 68,  // D3DSTENCILOP to do if stencil test passes and Z test fails 
+    D3DRS_STENCILPASS                   = 69,  // D3DSTENCILOP to do if both stencil and Z tests pass 
     D3DRS_STENCILFUNC                   = 70,  // D3DCMPFUNC
-    D3DRS_STENCILREF                    = 71,  // BYTE reference value used in stencil test
-    D3DRS_STENCILMASK                   = 72,  // BYTE mask value used in stencil test
-    D3DRS_STENCILWRITEMASK              = 73,  // BYTE write mask applied to values written to stencil buffer
+    D3DRS_STENCILREF                    = 71,  // BYTE reference value used in stencil test 
+    D3DRS_STENCILMASK                   = 72,  // BYTE mask value used in stencil test 
+    D3DRS_STENCILWRITEMASK              = 73,  // BYTE write mask applied to values written to stencil buffer 
     D3DRS_BLENDOP                       = 74,  // D3DBLENDOP setting
-    D3DRS_BLENDCOLOR                    = 75,  // D3DCOLOR for D3DBLEND_CONSTANTCOLOR, etc. (Xbox extension)
+    D3DRS_BLENDCOLOR                    = 75,  // D3DCOLOR for D3DBLEND_CONSTANT, etc. (Xbox extension)
     D3DRS_SWATHWIDTH                    = 76,  // D3DSWATHWIDTH (Xbox extension)
     D3DRS_POLYGONOFFSETZSLOPESCALE      = 77,  // float Z factor for shadow maps (Xbox extension)
     D3DRS_POLYGONOFFSETZOFFSET          = 78,  // float bias for polygon offset (Xbox extension)
     D3DRS_POINTOFFSETENABLE             = 79,  // TRUE to enable polygon offset for points (Xbox extension)
     D3DRS_WIREFRAMEOFFSETENABLE         = 80,  // TRUE to enable polygon offset for lines (Xbox extension)
     D3DRS_SOLIDOFFSETENABLE             = 81,  // TRUE to enable polygon offset for fills (Xbox extension)
-    D3DRS_DEPTHCLIPCONTROL              = 82,  // D3DDCC_CULLPRIMITIVE, etc. (Xbox extension)
-    D3DRS_STIPPLEENABLE                 = 83,  // TRUE to enable stipple for polygons (Xbox extension)
-    D3DRS_SIMPLE_UNUSED8                = 84,  // Reserved
-    D3DRS_SIMPLE_UNUSED7                = 85,  // Reserved
-    D3DRS_SIMPLE_UNUSED6                = 86,  // Reserved
-    D3DRS_SIMPLE_UNUSED5                = 87,  // Reserved
-    D3DRS_SIMPLE_UNUSED4                = 88,  // Reserved
-    D3DRS_SIMPLE_UNUSED3                = 89,  // Reserved
-    D3DRS_SIMPLE_UNUSED2                = 90,  // Reserved
-    D3DRS_SIMPLE_UNUSED1                = 91,  // Reserved
-
-    D3DRS_SIMPLE_MAX                    = 92,
+                                        
+    D3DRS_SIMPLE_MAX                    = 82,
 
     // State whose handling is deferred until the next Draw[Indexed]Vertices
     // call because of interdependencies on other states:
 
-    D3DRS_FOGENABLE                     = 92,  // TRUE to enable fog blending
-    D3DRS_FOGTABLEMODE                  = 93,  // D3DFOGMODE
-    D3DRS_FOGSTART                      = 94,  // float fog start (for both vertex and pixel fog)
-    D3DRS_FOGEND                        = 95,  // float fog end
-    D3DRS_FOGDENSITY                    = 96,  // float fog density
-    D3DRS_RANGEFOGENABLE                = 97,  // TRUE to enable range-based fog
-    D3DRS_WRAP0                         = 98,  // D3DWRAPCOORD_0, etc. for 1st texture coord.
-    D3DRS_WRAP1                         = 99,  // D3DWRAPCOORD_0, etc. for 2nd texture coord.
-    D3DRS_WRAP2                         = 100, // D3DWRAPCOORD_0, etc. for 3rd texture coord.
-    D3DRS_WRAP3                         = 101, // D3DWRAPCOORD_0, etc. for 4th texture coord.
-    D3DRS_LIGHTING                      = 102, // TRUE to enable lighting
-    D3DRS_SPECULARENABLE                = 103, // TRUE to enable specular
-    D3DRS_LOCALVIEWER                   = 104, // TRUE to enable camera-relative specular highlights
-    D3DRS_COLORVERTEX                   = 105, // TRUE to enable per-vertex color
-    D3DRS_BACKSPECULARMATERIALSOURCE    = 106, // D3DMATERIALCOLORSOURCE (Xbox extension)
-    D3DRS_BACKDIFFUSEMATERIALSOURCE     = 107, // D3DMATERIALCOLORSOURCE (Xbox extension)
-    D3DRS_BACKAMBIENTMATERIALSOURCE     = 108, // D3DMATERIALCOLORSOURCE (Xbox extension)
-    D3DRS_BACKEMISSIVEMATERIALSOURCE    = 109, // D3DMATERIALCOLORSOURCE (Xbox extension)
-    D3DRS_SPECULARMATERIALSOURCE        = 110, // D3DMATERIALCOLORSOURCE
-    D3DRS_DIFFUSEMATERIALSOURCE         = 111, // D3DMATERIALCOLORSOURCE
-    D3DRS_AMBIENTMATERIALSOURCE         = 112, // D3DMATERIALCOLORSOURCE
-    D3DRS_EMISSIVEMATERIALSOURCE        = 113, // D3DMATERIALCOLORSOURCE
-    D3DRS_BACKAMBIENT                   = 114, // D3DCOLOR (Xbox extension)
-    D3DRS_AMBIENT                       = 115, // D3DCOLOR
-    D3DRS_POINTSIZE                     = 116, // float point size
-    D3DRS_POINTSIZE_MIN                 = 117, // float point size min threshold
-    D3DRS_POINTSPRITEENABLE             = 118, // TRUE to enable point sprites
-    D3DRS_POINTSCALEENABLE              = 119, // TRUE to enable point size scaling
-    D3DRS_POINTSCALE_A                  = 120, // float point attenuation A value
-    D3DRS_POINTSCALE_B                  = 121, // float point attenuation B value
-    D3DRS_POINTSCALE_C                  = 122, // float point attenuation C value
-    D3DRS_POINTSIZE_MAX                 = 123, // float point size max threshold
-    D3DRS_PATCHEDGESTYLE                = 124, // D3DPATCHEDGESTYLE
-    D3DRS_PATCHSEGMENTS                 = 125, // DWORD number of segments per edge when drawing patches
-    D3DRS_SWAPFILTER                    = 126, // D3DTEXF_LINEAR etc. filter to use for Swap (Xbox extension)
-    D3DRS_PRESENTATIONINTERVAL          = 127, // D3DPRESENT_INTERVAL_ONE, etc. (Xbox extension)
-    D3DRS_DEFERRED_UNUSED8              = 128, // Reserved
-    D3DRS_DEFERRED_UNUSED7              = 129, // Reserved
-    D3DRS_DEFERRED_UNUSED6              = 130, // Reserved
-    D3DRS_DEFERRED_UNUSED5              = 131, // Reserved
-    D3DRS_DEFERRED_UNUSED4              = 132, // Reserved
-    D3DRS_DEFERRED_UNUSED3              = 133, // Reserved
-    D3DRS_DEFERRED_UNUSED2              = 134, // Reserved
-    D3DRS_DEFERRED_UNUSED1              = 135, // Reserved
-
-    D3DRS_DEFERRED_MAX                  = 136,
+    D3DRS_FOGENABLE                     = 82,  // TRUE to enable fog blending 
+    D3DRS_FOGTABLEMODE                  = 83,  // D3DFOGMODE 
+    D3DRS_FOGSTART                      = 84,  // float fog start (for both vertex and pixel fog) 
+    D3DRS_FOGEND                        = 85,  // float fog end      
+    D3DRS_FOGDENSITY                    = 86,  // float fog density  
+    D3DRS_RANGEFOGENABLE                = 87,  // TRUE to enable range-based fog 
+    D3DRS_WRAP0                         = 88,  // D3DWRAP* flags (D3DWRAP_U, D3DWRAPCOORD_0, etc.) for 1st texture coord.
+    D3DRS_WRAP1                         = 89,  // D3DWRAP* flags (D3DWRAP_U, D3DWRAPCOORD_0, etc.) for 2nd texture coord. 
+    D3DRS_WRAP2                         = 90,  // D3DWRAP* flags (D3DWRAP_U, D3DWRAPCOORD_0, etc.) for 3rd texture coord. 
+    D3DRS_WRAP3                         = 91,  // D3DWRAP* flags (D3DWRAP_U, D3DWRAPCOORD_0, etc.) for 4th texture coord. 
+    D3DRS_LIGHTING                      = 92,  // TRUE to enable lighting
+    D3DRS_SPECULARENABLE                = 93,  // TRUE to enable specular 
+    D3DRS_LOCALVIEWER                   = 94,  // TRUE to enable camera-relative specular highlights
+    D3DRS_COLORVERTEX                   = 95,  // TRUE to enable per-vertex color
+    D3DRS_BACKSPECULARMATERIALSOURCE    = 96,  // D3DMATERIALCOLORSOURCE (Xbox extension)
+    D3DRS_BACKDIFFUSEMATERIALSOURCE     = 97,  // D3DMATERIALCOLORSOURCE (Xbox extension)
+    D3DRS_BACKAMBIENTMATERIALSOURCE     = 98,  // D3DMATERIALCOLORSOURCE (Xbox extension)
+    D3DRS_BACKEMISSIVEMATERIALSOURCE    = 99,  // D3DMATERIALCOLORSOURCE (Xbox extension)
+    D3DRS_SPECULARMATERIALSOURCE        = 100, // D3DMATERIALCOLORSOURCE 
+    D3DRS_DIFFUSEMATERIALSOURCE         = 101, // D3DMATERIALCOLORSOURCE 
+    D3DRS_AMBIENTMATERIALSOURCE         = 102, // D3DMATERIALCOLORSOURCE 
+    D3DRS_EMISSIVEMATERIALSOURCE        = 103, // D3DMATERIALCOLORSOURCE 
+    D3DRS_BACKAMBIENT                   = 104, // D3DCOLOR (Xbox extension)
+    D3DRS_AMBIENT                       = 105, // D3DCOLOR 
+    D3DRS_POINTSIZE                     = 106, // float point size 
+    D3DRS_POINTSIZE_MIN                 = 107, // float point size min threshold 
+    D3DRS_POINTSPRITEENABLE             = 108, // TRUE to enable point sprites
+    D3DRS_POINTSCALEENABLE              = 109, // TRUE to enable point size scaling
+    D3DRS_POINTSCALE_A                  = 110, // float point attenuation A value 
+    D3DRS_POINTSCALE_B                  = 111, // float point attenuation B value 
+    D3DRS_POINTSCALE_C                  = 112, // float point attenuation C value 
+    D3DRS_POINTSIZE_MAX                 = 113, // float point size max threshold 
+    D3DRS_PATCHEDGESTYLE                = 114, // D3DPATCHEDGESTYLE
+    D3DRS_PATCHSEGMENTS                 = 115, // DWORD number of segments per edge when drawing patches
+    D3DRS_SWAPFILTER                    = 116, // D3DTEXF_* (D3DTEXF_LINEAR etc.) filter to use for Swap (Xbox extension)
+                                        
+    D3DRS_DEFERRED_MAX                  = 117,
 
     // Complex state that has immediate processing:
 
-    D3DRS_PSTEXTUREMODES                = 136, // Pixel shader, Texture addressing modes (Xbox extension)
-    D3DRS_VERTEXBLEND                   = 137, // D3DVERTEXBLENDFLAGS
-    D3DRS_FOGCOLOR                      = 138, // D3DCOLOR
-    D3DRS_FILLMODE                      = 139, // D3DFILLMODE
-    D3DRS_BACKFILLMODE                  = 140, // D3DFILLMODE (Xbox extension)
-    D3DRS_TWOSIDEDLIGHTING              = 141, // TRUE to enable two-sided lighting (Xbox extension)
-    D3DRS_NORMALIZENORMALS              = 142, // TRUE to enable automatic normalization
-    D3DRS_ZENABLE                       = 143, // D3DZBUFFERTYPE (or TRUE/FALSE for legacy)
-    D3DRS_STENCILENABLE                 = 144, // TRUE to enable stenciling
-    D3DRS_STENCILFAIL                   = 145, // D3DSTENCILOP to do if stencil test fails
-    D3DRS_FRONTFACE                     = 146, // D3DFRONT (Xbox extension)
-    D3DRS_CULLMODE                      = 147, // D3DCULL
-    D3DRS_TEXTUREFACTOR                 = 148, // D3DCOLOR used for multi-texture blend
-    D3DRS_ZBIAS                         = 149, // LONG Z bias
-    D3DRS_LOGICOP                       = 150, // D3DLOGICOP (Xbox extension)
-    D3DRS_EDGEANTIALIAS                 = 151, // TRUE to enable edge antialiasing (Xbox extension)
-    D3DRS_MULTISAMPLEANTIALIAS          = 152, // TRUE to enable multisample antialiasing
-    D3DRS_MULTISAMPLEMASK               = 153, // DWORD per-pixel and per-sample enable/disable
-    D3DRS_MULTISAMPLEMODE               = 154, // D3DMULTISAMPLEMODE for the backbuffer (Xbox extension)
-    D3DRS_MULTISAMPLERENDERTARGETMODE   = 155, // D3DMULTISAMPLEMODE for non-backbuffer render targets (Xbox extension)
-    D3DRS_SHADOWFUNC                    = 156, // D3DCMPFUNC (Xbox extension)
-    D3DRS_LINEWIDTH                     = 157, // float (Xbox extension)
-    D3DRS_SAMPLEALPHA                   = 158, // D3DSAMPLEALPHA_TOCOVERAGE, etc. (Xbox extension)
-    D3DRS_DXT1NOISEENABLE               = 159, // TRUE to enable DXT1 decompression noise (Xbox extension)
-    D3DRS_YUVENABLE                     = 160, // TRUE to enable use of D3DFMT_YUY2 and D3DFMT_UYVY texture formats (Xbox extension)
-    D3DRS_OCCLUSIONCULLENABLE           = 161, // TRUE to enable Z occlusion culling (Xbox extension)
-    D3DRS_STENCILCULLENABLE             = 162, // TRUE to enable stencil culling (Xbox extension)
-    D3DRS_ROPZCMPALWAYSREAD             = 163, // TRUE to always read target packet when Z enabled (Xbox extension)
-    D3DRS_ROPZREAD                      = 164, // TRUE to always read Z (Xbox extension)
-    D3DRS_DONOTCULLUNCOMPRESSED         = 165, // TRUE to never attempt occlusion culling (stencil or Z) on uncompressed packets (Xbox extension)
-
-    D3DRS_MAX                           = 166, // Total number of renderstates
+    D3DRS_PSTEXTUREMODES                = 117, // Pixel shader, Texture addressing modes (Xbox extension)
+    D3DRS_VERTEXBLEND                   = 118, // D3DVERTEXBLENDFLAGS
+    D3DRS_FOGCOLOR                      = 119, // D3DCOLOR 
+    D3DRS_FILLMODE                      = 120, // D3DFILLMODE        
+    D3DRS_BACKFILLMODE                  = 121, // D3DFILLMODE (Xbox extension)
+    D3DRS_TWOSIDEDLIGHTING              = 122, // TRUE to enable two-sided lighting (Xbox extension)
+    D3DRS_NORMALIZENORMALS              = 123, // TRUE to enable automatic normalization
+    D3DRS_ZENABLE                       = 124, // D3DZBUFFERTYPE (or TRUE/FALSE for legacy) 
+    D3DRS_STENCILENABLE                 = 125, // TRUE to enable stenciling
+    D3DRS_STENCILFAIL                   = 126, // D3DSTENCILOP to do if stencil test fails 
+    D3DRS_FRONTFACE                     = 127, // D3DFRONT (Xbox extension)
+    D3DRS_CULLMODE                      = 128, // D3DCULL 
+    D3DRS_TEXTUREFACTOR                 = 129, // D3DCOLOR used for multi-texture blend 
+    D3DRS_ZBIAS                         = 130, // LONG Z bias 
+    D3DRS_LOGICOP                       = 131, // D3DLOGICOP (Xbox extension)
+    D3DRS_EDGEANTIALIAS                 = 132, // TRUE to enable edge antialiasing (Xbox extension)
+    D3DRS_MULTISAMPLEANTIALIAS          = 133, // TRUE to enable multisample antialiasing
+    D3DRS_MULTISAMPLEMASK               = 134, // DWORD per-pixel and per-sample enable/disable
+    D3DRS_MULTISAMPLEMODE               = 135, // D3DMULTISAMPLEMODE for the backbuffer (Xbox extension)
+    D3DRS_MULTISAMPLERENDERTARGETMODE   = 136, // D3DMULTISAMPLEMODE for non-backbuffer render targets (Xbox extension)
+    D3DRS_SHADOWFUNC                    = 137, // D3DCMPFUNC (Xbox extension)
+    D3DRS_LINEWIDTH                     = 138, // float (Xbox extension)
+    D3DRS_DXT1NOISEENABLE               = 139, // TRUE to enable DXT1 decompression noise (Xbox extension)
+    D3DRS_YUVENABLE                     = 140, // TRUE to enable use of D3DFMT_YUY2 and D3DFMT_UYVY texture formats
+    D3DRS_OCCLUSIONCULLENABLE           = 141, // TRUE to enable Z occlusion culling
+    D3DRS_STENCILCULLENABLE             = 142, // TRUE to enable stencil culling
+    D3DRS_ROPZCMPALWAYSREAD             = 143, // TRUE to always read target packet when Z enabled
+    D3DRS_ROPZREAD                      = 144, // TRUE to always read Z
+    D3DRS_DONOTCULLUNCOMPRESSED         = 145, // TRUE to never attempt occlusion culling (stencil or Z) on uncompressed packets
+                                        
+    D3DRS_MAX                           = 146, // Total number of renderstates 
 
     // Render states that are not supported on Xbox:
     //
@@ -601,10 +554,100 @@ typedef enum _D3DRENDERSTATETYPE {
     D3DRS_FORCE_DWORD                   = 0x7fffffff, /* force 32-bit size enum */
 } D3DRENDERSTATETYPE;
 
+// Values for material source
+typedef enum _D3DMATERIALCOLORSOURCE
+{
+    D3DMCS_MATERIAL         = 0,            // Color from material is used
+    D3DMCS_COLOR1           = 1,            // Diffuse vertex color is used
+    D3DMCS_COLOR2           = 2,            // Specular vertex color is used
+    D3DMCS_FORCE_DWORD      = 0x7fffffff,   // force 32-bit size enum
+} D3DMATERIALCOLORSOURCE;
+
+// Bias to apply to the texture coordinate set to apply a wrap to.
+#define D3DRENDERSTATE_WRAPBIAS                 D3DRS_WRAP0
+
+/* Flags to construct the WRAP render states */
+#define D3DWRAP_U   0x00000010L
+#define D3DWRAP_V   0x00001000L
+#define D3DWRAP_W   0x00100000L
+
+/* Flags to construct the WRAP render states for 1D thru 4D texture coordinates */
+#define D3DWRAPCOORD_0   0x00000010L    // same as D3DWRAP_U
+#define D3DWRAPCOORD_1   0x00001000L    // same as D3DWRAP_V
+#define D3DWRAPCOORD_2   0x00100000L    // same as D3DWRAP_W
+#define D3DWRAPCOORD_3   0x01000000L
+
+/* Flags to construct D3DRS_COLORWRITEENABLE */
+#define D3DCOLORWRITEENABLE_RED     (1L<<16)
+#define D3DCOLORWRITEENABLE_GREEN   (1L<<8)
+#define D3DCOLORWRITEENABLE_BLUE    (1L<<0)
+#define D3DCOLORWRITEENABLE_ALPHA   (1L<<24)
+#define D3DCOLORWRITEENABLE_ALL     0x01010101 // Xbox extension
+
+/*
+ * State enumerants for per-stage texture processing.
+ */
+typedef enum _D3DTEXTURESTAGESTATETYPE
+{
+    // State whose handling is deferred until the next Draw[Indexed]Vertices
+    // call because of interdependencies on other states:
+
+    D3DTSS_ADDRESSU              =  0,  // D3DTEXTUREADDRESS for U coordinate 
+    D3DTSS_ADDRESSV              =  1,  // D3DTEXTUREADDRESS for V coordinate 
+    D3DTSS_ADDRESSW              =  2,  // D3DTEXTUREADDRESS for W coordinate 
+    D3DTSS_MAGFILTER             =  3,  // D3DTEXF_* (D3DTEXF_LINEAR etc.) filter to use for magnification 
+    D3DTSS_MINFILTER             =  4,  // D3DTEXF_* (D3DTEXF_LINEAR etc.) filter to use for minification 
+    D3DTSS_MIPFILTER             =  5,  // D3DTEXF_* (D3DTEXF_LINEAR etc.) filter to use between mipmaps during minification 
+    D3DTSS_MIPMAPLODBIAS         =  6,  // float mipmap LOD bias 
+    D3DTSS_MAXMIPLEVEL           =  7,  // DWORD 0..(n-1) LOD index of largest map to use (0 == largest) 
+    D3DTSS_MAXANISOTROPY         =  8,  // DWORD maximum anisotropy 
+    D3DTSS_COLORKEYOP            =  9,  // D3DTEXTURECOLORKEYOP (Xbox extension)
+    D3DTSS_COLORSIGN             = 10,  // D3DTSIGN_* (D3DTSIGN_ASIGNED etc.) for color channels (xbox extension)
+    D3DTSS_ALPHAKILL             = 11,  // D3DTEXTUREALPHAKILL (Xbox extension)
+
+    D3DTSS_DEFERRED_TEXTURE_STATE_MAX = 12,
+
+    D3DTSS_COLOROP               = 12,  // D3DTEXTUREOP - per-stage blending controls for color channels 
+    D3DTSS_COLORARG0             = 13,  // D3DTA_* (D3DTA_TEXTURE etc.) third arg for triadic ops 
+    D3DTSS_COLORARG1             = 14,  // D3DTA_* (D3DTA_TEXTURE etc.) texture arg
+    D3DTSS_COLORARG2             = 15,  // D3DTA_* (D3DTA_TEXTURE etc.) texture arg 
+    D3DTSS_ALPHAOP               = 16,  // D3DTEXTUREOP - per-stage blending controls for alpha channel 
+    D3DTSS_ALPHAARG0             = 17,  // D3DTA_* (D3DTA_TEXTURE etc.) third arg for triadic ops 
+    D3DTSS_ALPHAARG1             = 18,  // D3DTA_* (D3DTA_TEXTURE etc.) texture arg
+    D3DTSS_ALPHAARG2             = 19,  // D3DTA_* (D3DTA_TEXTURE etc.) texture arg) 
+    D3DTSS_RESULTARG             = 20,  // D3DTA_CURRENT or D3DTA_TEMP - arg for result 
+    D3DTSS_TEXTURETRANSFORMFLAGS = 21,  // D3DTEXTURETRANSFORMFLAGS controls texture transform 
+
+    D3DTSS_DEFERRED_MAX          = 22,
+
+    // State that has immediate processing:
+
+    D3DTSS_BUMPENVMAT00          = 22,  // float (bump mapping matrix) 
+    D3DTSS_BUMPENVMAT01          = 23,  // float (bump mapping matrix) 
+    D3DTSS_BUMPENVMAT11          = 24,  // float (bump mapping matrix) 
+    D3DTSS_BUMPENVMAT10          = 25,  // float (bump mapping matrix) 
+    D3DTSS_BUMPENVLSCALE         = 26,  // float scale for bump map luminance 
+    D3DTSS_BUMPENVLOFFSET        = 27,  // float offset for bump map luminance 
+    D3DTSS_TEXCOORDINDEX         = 28,  // DWORD identifies which set of texture coordinates index this texture 
+    D3DTSS_BORDERCOLOR           = 29,  // D3DCOLOR 
+    D3DTSS_COLORKEYCOLOR         = 30,  // D3DCOLOR value for color key (Xbox extension)
+                                 
+    D3DTSS_MAX                   = 32,  // Total number of texture stage states (bumped to a power of 2)
+
+    D3DTSS_FORCE_DWORD           = 0x7fffffff, // force 32-bit size enum 
+} D3DTEXTURESTAGESTATETYPE;
+
 /*
  * The maximum number of texture stages supported on Xbox
  */
+
 #define D3DTSS_MAXSTAGES 4
+
+/*
+ * The maximum index value possible for EndVisibilityTest
+ */
+
+#define D3DVISIBILITY_TEST_MAX 4096
 
 // Values, used with D3DTSS_TEXCOORDINDEX, to specify that the vertex data(position
 // and normal in the camera space) should be taken as texture coordinates
@@ -615,6 +658,7 @@ typedef enum _D3DRENDERSTATETYPE {
 #define D3DTSS_TCI_CAMERASPACEPOSITION                  0x00020000
 #define D3DTSS_TCI_CAMERASPACEREFLECTIONVECTOR          0x00030000
 #define D3DTSS_TCI_OBJECT                               0x00040000
+#define D3DTSS_TCI_SPHERE                               0x00050000
 
 #define D3DTSS_TCI_TEXCOORDINDEX_MAX                    8
 #define D3DTSS_TCI_TEXGEN_MAX                           0x00060000
@@ -683,58 +727,6 @@ typedef enum _D3DTEXTUREOP
     D3DTOP_FORCE_DWORD = 0x7fffffff,
 } D3DTEXTUREOP;
 
-typedef enum _D3DTEXTUREADDRESS {
-    D3DTADDRESS_WRAP            = 1,
-    D3DTADDRESS_MIRROR          = 2,
-    D3DTADDRESS_CLAMP           = 3,
-    D3DTADDRESS_BORDER          = 4,
-    D3DTADDRESS_CLAMPTOEDGE     = 5, // Xbox extension
-
-    // D3DTADDRESS_MIRRORONCE not supported on Xbox
-
-    D3DTADDRESS_MAX             = 6,
-    D3DTADDRESS_FORCE_DWORD     = 0x7fffffff, /* force 32-bit size enum */
-} D3DTEXTUREADDRESS;
-
-typedef enum _D3DTEXTURETRANSFORMFLAGS
-{
-    D3DTTFF_DISABLE         = 0,    // texture coordinates are passed directly
-    D3DTTFF_COUNT1          = 1,    // rasterizer should expect 1-D texture coords
-    D3DTTFF_COUNT2          = 2,    // rasterizer should expect 2-D texture coords
-    D3DTTFF_COUNT3          = 3,    // rasterizer should expect 3-D texture coords
-    D3DTTFF_COUNT4          = 4,    // rasterizer should expect 4-D texture coords
-    D3DTTFF_PROJECTED       = 256,  // texcoords to be divided by COUNTth element
-
-    D3DTTFF_FORCE_DWORD     = 0x7fffffff,
-} D3DTEXTURETRANSFORMFLAGS;
-
-typedef enum _D3DTEXTURECOLORKEYOP {            // Xbox extension
-    D3DTCOLORKEYOP_DISABLE      = 0,
-    D3DTCOLORKEYOP_ALPHA        = 1,
-    D3DTCOLORKEYOP_RGBA         = 2,
-    D3DTCOLORKEYOP_KILL         = 3,
-
-    D3DTCOLORKEYOP_MAX          = 4,
-    D3DTCOLORKEYOP_FORCE_DWORD  = 0x7fffffff, /* force 32-bit size enum */
-} D3DTEXTURECOLORKEYOP;
-
-typedef enum _D3DTEXTUREALPHAKILL {             // Xbox extension
-    D3DTALPHAKILL_DISABLE       = 0,
-    D3DTALPHAKILL_ENABLE        = 4,
-
-    D3DTALPHAKILL_FORCE_DWORD   = 0x7fffffff, /* force 32-bit size enum */
-} D3DTEXTUREALPHAKILL;
-
-typedef enum _D3DPALETTESIZE {                  // Xbox extension
-    D3DPALETTE_256              = 0,
-    D3DPALETTE_128              = 1,
-    D3DPALETTE_64               = 2,
-    D3DPALETTE_32               = 3,
-
-    D3DPALETTE_MAX              = 4,
-    D3DPALETTE_FORCE_DWORD      = 0x7fffffff, /* force 32-bit size enum */
-} D3DPALETTESIZE;
-
 /*
  * Values for COLORARG0,1,2, ALPHAARG0,1,2, and RESULTARG texture blending
  * operations set in texture processing stage controls in D3DRENDERSTATE.
@@ -755,14 +747,14 @@ typedef enum _D3DPALETTESIZE {                  // Xbox extension
 /*
  * Flags for D3DTSS_COLORSIGN (Xbox extension)
  */
-#define D3DTSIGN_ASIGNED        0x10000000
-#define D3DTSIGN_AUNSIGNED      0
-#define D3DTSIGN_RSIGNED        0x20000000
-#define D3DTSIGN_RUNSIGNED      0
-#define D3DTSIGN_GSIGNED        0x40000000
-#define D3DTSIGN_GUNSIGNED      0
-#define D3DTSIGN_BSIGNED        0x80000000
-#define D3DTSIGN_BUNSIGNED      0
+#define D3DTSIGN_ASIGNED           0x10000000
+#define D3DTSIGN_AUNSIGNED         0
+#define D3DTSIGN_RSIGNED           0x20000000
+#define D3DTSIGN_RUNSIGNED         0
+#define D3DTSIGN_GSIGNED           0x40000000
+#define D3DTSIGN_GUNSIGNED         0
+#define D3DTSIGN_BSIGNED           0x80000000
+#define D3DTSIGN_BUNSIGNED         0
 
 //
 // Values for D3DTSS_***FILTER texture stage states
@@ -774,81 +766,20 @@ typedef enum _D3DTEXTUREFILTERTYPE
     D3DTEXF_LINEAR          = 2,    // linear interpolation
     D3DTEXF_ANISOTROPIC     = 3,    // anisotropic
     D3DTEXF_QUINCUNX        = 4,    // quincunx kernel (Xbox extension)
-    D3DTEXF_GAUSSIANCUBIC   = 5,    // gaussian kernel (Xbox redefinition)
+    D3DTEXF_GAUSSIANCUBIC   = 5,    // different cubic kernel
 
     D3DTEXF_MAX             = 6,
     D3DTEXF_FORCE_DWORD     = 0x7fffffff,   // force 32-bit size enum
 } D3DTEXTUREFILTERTYPE;
 
-/*
- * State enumerants for per-stage texture processing.
- */
-typedef enum _D3DTEXTURESTAGESTATETYPE
-{
-    // State whose handling is deferred until the next Draw[Indexed]Vertices
-    // call because of interdependencies on other states:
-
-    D3DTSS_ADDRESSU              =  0,  // D3DTEXTUREADDRESS for U coordinate
-    D3DTSS_ADDRESSV              =  1,  // D3DTEXTUREADDRESS for V coordinate
-    D3DTSS_ADDRESSW              =  2,  // D3DTEXTUREADDRESS for W coordinate
-    D3DTSS_MAGFILTER             =  3,  // D3DTEXF_LINEAR etc. filter to use for magnification
-    D3DTSS_MINFILTER             =  4,  // D3DTEXF_LINEAR etc. filter to use for minification
-    D3DTSS_MIPFILTER             =  5,  // D3DTEXF_LINEAR etc. filter to use between mipmaps during minification
-    D3DTSS_MIPMAPLODBIAS         =  6,  // float mipmap LOD bias
-    D3DTSS_MAXMIPLEVEL           =  7,  // DWORD 0..(n-1) LOD index of largest map to use (0 == largest)
-    D3DTSS_MAXANISOTROPY         =  8,  // DWORD maximum anisotropy
-    D3DTSS_COLORKEYOP            =  9,  // D3DTEXTURECOLORKEYOP (Xbox extension)
-    D3DTSS_COLORSIGN             = 10,  // D3DTSIGN_ASIGNED etc. for signed color channels (xbox extension)
-    D3DTSS_ALPHAKILL             = 11,  // D3DTEXTUREALPHAKILL (Xbox extension)
-
-    D3DTSS_DEFERRED_TEXTURE_STATE_MAX = 12,
-
-    D3DTSS_COLOROP               = 12,  // D3DTEXTUREOP - per-stage blending controls for color channels
-    D3DTSS_COLORARG0             = 13,  // D3DTA_TEXTURE etc. - third arg for triadic ops
-    D3DTSS_COLORARG1             = 14,  // D3DTA_TEXTURE etc. - texture arg
-    D3DTSS_COLORARG2             = 15,  // D3DTA_TEXTURE etc. - texture arg
-    D3DTSS_ALPHAOP               = 16,  // D3DTEXTUREOP - per-stage blending controls for alpha channel
-    D3DTSS_ALPHAARG0             = 17,  // D3DTA_TEXTURE etc. - third arg for triadic ops
-    D3DTSS_ALPHAARG1             = 18,  // D3DTA_TEXTURE etc. - texture arg
-    D3DTSS_ALPHAARG2             = 19,  // D3DTA_TEXTURE etc. - texture arg)
-    D3DTSS_RESULTARG             = 20,  // D3DTA_CURRENT or D3DTA_TEMP - arg for result
-    D3DTSS_TEXTURETRANSFORMFLAGS = 21,  // D3DTEXTURETRANSFORMFLAGS controls texture transform
-
-    D3DTSS_DEFERRED_MAX          = 22,
-
-    // State that has immediate processing:
-
-    D3DTSS_BUMPENVMAT00          = 22,  // float (bump mapping matrix)
-    D3DTSS_BUMPENVMAT01          = 23,  // float (bump mapping matrix)
-    D3DTSS_BUMPENVMAT11          = 24,  // float (bump mapping matrix)
-    D3DTSS_BUMPENVMAT10          = 25,  // float (bump mapping matrix)
-    D3DTSS_BUMPENVLSCALE         = 26,  // float scale for bump map luminance
-    D3DTSS_BUMPENVLOFFSET        = 27,  // float offset for bump map luminance
-    D3DTSS_TEXCOORDINDEX         = 28,  // DWORD identifies which set of texture coordinates index this texture
-    D3DTSS_BORDERCOLOR           = 29,  // D3DCOLOR
-    D3DTSS_COLORKEYCOLOR         = 30,  // D3DCOLOR value for color key (Xbox extension)
-
-    D3DTSS_MAX                   = 32,  // Total number of texture stage states (bumped to a power of 2)
-
-    D3DTSS_FORCE_DWORD           = 0x7fffffff, // force 32-bit size enum
-} D3DTEXTURESTAGESTATETYPE;
-
-/*
- * The maximum number of vertices user can pass to any d3d
- * drawing function or to create vertex buffer with
- */
-#define D3DMAXNUMVERTICES       ((1<<16) - 1)
-
-/*
- * The maximum number of primitives user can pass to any d3d
- * drawing function.
- */
-#define D3DMAXNUMPRIMITIVES     ((1<<16) - 1)
-
-/*
- * The maximum index value possible for EndVisibilityTest
- */
-#define D3DVISIBILITY_TEST_MAX  (16*1024)
+/* The maximum number of vertices user can pass to any d3d
+   drawing function or to create vertex buffer with
+*/
+#define D3DMAXNUMVERTICES    ((1<<16) - 1)
+/* The maximum number of primitives user can pass to any d3d
+   drawing function.
+*/
+#define D3DMAXNUMPRIMITIVES  ((1<<16) - 1)
 
 //-------------------------------------------------------------------
 // Flexible vertex format bits
@@ -876,21 +807,9 @@ typedef enum _D3DTEXTURESTAGESTATETYPE
 
 #define D3DFVF_RESERVED2        0xE000  // 4 reserved bits
 
-// D3DFVF_PSIZE is not supported on Xbox with the fixed function pipeline
+// D3DFVF_PSIZE is not supported on Xbox with the fixed function pipeline 
 // (a programmable vertex shader can be written to support per-vertex point
 // sizes)
-
-// Macros to set texture coordinate format bits in the FVF id
-
-#define D3DFVF_TEXTUREFORMAT2 0         // Two floating point values
-#define D3DFVF_TEXTUREFORMAT1 3         // One floating point value
-#define D3DFVF_TEXTUREFORMAT3 1         // Three floating point values
-#define D3DFVF_TEXTUREFORMAT4 2         // Four floating point values
-
-#define D3DFVF_TEXCOORDSIZE3(CoordIndex) ((DWORD)(D3DFVF_TEXTUREFORMAT3 << (CoordIndex*2 + 16)))
-#define D3DFVF_TEXCOORDSIZE2(CoordIndex) ((DWORD)(D3DFVF_TEXTUREFORMAT2))
-#define D3DFVF_TEXCOORDSIZE4(CoordIndex) ((DWORD)(D3DFVF_TEXTUREFORMAT4 << (CoordIndex*2 + 16)))
-#define D3DFVF_TEXCOORDSIZE1(CoordIndex) ((DWORD)(D3DFVF_TEXTUREFORMAT1 << (CoordIndex*2 + 16)))
 
 //---------------------------------------------------------------------
 // Vertex Shaders
@@ -975,7 +894,7 @@ Stream Data Definition (single DWORD token)
       [26:20] 0x0
       [19:16] count of BYTES to skip over (0..15)
       [15:00] 0x0
-
+  
 Vertex Input Memory from Tessellator Data (single DWORD token)
     [31:29] 0x3
     [28]    indicates whether data is normals or u/v
@@ -999,15 +918,15 @@ End-of-array token (single DWORD token)
     [31:29] 0x7
     [28:00] 0x1fffffff
 
-The stream selector token must be immediately followed by a contiguous set
-of stream data definition tokens.  This token sequence fully defines that
-stream, including the set of elements within the stream, the order in
-which the elements appear, the type of each element, and the vertex
+The stream selector token must be immediately followed by a contiguous set 
+of stream data definition tokens.  This token sequence fully defines that 
+stream, including the set of elements within the stream, the order in 
+which the elements appear, the type of each element, and the vertex 
 register into which to load an element.
 
-Streams are allowed to include data which is not loaded into a vertex
-register, thus allowing data which is not used for this shader to exist
-in the vertex stream.  This skipped data is defined only by a count of
+Streams are allowed to include data which is not loaded into a vertex 
+register, thus allowing data which is not used for this shader to exist 
+in the vertex stream.  This skipped data is defined only by a count of 
 DWORDs to skip over, since the type i nformation is irrelevant.
 
 The token sequence:
@@ -1017,13 +936,13 @@ Stream Data Definition (Load): type=FLOAT3; register=4
 Stream Data Definition (Skip): count=2
 Stream Data Definition (Load): type=FLOAT2; register=7
 
-defines stream zero to consist of 4 elements, 3 of which are loaded into
-registers and the fourth skipped over.  Register 3 is loaded with the
-first three DWORDs in each vertex interpreted as FLOAT data.  Register 4
-is loaded with the 4th, 5th, and 6th DWORDs interpreted as FLOAT data.
-The next two DWORDs (7th and 8th) are skipped over and not loaded into
-any vertex input register.   Register 7 is loaded with the 9th and 10th
-DWORDS interpreted as FLOAT data.  Placing of tokens other than NOPs
+defines stream zero to consist of 4 elements, 3 of which are loaded into 
+registers and the fourth skipped over.  Register 3 is loaded with the 
+first three DWORDs in each vertex interpreted as FLOAT data.  Register 4 
+is loaded with the 4th, 5th, and 6th DWORDs interpreted as FLOAT data.  
+The next two DWORDs (7th and 8th) are skipped over and not loaded into 
+any vertex input register.   Register 7 is loaded with the 9th and 10th 
+DWORDS interpreted as FLOAT data.  Placing of tokens other than NOPs 
 between the Stream Selector and Stream Data Definition tokens is disallowed.
 
 */
@@ -1043,7 +962,7 @@ between the Stream Selector and Stream Data Definition tokens is disallowed.
 #define D3DVS_MAXINSTRUCTIONCOUNT_V1_0  128
 
 // The following two vertex shader constant addresses are reserved on Xbox
-// when the SetShaderConstantMode does not have the D3DSCM_NORESERVEDCONSTANTS
+// when the SetShaderConstantMode does not have the D3DSCM_NORESERVEDCONSTANTS 
 // bit set (that is, these are reserved unless all of your vertex shaders use
 // #pragma screenspace):
 //
@@ -1200,19 +1119,19 @@ typedef enum _D3DVSD_TOKENTYPE
 #define D3DVSDT_NORMSHORT1  0x11    // 1D signed, normalized short expanded to (value, 0, 0., 1.)
                                     // (signed, normalized short maps from -1.0 to 1.0)
 #define D3DVSDT_NORMSHORT2  0x21    // 2D signed, normalized short expanded to (value, value, 0., 1.)
-#define D3DVSDT_NORMSHORT3  0x31    // 3D signed, normalized short expanded to (value, value, value, 1.)
-#define D3DVSDT_NORMSHORT4  0x41    // 4D signed, normalized short expanded to (value, value, value, value)
-#define D3DVSDT_NORMPACKED3 0x16    // 3 signed, normalized components packed in 32-bits.  (11,11,10).
-                                    // Each component ranges from -1.0 to 1.0.
+#define D3DVSDT_NORMSHORT3  0x31    // 3D signed, normalized short expanded to (value, value, value, 1.)  
+#define D3DVSDT_NORMSHORT4  0x41    // 4D signed, normalized short expanded to (value, value, value, value)  
+#define D3DVSDT_NORMPACKED3 0x16    // 3 signed, normalized components packed in 32-bits.  (11,11,10).  
+                                    // Each component ranges from -1.0 to 1.0.  
                                     // Expanded to (value, value, value, 1.)
-#define D3DVSDT_SHORT1      0x15    // 1D signed short expanded to (value, 0., 0., 1.)
+#define D3DVSDT_SHORT1      0x15    // 1D signed short expanded to (value, 0., 0., 1.)  
                                     // Signed shorts map to the range [-32768, 32767]
 #define D3DVSDT_SHORT3      0x35    // 3D signed short expanded to (value, value, value, 1.)
-#define D3DVSDT_PBYTE1      0x14    // 1D packed byte expanded to (value, 0., 0., 1.)
+#define D3DVSDT_PBYTE1      0x14    // 1D packed byte expanded to (value, 0., 0., 1.)  
                                     // Packed bytes map to the range [0, 1]
 #define D3DVSDT_PBYTE2      0x24    // 2D packed byte expanded to (value, value, 0., 1.)
 #define D3DVSDT_PBYTE3      0x34    // 3D packed byte expanded to (value, value, value, 1.)
-#define D3DVSDT_PBYTE4      0x44    // 4D packed byte expanded to (value, value, value, value)
+#define D3DVSDT_PBYTE4      0x44    // 4D packed byte expanded to (value, value, value, value) 
 #define D3DVSDT_FLOAT2H     0x72    // 2D homogeneous float expanded to (value, value,0., value.)
                                     // Useful for projective texture coordinates.
 #define D3DVSDT_NONE        0x02    // No stream data
@@ -1228,7 +1147,6 @@ typedef enum _D3DVSD_TOKENTYPE
 #define D3DVSDE_DIFFUSE         3
 #define D3DVSDE_SPECULAR        4
 #define D3DVSDE_FOG             5   // Xbox extension
-#define D3DVSDE_PSIZE           6   // Xbox extension
 #define D3DVSDE_BACKDIFFUSE     7   // Xbox extension
 #define D3DVSDE_BACKSPECULAR    8   // Xbox extension
 #define D3DVSDE_TEXCOORD0       9
@@ -1236,20 +1154,20 @@ typedef enum _D3DVSD_TOKENTYPE
 #define D3DVSDE_TEXCOORD2       11
 #define D3DVSDE_TEXCOORD3       12
 
-// D3DVSDE_PSIZE is not supported on Xbox with the fixed function pipeline
+// D3DVSDE_PSIZE is not supported on Xbox with the fixed function pipeline 
 // (a programmable vertex shader can be written to support per-vertex point
 // sizes)
 
 // Maximum supported number of texture coordinate sets
 #define D3DDP_MAXTEXCOORD   4
 
-// Some Vertex Shader APIs take allow the vertex format to be specified with
-// a structure rather than a handle to a vertex shader object.  The following
+// Some Vertex Shader APIs take allow the vertex format to be specified with 
+// a structure rather than a handle to a vertex shader object.  The following 
 // structure defines how vertex attributes are read from one or more streams.
 
 typedef struct _D3DVERTEXSHADERINPUT
 {
-    DWORD StreamIndex;      // which stream
+    DWORD StreamIndex;      // which stream 
     DWORD Offset;           // Byte offset from the start of the stream.
     DWORD Format;           // format of this attribute (D3DVSDT_*)
     BYTE  TessType;         // 0=none, 1=normal, 2=autotex
@@ -1257,8 +1175,8 @@ typedef struct _D3DVERTEXSHADERINPUT
 } D3DVERTEXSHADERINPUT;
 
 // Up to 16 different inputs are supported by the vertex shader hardware.
-// Each of the 16 entries in the following structure defines which
-// stream that value comes from, what byte offset corresponds to an
+// Each of the 16 entries in the following structure defines which 
+// stream that value comes from, what byte offset corresponds to an 
 // attribute, and the format of the attribute.
 
 typedef struct _D3DVERTEXATTRIBUTEFORMAT
@@ -1318,7 +1236,7 @@ typedef enum _D3DSHADER_INSTRUCTION_OPCODE_TYPE
     D3DSIO_LOGP         ,       // VS
     D3DSIO_CND          ,       // PS
     D3DSIO_DEF          ,       // PS
-
+    
     // Xbox Extensions
     D3DSIO_DPH          =256,   // VS
     D3DSIO_RCC          ,       // VS
@@ -1369,7 +1287,7 @@ typedef enum _D3DSHADER_PARAM_DSTMOD_TYPE
     D3DSPDM_FORCE_DWORD  = 0x7fffffff,      // force 32-bit size enum
 } D3DSHADER_PARAM_DSTMOD_TYPE;
 
-// destination parameter
+// destination parameter 
 #define D3DSP_DSTSHIFT_SHIFT    24
 #define D3DSP_DSTSHIFT_MASK     0x0F000000
 
@@ -1559,6 +1477,45 @@ typedef enum _D3DSTATEBLOCKTYPE
     D3DSBT_FORCE_DWORD   = 0x7fffffff,
 } D3DSTATEBLOCKTYPE;
 
+// The D3DVERTEXBLENDFLAGS type is used with D3DRS_VERTEXBLEND state.
+//
+typedef enum _D3DVERTEXBLENDFLAGS
+{
+    D3DVBF_DISABLE           = 0,     // Disable vertex blending
+    D3DVBF_1WEIGHTS          = 1,     // 2 matrix blending
+    D3DVBF_2WEIGHTS          = 3,     // 3 matrix blending
+    D3DVBF_3WEIGHTS          = 5,     // 4 matrix blending
+    D3DVBF_2WEIGHTS2MATRICES = 2,     // Xbox extension
+    D3DVBF_3WEIGHTS3MATRICES = 4,     // Xbox extension
+    D3DVBF_4WEIGHTS4MATRICES = 6,     // Xbox extension
+
+    D3DVBF_MAX               = 7,
+    D3DVBF_FORCE_DWORD       = 0x7fffffff, // force 32-bit size enum
+} D3DVERTEXBLENDFLAGS;
+
+typedef enum _D3DTEXTURETRANSFORMFLAGS 
+{
+    D3DTTFF_DISABLE         = 0,    // texture coordinates are passed directly
+    D3DTTFF_COUNT1          = 1,    // rasterizer should expect 1-D texture coords
+    D3DTTFF_COUNT2          = 2,    // rasterizer should expect 2-D texture coords
+    D3DTTFF_COUNT3          = 3,    // rasterizer should expect 3-D texture coords
+    D3DTTFF_COUNT4          = 4,    // rasterizer should expect 4-D texture coords
+    D3DTTFF_PROJECTED       = 256,  // texcoords to be divided by COUNTth element
+    D3DTTFF_FORCE_DWORD     = 0x7fffffff,
+} D3DTEXTURETRANSFORMFLAGS;
+
+// Macros to set texture coordinate format bits in the FVF id
+
+#define D3DFVF_TEXTUREFORMAT2 0         // Two floating point values
+#define D3DFVF_TEXTUREFORMAT1 3         // One floating point value
+#define D3DFVF_TEXTUREFORMAT3 1         // Three floating point values
+#define D3DFVF_TEXTUREFORMAT4 2         // Four floating point values
+
+#define D3DFVF_TEXCOORDSIZE3(CoordIndex) (D3DFVF_TEXTUREFORMAT3 << (CoordIndex*2 + 16))
+#define D3DFVF_TEXCOORDSIZE2(CoordIndex) (D3DFVF_TEXTUREFORMAT2)
+#define D3DFVF_TEXCOORDSIZE4(CoordIndex) (D3DFVF_TEXTUREFORMAT4 << (CoordIndex*2 + 16))
+#define D3DFVF_TEXCOORDSIZE1(CoordIndex) (D3DFVF_TEXTUREFORMAT1 << (CoordIndex*2 + 16))
+
 
 //---------------------------------------------------------------------
 
@@ -1584,22 +1541,22 @@ typedef DWORD D3DMULTISAMPLE_TYPE;
 #define D3DMULTISAMPLE_2_SAMPLES_MULTISAMPLE_QUINCUNX            0x1121
 #define D3DMULTISAMPLE_2_SAMPLES_SUPERSAMPLE_HORIZONTAL_LINEAR   0x2021
 #define D3DMULTISAMPLE_2_SAMPLES_SUPERSAMPLE_VERTICAL_LINEAR     0x2012
-
+                                                              
 #define D3DMULTISAMPLE_4_SAMPLES_MULTISAMPLE_LINEAR              0x1022
 #define D3DMULTISAMPLE_4_SAMPLES_MULTISAMPLE_GAUSSIAN            0x1222
 #define D3DMULTISAMPLE_4_SAMPLES_SUPERSAMPLE_LINEAR              0x2022
 #define D3DMULTISAMPLE_4_SAMPLES_SUPERSAMPLE_GAUSSIAN            0x2222
-
+                                                              
 #define D3DMULTISAMPLE_9_SAMPLES_MULTISAMPLE_GAUSSIAN            0x1233
 #define D3DMULTISAMPLE_9_SAMPLES_SUPERSAMPLE_GAUSSIAN            0x2233
-
+                                                                  
 // Format of the pre-filter (big) color buffer (Xbox extensions):
-//
-#define D3DMULTISAMPLE_PREFILTER_FORMAT_DEFAULT                  0x00000
-#define D3DMULTISAMPLE_PREFILTER_FORMAT_X1R5G5B5                 0x10000
-#define D3DMULTISAMPLE_PREFILTER_FORMAT_R5G6B5                   0x20000
-#define D3DMULTISAMPLE_PREFILTER_FORMAT_X8R8G8B8                 0x30000
-#define D3DMULTISAMPLE_PREFILTER_FORMAT_A8R8G8B8                 0x40000
+//                                                          
+#define D3DMULTISAMPLE_PREFILTER_FORMAT_DEFAULT                  0x00000 
+#define D3DMULTISAMPLE_PREFILTER_FORMAT_X1R5G5B5                 0x10000 
+#define D3DMULTISAMPLE_PREFILTER_FORMAT_R5G6B5                   0x20000 
+#define D3DMULTISAMPLE_PREFILTER_FORMAT_X8R8G8B8                 0x30000 
+#define D3DMULTISAMPLE_PREFILTER_FORMAT_A8R8G8B8                 0x40000 
 
 // Defaults:
 //
@@ -1615,7 +1572,7 @@ typedef enum _D3DMULTISAMPLEMODE
     D3DMULTISAMPLEMODE_4X                                   = 2,
 
     D3DMULTISAMPLEMODE_FORCE_DWORD                          = 0x7fffffff
-} D3DMULTISAMPLEMODE;
+} D3DMULTISAMPLETYPE;
 
 
 /* Formats
@@ -1647,6 +1604,10 @@ typedef enum _D3DMULTISAMPLEMODE
  *            number of bits per Depth channel (but not Stencil channel).
  */
 
+// DOC: The numerical values for these formats have changed from D3D8
+//    : to make the mapping to the NV internal format value easier.
+//    : Most noteably is that D3DFMT_UNKNOWN is no longer zero.
+//
 typedef enum _D3DFORMAT
 {
     D3DFMT_UNKNOWN              = 0xFFFFFFFF,
@@ -1661,20 +1622,20 @@ typedef enum _D3DFORMAT
     D3DFMT_A1R5G5B5             = 0x00000002,
     D3DFMT_A4R4G4B4             = 0x00000004,
     D3DFMT_A8                   = 0x00000019,
-    D3DFMT_A8B8G8R8             = 0x0000003A,
-    D3DFMT_B8G8R8A8             = 0x0000003B,
-    D3DFMT_R4G4B4A4             = 0x00000039,
-    D3DFMT_R5G5B5A1             = 0x00000038,
-    D3DFMT_R8G8B8A8             = 0x0000003C,
-    D3DFMT_R8B8                 = 0x00000029,
-    D3DFMT_G8B8                 = 0x00000028,
+    D3DFMT_A8B8G8R8             = 0x0000003A,   
+    D3DFMT_B8G8R8A8             = 0x0000003B,   
+    D3DFMT_R4G4B4A4             = 0x00000039,   
+    D3DFMT_R5G5B5A1             = 0x00000038,   
+    D3DFMT_R8G8B8A8             = 0x0000003C,   
+    D3DFMT_R8B8                 = 0x00000029,   
+    D3DFMT_G8B8                 = 0x00000028,   
 
     D3DFMT_P8                   = 0x0000000B,
 
     D3DFMT_L8                   = 0x00000000,
     D3DFMT_A8L8                 = 0x0000001A,
-    D3DFMT_AL8                  = 0x00000001,
-    D3DFMT_L16                  = 0x00000032,
+    D3DFMT_AL8                  = 0x00000001,   
+    D3DFMT_L16                  = 0x00000032,   
 
     D3DFMT_V8U8                 = 0x00000028,
     D3DFMT_L6V5U5               = 0x00000027,
@@ -1685,7 +1646,7 @@ typedef enum _D3DFORMAT
     D3DFMT_D16_LOCKABLE         = 0x0000002C,
     D3DFMT_D16                  = 0x0000002C,
     D3DFMT_D24S8                = 0x0000002A,
-    D3DFMT_F16                  = 0x0000002D,
+    D3DFMT_F16                  = 0x0000002D,   
     D3DFMT_F24S8                = 0x0000002B,
 
     /* YUV formats */
@@ -1703,26 +1664,26 @@ typedef enum _D3DFORMAT
 
     /* Linear formats */
 
-    D3DFMT_LIN_A1R5G5B5         = 0x00000010,
-    D3DFMT_LIN_A4R4G4B4         = 0x0000001D,
-    D3DFMT_LIN_A8               = 0x0000001F,
-    D3DFMT_LIN_A8B8G8R8         = 0x0000003F,
-    D3DFMT_LIN_A8R8G8B8         = 0x00000012,
-    D3DFMT_LIN_B8G8R8A8         = 0x00000040,
-    D3DFMT_LIN_G8B8             = 0x00000017,
-    D3DFMT_LIN_R4G4B4A4         = 0x0000003E,
-    D3DFMT_LIN_R5G5B5A1         = 0x0000003D,
-    D3DFMT_LIN_R5G6B5           = 0x00000011,
-    D3DFMT_LIN_R6G5B5           = 0x00000037,
-    D3DFMT_LIN_R8B8             = 0x00000016,
-    D3DFMT_LIN_R8G8B8A8         = 0x00000041,
-    D3DFMT_LIN_X1R5G5B5         = 0x0000001C,
-    D3DFMT_LIN_X8R8G8B8         = 0x0000001E,
+    D3DFMT_LIN_A1R5G5B5         = 0x00000010,   
+    D3DFMT_LIN_A4R4G4B4         = 0x0000001D,   
+    D3DFMT_LIN_A8               = 0x0000001F,   
+    D3DFMT_LIN_A8B8G8R8         = 0x0000003F,   
+    D3DFMT_LIN_A8R8G8B8         = 0x00000012,   
+    D3DFMT_LIN_B8G8R8A8         = 0x00000040,   
+    D3DFMT_LIN_G8B8             = 0x00000017,   
+    D3DFMT_LIN_R4G4B4A4         = 0x0000003E,   
+    D3DFMT_LIN_R5G5B5A1         = 0x0000003D,   
+    D3DFMT_LIN_R5G6B5           = 0x00000011,   
+    D3DFMT_LIN_R6G5B5           = 0x00000037,   
+    D3DFMT_LIN_R8B8             = 0x00000016,   
+    D3DFMT_LIN_R8G8B8A8         = 0x00000041,   
+    D3DFMT_LIN_X1R5G5B5         = 0x0000001C,   
+    D3DFMT_LIN_X8R8G8B8         = 0x0000001E,   
 
-    D3DFMT_LIN_A8L8             = 0x00000020,
-    D3DFMT_LIN_AL8              = 0x0000001B,
-    D3DFMT_LIN_L16              = 0x00000035,
-    D3DFMT_LIN_L8               = 0x00000013,
+    D3DFMT_LIN_A8L8             = 0x00000020,   
+    D3DFMT_LIN_AL8              = 0x0000001B,   
+    D3DFMT_LIN_L16              = 0x00000035,   
+    D3DFMT_LIN_L8               = 0x00000013,   
 
     D3DFMT_LIN_V16U16           = 0x00000036,
     D3DFMT_LIN_V8U8             = 0x00000017,
@@ -1730,10 +1691,10 @@ typedef enum _D3DFORMAT
     D3DFMT_LIN_X8L8V8U8         = 0x0000001E,
     D3DFMT_LIN_Q8W8V8U8         = 0x00000012,
 
-    D3DFMT_LIN_D24S8            = 0x0000002E,
-    D3DFMT_LIN_F24S8            = 0x0000002F,
-    D3DFMT_LIN_D16              = 0x00000030,
-    D3DFMT_LIN_F16              = 0x00000031,
+    D3DFMT_LIN_D24S8            = 0x0000002E,   
+    D3DFMT_LIN_F24S8            = 0x0000002F,   
+    D3DFMT_LIN_D16              = 0x00000030,   
+    D3DFMT_LIN_F16              = 0x00000031,   
 
     D3DFMT_VERTEXDATA           = 100,
     D3DFMT_INDEX16              = 101,
@@ -1749,7 +1710,6 @@ typedef enum _D3DFORMAT
 #define D3DPRESENTFLAG_PROGRESSIVE              0x00000040
 #define D3DPRESENTFLAG_FIELD                    0x00000080
 #define D3DPRESENTFLAG_10X11PIXELASPECTRATIO    0x00000100
-#define D3DPRESENTFLAG_EMULATE_REFRESH_RATE     0x00000200              
 
 /* Display Modes */
 typedef struct _D3DDISPLAYMODE
@@ -1819,24 +1779,10 @@ typedef struct _D3DSWAPDATA
     DWORD           TimeBetweenSwapVBlanks;
 } D3DSWAPDATA;
 
-/* SetDepthClipPlanes */
-typedef enum _D3DSET_DEPTH_CLIP_PLANES_FLAGS
-{
-    D3DSDCP_SET_VERTEXPROGRAM_PLANES         = 1,
-    D3DSDCP_SET_FIXEDFUNCTION_PLANES         = 2,
-    D3DSDCP_USE_DEFAULT_VERTEXPROGRAM_PLANES = 3,
-    D3DSDCP_USE_DEFAULT_FIXEDFUNCTION_PLANES = 4,
-} D3DSET_DEPTH_CLIP_PLANES_FLAGS;
-
-/* GetDepthClipPlanes */
-typedef enum _D3DGET_DEPTH_CLIP_PLANES_FLAGS
-{
-    D3DGDCP_GET_VERTEXPROGRAM_PLANES         = 10,
-    D3DGDCP_GET_FIXEDFUNCTION_PLANES         = 11,
-} D3DGET_DEPTH_CLIP_PLANES_FLAGS;
-
-
 /* Pool types */
+
+// DOC: All parameters typed as D3DPOOL will be ignored.  Change the type from an enum
+//  : to a DWORD so developers can cheat and just pass '0' for this value.
 
 typedef DWORD D3DPOOL;
 
@@ -1863,7 +1809,7 @@ typedef struct _D3DPRESENT_PARAMETERS_
     BOOL                EnableAutoDepthStencil;
     D3DFORMAT           AutoDepthStencilFormat;
     DWORD               Flags;
-    UINT                FullScreen_RefreshRateInHz;
+    UINT                FullScreen_RefreshRateInHz; 
     UINT                FullScreen_PresentationInterval;
     D3DSurface         *BufferSurfaces[3];
     D3DSurface         *DepthStencilSurface;
@@ -1871,6 +1817,7 @@ typedef struct _D3DPRESENT_PARAMETERS_
 } D3DPRESENT_PARAMETERS;
 
 /* Gamma Ramp: Xbox changes WORD values to BYTE */
+
 typedef struct _D3DGAMMARAMP
 {
     BYTE                red  [256];
@@ -1883,8 +1830,9 @@ typedef DWORD D3DBACKBUFFER_TYPE;
 
 #define D3DBACKBUFFER_TYPE_MONO   0
 
-/* Resource types */
-typedef enum _D3DRESOURCETYPE
+
+/* Types */
+typedef enum _D3DRESOURCETYPE 
 {
     D3DRTYPE_NONE                   =  0,
     D3DRTYPE_SURFACE                =  1,
@@ -1903,9 +1851,9 @@ typedef enum _D3DRESOURCETYPE
 
 /* Locations */
 
-// Enumeration used for memory movement (deprecated Xbox extension)
+// Enumeration used for memory movement (Xbox extension)
 //
-typedef enum _D3DMEMORY
+typedef enum _D3DMEMORY 
 {
     D3DMEM_AGP                      = 0,
     D3DMEM_VIDEO                    = 1
@@ -1945,17 +1893,19 @@ typedef enum _D3DCUBEMAP_FACES
     D3DCUBEMAP_FACE_FORCE_DWORD    = 0x7fffffff
 } D3DCUBEMAP_FACES;
 
+
 /* Lock flags */
+
 #define D3DLOCK_NOFLUSH             0x00000010L // Xbox extension
-#define D3DLOCK_NOOVERWRITE         0x00000020L
+#define D3DLOCK_NOOVERWRITE         0x00000020L 
 #define D3DLOCK_TILED               0x00000040L // Xbox extension
 #define D3DLOCK_READONLY            0x00000080L
 
 // D3DLOCK_NOSYSLOCK not supported on Xbox
 // D3DLOCK_NO_DIRTY_UPDATE not supported on Xbox
-// D3DLOCK_DISCARD not supported on Xbox
+// D3DLOCK_DISCARD not supported on Xbox 
 //
-//     (NOTE: The lack of D3DLOCK_DISCARD support can cause significant
+//     (NOTE: The lack of D3DLOCK_DISCARD support can cause significant 
 //      performance degradation for the unwary.  See the documentation
 //      for notes on using IsBusy or fences in order to manage your own
 //      pool of temporary vertex buffers when generating vertex data
@@ -2072,6 +2022,7 @@ typedef struct _D3DADAPTER_IDENTIFIER8
 
 } D3DADAPTER_IDENTIFIER8;
 
+
 /* Raster Status structure returned by GetRasterStatus */
 typedef struct _D3DRASTER_STATUS
 {
@@ -2079,38 +2030,24 @@ typedef struct _D3DRASTER_STATUS
     UINT            ScanLine;
 } D3DRASTER_STATUS;
 
+
 /* Field Type enum defines possible values for a display field */
 typedef enum _D3DFIELDTYPE                      // Xbox extension
-{
+{                    
     D3DFIELD_ODD            = 1,
     D3DFIELD_EVEN           = 2,
     D3DFIELD_PROGRESSIVE    = 3,
     D3DFIELD_FORCE_DWORD    = 0x7fffffff, /* force 32-bit size enum */
 } D3DFIELDTYPE;
 
-/* Enumerants that can be passed to GetPushDistance (in addition to fence values) */
-typedef enum _D3DDISTANCETYPE                   // Xbox extension
-{
-    D3DDISTANCE_FENCES_TOIDLE   = 2,
-    D3DDISTANCE_FENCES_TOWAIT   = 4,
-
-    D3DDISTANCE_FORCE_DWORD     = 0x7fffffff, /* force 32-bit size enum */
-} D3DDISTANCETYPE;
-
-/* Wait status passed to SetWaitCallback callback function */
-#define D3DWAIT_PRESENT            0x01
-#define D3DWAIT_BLOCKUNTILIDLE     0x02
-#define D3DWAIT_BLOCKONFENCE       0x04
-#define D3DWAIT_PUSHBUFFER         0x08
-#define D3DWAIT_OBJECTLOCK         0x10
-#define D3DWAIT_BUSYWAIT_FLAG      0x80000000       // Flag
 
 /* Field Status structure is returned by GetDisplayFieldStatus */
 typedef struct _D3DFIELD_STATUS                 // Xbox extension
 {
-    D3DFIELDTYPE        Field;
-    UINT                VBlankCount;
+    D3DFIELDTYPE   Field;
+    UINT           VBlankCount;
 } D3DFIELD_STATUS;
+
 
 /* SetVertexInput struct */
 typedef struct _D3DSTREAM_INPUT                 // Xbox extension
@@ -2120,7 +2057,8 @@ typedef struct _D3DSTREAM_INPUT                 // Xbox extension
     UINT                Offset;
 } D3DSTREAM_INPUT;
 
-/* Maximum number of scissors rectangles */
+
+/* Maximum number of scissors rectangles */     
 #define D3DSCISSORS_MAX             8
 
 /* D3DTILE constants */
@@ -2168,12 +2106,12 @@ typedef struct _D3DSTREAM_INPUT                 // Xbox extension
 
 /* SetTile struct */
 typedef struct _D3DTILE                         // Xbox extension
-{
+{                   
     DWORD   Flags;
     void*   pMemory;
     DWORD   Size;
     DWORD   Pitch;
-    DWORD   ZStartTag;
+    DWORD   ZStartTag; 
     DWORD   ZOffset;
 } D3DTILE;
 
@@ -2216,7 +2154,7 @@ typedef struct _D3DCOPYRECTSTATE                // Xbox extension
     BOOL ColorKeyEnable;
     DWORD ColorKeyValue;
 
-    // D3DCOPYRECT_BLEND_AND alpha value
+    // D3DCOPYRECT_BLEND_AND alpha value 
     // The VALUE_FRACTION bits (30:21) contain the 10 bit unsigned fraction of the alpha value.
     // The VALUE bits (31:31) contain the 1 bit signed integer of the alpha value.
     DWORD BlendAlpha;
@@ -2243,7 +2181,7 @@ typedef struct _D3DCOPYRECTROPSTATE             // Xbox extension
     DWORD PatternSelect;    // 1:monochrome, 2:color
 
     DWORD MonoColor0;       // Color to use when bit is "0"
-    DWORD MonoColor1;       // Color to use when bit is "1"
+    DWORD MonoColor1;       // Color to use when bit is "1" 
 
     DWORD MonoPattern0;     // 8x8 = 64 bit pattern
     DWORD MonoPattern1;     //
@@ -2309,7 +2247,7 @@ typedef struct _D3DPixelShaderDef
 // --------.--------.-xxxxx--.-------- stage2
 // --------.----xxxx.x-------.-------- stage3
 
-#define PS_TEXTUREMODES(t0,t1,t2,t3) ((DWORD)(((t3)<<15)|((t2)<<10)|((t1)<<5)|(t0)))
+#define PS_TEXTUREMODES(t0,t1,t2,t3) (((t3)<<15)|((t2)<<10)|((t1)<<5)|(t0))
 
 /*
 Texture modes:
@@ -2322,9 +2260,8 @@ CLIPPLANE      :pixel not drawn if s,t,r, or q < 0.  PSCompareMode affects compa
 BUMPENVMAP     :argb=texture(s+mat00*src.r+mat01*src.g,
                              t+mat10*src.r+mat11*src.g)
                 mat00 set via D3DTSS_BUMPENVMAT00, etc.
-BUMPENVMAP_LUM :argb=texture(s+mat00*src.r+mat01*src.g,
-                             t+mat10*src.r+mat11*src.g);
-                rgb *= (lum_scale*src.b + lum_bias); (a is not affected)
+BUMPENVMAP_LUM :argb=texture(s+mat00*src.r+mat01*src.g, 
+                             t+mat10*src.r+mat11*src.g) * (lum_scale*src.b + lum_bias)
                 lum_scale set by D3DTSS_BUMPENVLSCALE
                 lum_bias set by D3DTSS_BUMPENVLOFFSET
                 mat00 set via D3DTSS_BUMPENVMAT00, etc.
@@ -2341,7 +2278,7 @@ DOT_RFLCT_SPEC :n = (<DotResult of stage-2>,<DotResult of stage-1>,(s,t,r).(src.
                 argb = cubemap(r)
 DOT_STR_3D     :argb=texture((<DotResult of stage-2>,<DotResult of stage-1>,(s,t,r).(src.r,src.g,src.b)))
 DOT_STR_CUBE   :argb=cubemap((<DotResult of stage-2>,<DotResult of stage-1>,(s,t,r).(src.r,src.g,src.b)))
-DEPENDENT_AR   :argb = texture(src.a, src.r)
+DEPENDENT_AR   :argb = texture(src.a, src.r) 
 DEPENDENT_GB   :argb = texture(src.g, src.b)
 DOTPRODUCT     :argb = (s,t,r).(src.r,src.g,src.b)
 DOT_RFLCT_SPEC_CONST :n = (<DotResult of stage-2>,<DotResult of stage-1>,(s,t,r).(src.r,src.g,src.b))
@@ -2380,7 +2317,7 @@ enum PS_TEXTUREMODES
 // --------.--------.--------.-xxx---- // stage2
 // --------.--------.-----xxx.-------- // stage3
 
-#define PS_DOTMAPPING(t0,t1,t2,t3) ((DWORD)(((t3)<<8)|((t2)<<4)|(t1)))
+#define PS_DOTMAPPING(t0,t1,t2,t3) (((t3)<<8)|((t2)<<4)|(t1))
 
 // Mappings:
 // ZERO_TO_ONE         :rgb->(r,g,b): 0x0=>0.0, 0xff=>1.0
@@ -2388,6 +2325,8 @@ enum PS_TEXTUREMODES
 // MINUS1_TO_1_GL      :rgb->(r,g,b): 0x80=>-1.0, 0x7f=>1.0
 // MINUS1_TO_1         :rgb->(r,g,b): 0x80=>-128/127, 0x81=>-1.0, 0x0=>0.0, 0x7f=>1.0
 // HILO_1              :HL->(H,L,1.0): 0x0000=>0.0, 0xffff=>1.0
+// HILO_HEMISPHERE_D3D :HL->(H,L,sqrt(1-H*H-L*L)): 0x8000=>-1.0, 0x0=>0.0, 0x7fff=32767/32768
+// HILO_HEMISPHERE_GL  :HL->(H,L,sqrt(1-H*H-L*L)): 0x8000=>-1.0, 0x7fff=>1.0
 // HILO_HEMISPHERE     :HL->(H,L,sqrt(1-H*H-L*L)): 0x8001=>-1.0, 0x0=>0.0, 0x7fff=>1.0, 0x8000=>-32768/32767
 
 enum PS_DOTMAPPING
@@ -2397,6 +2336,8 @@ enum PS_DOTMAPPING
     PS_DOTMAPPING_MINUS1_TO_1_GL=      0x02L, // - * * *
     PS_DOTMAPPING_MINUS1_TO_1=         0x03L, // - * * *
     PS_DOTMAPPING_HILO_1=              0x04L, // - * * *
+    PS_DOTMAPPING_HILO_HEMISPHERE_D3D= 0x05L, // - * * *
+    PS_DOTMAPPING_HILO_HEMISPHERE_GL=  0x06L, // - * * *
     PS_DOTMAPPING_HILO_HEMISPHERE=     0x07L, // - * * *
 };
 
@@ -2407,19 +2348,19 @@ enum PS_DOTMAPPING
 // --------.--------.----xxxx.-------- // stage2
 // --------.--------.xxxx----.-------- // stage3
 
-#define PS_COMPAREMODE(t0,t1,t2,t3) ((DWORD)(((t3)<<12)|((t2)<<8)|((t1)<<4)|(t0)))
+#define PS_COMPAREMODE(t0,t1,t2,t3) (((t3)<<12)|((t2)<<8)|((t1)<<4)|(t0))
 
 enum PS_COMPAREMODE
 {
     PS_COMPAREMODE_S_LT= 0x00L,
     PS_COMPAREMODE_S_GE= 0x01L,
-
+    
     PS_COMPAREMODE_T_LT= 0x00L,
     PS_COMPAREMODE_T_GE= 0x02L,
-
+    
     PS_COMPAREMODE_R_LT= 0x00L,
     PS_COMPAREMODE_R_GE= 0x04L,
-
+    
     PS_COMPAREMODE_Q_LT= 0x00L,
     PS_COMPAREMODE_Q_GE= 0x08L,
 };
@@ -2430,11 +2371,11 @@ enum PS_COMPAREMODE
 // --------.--xx----.--------.-------- // stage3
 //
 // Selects the other texture to use as an input in the following texture modes:
-// DOT_ST, DOT_STR_3D, DOT_STR_CUBE, DOT_ZW, DOT_RFLCT_SPEC,
+// DOT_ST, DOT_STR_3D, DOT_STR_CUBE, DOT_ZW, DOT_RFLCT_SPEC, 
 // DOT_RFLCT_DIFF, DPNDNT_AR, DPNDNT_GB, BUMPENVMAP,
 // BUMPENVMAP_LUM, DOT_PRODUCT
 
-#define PS_INPUTTEXTURE(t0,t1,t2,t3) ((DWORD)(((t3)<<20)|((t2)<<16)))
+#define PS_INPUTTEXTURE(t0,t1,t2,t3) (((t3)<<20)|((t2)<<16))
 
 
 /*---------------------------------------------------------------------------------*/
@@ -2459,17 +2400,17 @@ enum PS_COMPAREMODE
 // --------.--------.---x----.-------- // separate C0
 // --------.-------x.--------.-------- // separate C1
 
-#define PS_COMBINERCOUNT(count, flags) ((DWORD)(((flags)<<8)|(count)))
+#define PS_COMBINERCOUNT(count, flags) (((flags)<<8)|(count))
 // count is 1-8, flags contains one or more values from PS_COMBINERCOUNTFLAGS
 
 enum PS_COMBINERCOUNTFLAGS
 {
     PS_COMBINERCOUNT_MUX_LSB=     0x0000L, // mux on r0.a lsb
     PS_COMBINERCOUNT_MUX_MSB=     0x0001L, // mux on r0.a msb
-
+    
     PS_COMBINERCOUNT_SAME_C0=     0x0000L, // c0 same in each stage
     PS_COMBINERCOUNT_UNIQUE_C0=   0x0010L, // c0 unique in each stage
-
+    
     PS_COMBINERCOUNT_SAME_C1=     0x0000L, // c1 same in each stage
     PS_COMBINERCOUNT_UNIQUE_C1=   0x0100L  // c1 unique in each stage
 };
@@ -2494,13 +2435,13 @@ enum PS_COMBINERCOUNTFLAGS
 // xxx-----.--------.--------.-------- // A input mapping
 
 // examples:
-//
+// 
 // shader.PSRGBInputs[3]= PS_COMBINERINPUTS(
 //     PS_REGISTER_T0 | PS_INPUTMAPPING_EXPAND_NORMAL     | PS_CHANNEL_RGB,
 //     PS_REGISTER_C0 | PS_INPUTMAPPING_UNSIGNED_IDENTITY | PS_CHANNEL_ALPHA,
 //     PS_REGISTER_ZERO,
 //     PS_REGISTER_ZERO);
-//
+// 
 // shader.PSFinalCombinerInputsABCD= PS_COMBINERINPUTS(
 //     PS_REGISTER_T0     | PS_INPUTMAPPING_UNSIGNED_IDENTITY | PS_CHANNEL_ALPHA,
 //     PS_REGISTER_ZERO   | PS_INPUTMAPPING_EXPAND_NORMAL     | PS_CHANNEL_RGB,
@@ -2509,14 +2450,14 @@ enum PS_COMBINERCOUNTFLAGS
 //
 // PS_FINALCOMBINERSETTING is set in 4th field of PSFinalCombinerInputsEFG with PS_COMBINERINPUTS
 // example:
-//
+// 
 // shader.PSFinalCombinerInputsEFG= PS_COMBINERINPUTS(
 //     PS_REGISTER_R0 | PS_INPUTMAPPING_UNSIGNED_IDENTITY | PS_CHANNEL_RGB,
 //     PS_REGISTER_R1 | PS_INPUTMAPPING_UNSIGNED_IDENTITY | PS_CHANNEL_RGB,
 //     PS_REGISTER_R1 | PS_INPUTMAPPING_UNSIGNED_IDENTITY | PS_CHANNEL_BLUE,
 //    PS_FINALCOMBINERSETTING_CLAMP_SUM | PS_FINALCOMBINERSETTING_COMPLEMENT_R0);
 
-#define PS_COMBINERINPUTS(a,b,c,d) ((DWORD)(((a)<<24)|((b)<<16)|((c)<<8)|(d)))
+#define PS_COMBINERINPUTS(a,b,c,d) (((a)<<24)|((b)<<16)|((c)<<8)|(d))
 // For PSFinalCombinerInputsEFG,
 //     a,b,c contain a value from PS_REGISTER, PS_CHANNEL, and PS_INPUTMAPPING for input E,F, and G
 //     d contains values from PS_FINALCOMBINERSETTING
@@ -2537,12 +2478,12 @@ enum PS_INPUTMAPPING
 
 enum PS_REGISTER
 {
-    PS_REGISTER_ZERO=              0x00L, // r
+    PS_REGISTER_ZERO=              0x00L, // r    
     PS_REGISTER_DISCARD=           0x00L, // w
     PS_REGISTER_C0=                0x01L, // r
     PS_REGISTER_C1=                0x02L, // r
     PS_REGISTER_FOG=               0x03L, // r
-    PS_REGISTER_V0=                0x04L, // r/w
+    PS_REGISTER_V0=                0x04L, // r/w  
     PS_REGISTER_V1=                0x05L, // r/w
     PS_REGISTER_T0=                0x08L, // r/w
     PS_REGISTER_T1=                0x09L, // r/w
@@ -2552,7 +2493,7 @@ enum PS_REGISTER
     PS_REGISTER_R1=                0x0dL, // r/w
     PS_REGISTER_V1R0_SUM=          0x0eL, // r
     PS_REGISTER_EF_PROD=           0x0fL, // r
-
+    
     PS_REGISTER_ONE=               PS_REGISTER_ZERO | PS_INPUTMAPPING_UNSIGNED_INVERT, // OK for final combiner
     PS_REGISTER_NEGATIVE_ONE=      PS_REGISTER_ZERO | PS_INPUTMAPPING_EXPAND_NORMAL,   // invalid for final combiner
     PS_REGISTER_ONE_HALF=          PS_REGISTER_ZERO | PS_INPUTMAPPING_HALFBIAS_NEGATE, // invalid for final combiner
@@ -2575,9 +2516,9 @@ enum PS_CHANNEL
 enum PS_FINALCOMBINERSETTING
 {
     PS_FINALCOMBINERSETTING_CLAMP_SUM=     0x80, // V1+R0 sum clamped to [0,1]
-
+    
     PS_FINALCOMBINERSETTING_COMPLEMENT_V1= 0x40, // unsigned invert mapping
-
+    
     PS_FINALCOMBINERSETTING_COMPLEMENT_R0= 0x20, // unsigned invert mapping
 };
 
@@ -2594,29 +2535,29 @@ enum PS_FINALCOMBINERSETTING
 // --------.-----x--.--------.-------- // CD blue to alpha
 // --------.----x---.--------.-------- // AB blue to alpha
 
-#define PS_COMBINEROUTPUTS(ab,cd,mux_sum,flags) ((DWORD)(((flags)<<12)|((mux_sum)<<8)|((ab)<<4)|(cd)))
+#define PS_COMBINEROUTPUTS(ab,cd,mux_sum,flags) (((flags)<<12)|((mux_sum)<<8)|((ab)<<4)|(cd))
 // ab,cd,mux_sum contain a value from PS_REGISTER
 // flags contains values from PS_COMBINEROUTPUT
 
 enum PS_COMBINEROUTPUT
 {
-    PS_COMBINEROUTPUT_IDENTITY=            0x00L, // y = x
-    PS_COMBINEROUTPUT_BIAS=                0x08L, // y = x - 0.5
-    PS_COMBINEROUTPUT_SHIFTLEFT_1=         0x10L, // y = x*2
+    PS_COMBINEROUTPUT_IDENTITY=            0x00L, // y = x        
+    PS_COMBINEROUTPUT_BIAS=                0x08L, // y = x - 0.5  
+    PS_COMBINEROUTPUT_SHIFTLEFT_1=         0x10L, // y = x*2      
     PS_COMBINEROUTPUT_SHIFTLEFT_1_BIAS=    0x18L, // y = (x - 0.5)*2
-    PS_COMBINEROUTPUT_SHIFTLEFT_2=         0x20L, // y = x*4
-    PS_COMBINEROUTPUT_SHIFTRIGHT_1=        0x30L, // y = x/2
-
+    PS_COMBINEROUTPUT_SHIFTLEFT_2=         0x20L, // y = x*4      
+    PS_COMBINEROUTPUT_SHIFTRIGHT_1=        0x30L, // y = x/2      
+    
     PS_COMBINEROUTPUT_AB_BLUE_TO_ALPHA=    0x80L, // RGB only
-
+    
     PS_COMBINEROUTPUT_CD_BLUE_TO_ALPHA=    0x40L, // RGB only
-
+    
     PS_COMBINEROUTPUT_AB_MULTIPLY=         0x00L,
     PS_COMBINEROUTPUT_AB_DOT_PRODUCT=      0x02L, // RGB only
-
+    
     PS_COMBINEROUTPUT_CD_MULTIPLY=         0x00L,
     PS_COMBINEROUTPUT_CD_DOT_PRODUCT=      0x01L, // RGB only
-
+    
     PS_COMBINEROUTPUT_AB_CD_SUM=           0x00L, // 3rd output is AB+CD
     PS_COMBINEROUTPUT_AB_CD_MUX=           0x04L, // 3rd output is MUX(AB,CD) based on R0.a
 };
@@ -2636,37 +2577,37 @@ enum PS_COMBINEROUTPUT
 // xxxx----.--------.--------.-------- // offset of D3D constant for stage 7
 
 #define PS_CONSTANTMAPPING(s0,s1,s2,s3,s4,s5,s6,s7) \
-     ((DWORD)(((DWORD)(s0)&0xf)<< 0) | (((DWORD)(s1)&0xf)<< 4)  | \
-              (((DWORD)(s2)&0xf)<< 8) | (((DWORD)(s3)&0xf)<<12) | \
-              (((DWORD)(s4)&0xf)<<16) | (((DWORD)(s5)&0xf)<<20) | \
-              (((DWORD)(s6)&0xf)<<24) | (((DWORD)(s7)&0xf)<<28))
-// s0-s7 contain the offset of the D3D constant that corresponds to the
-// c0 or c1 constant in stages 0 through 7.  These mappings are only used in
+     (((DWORD)(s0)&0xf)<< 0) | (((DWORD)(s1)&0xf)<< 4) | \
+     (((DWORD)(s2)&0xf)<< 8) | (((DWORD)(s3)&0xf)<<12) | \
+     (((DWORD)(s4)&0xf)<<16) | (((DWORD)(s5)&0xf)<<20) | \
+     (((DWORD)(s6)&0xf)<<24) | (((DWORD)(s7)&0xf)<<28) 
+// s0-s7 contain the offset of the D3D constant that corresponds to the 
+// c0 or c1 constant in stages 0 through 7.  These mappings are only used in 
 // SetPixelShaderConstant().
-
+   
 // =========================================================================================================
 // PSFinalCombinerConstants
 // --------.--------.--------.----xxxx // offset of D3D constant for C0
 // --------.--------.--------.xxxx---- // offset of D3D constant for C1
 // --------.--------.-------x.-------- // Adjust texture flag
 
-#define PS_FINALCOMBINERCONSTANTS(c0,c1,flags) ((DWORD)(((DWORD)(flags) << 8) | ((DWORD)(c0)&0xf)<< 0) | (((DWORD)(c1)&0xf)<< 4))
+#define PS_FINALCOMBINERCONSTANTS(c0,c1,flags) (((DWORD)(flags) << 8) | ((DWORD)(c0)&0xf)<< 0) | (((DWORD)(c1)&0xf)<< 4)
 // c0 and c1 contain the offset of the D3D constant that corresponds to the
-// constants in the final combiner.  These mappings are only used in
+// constants in the final combiner.  These mappings are only used in 
 // SetPixelShaderConstant().  Flags contains values from PS_GLOBALFLAGS
 
 enum PS_GLOBALFLAGS
 {
     // if this flag is set, the texture mode for each texture stage is adjusted as follows:
-    //     if set texture is a cubemap,
+    //     if set texture is a cubemap, 
     //         change PS_TEXTUREMODES_PROJECT2D to PS_TEXTUREMODES_CUBEMAP
     //         change PS_TEXTUREMODES_PROJECT3D to PS_TEXTUREMODES_CUBEMAP
     //         change PS_TEXTUREMODES_DOT_STR_3D to PS_TEXTUREMODES_DOT_STR_CUBE
-    //     if set texture is a volume texture,
+    //     if set texture is a volume texture, 
     //         change PS_TEXTUREMODES_PROJECT2D to PS_TEXTUREMODES_PROJECT3D
     //         change PS_TEXTUREMODES_CUBEMAP to PS_TEXTUREMODES_PROJECT3D
     //         change PS_TEXTUREMODES_DOT_STR_CUBE to PS_TEXTUREMODES_DOT_STR_3D
-    //     if set texture is neither cubemap or volume texture,
+    //     if set texture is neither cubemap or volume texture, 
     //         change PS_TEXTUREMODES_PROJECT3D to PS_TEXTUREMODES_PROJECT2D
     //         change PS_TEXTUREMODES_CUBEMAP to PS_TEXTUREMODES_PROJECT2D
 
@@ -2674,7 +2615,7 @@ enum PS_GLOBALFLAGS
     PS_GLOBALFLAGS_TEXMODE_ADJUST=        0x0001L, // adjust texture modes according to set texture
 };
 
-
+   
 typedef struct _D3DPixelShaderDefFile
 {
     DWORD               FileID;         // Uniquely identifies the file as pixel shader binary
@@ -2692,23 +2633,19 @@ typedef struct _D3DPixelShaderDefFile
 /*---------------------------------------------------*/
 /*  These defines describe the binary format of the  */
 /*  push-buffer.  They may be used in conjunction    */
-/*  with BeginState/EndState, BeginPush/EndPush and  */
-/*  RunPushBuffer.                                   */
+/*  with BeginPush/EndPush and RunPushBuffer.        */
 /*---------------------------------------------------*/
 
 /* Encoding support */
 
 #define D3DPUSH_ENCODE(Method, Count)   (((Count) << 18) + (Method))
 #define D3DPUSH_NOINCREMENT_FLAG        0x40000000
-#define D3DPUSH_MAX_COUNT               2047
 
 /* Methods */
 
-#define D3DPUSH_NO_OPERATION                0x00000100 // Parameter must be zero
-#define D3DPUSH_SET_BEGIN_END               0x000017fc // Parameter is D3DPRIMITIVETYPE or 0 to end
-#define D3DPUSH_INLINE_ARRAY                0x00001818 // Use NOINCREMENT_FLAG
-#define D3DPUSH_SET_TRANSFORM_CONSTANT_LOAD 0x00001ea4 // Add 96 to constant index parameter
-#define D3DPUSH_SET_TRANSFORM_CONSTANT      0x00000b80 // Can't use NOINCREMENT_FLAG, maximum of 32 writes
+#define D3DPUSH_SET_BEGIN_END           0x000017fc      // D3DPRIMITIVETYPE or 0 to end
+#define D3DPUSH_INLINE_ARRAY            0x00001818
+
 
 /*----------------------- End of Push-Buffer Defines -----------------------*/
 

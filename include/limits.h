@@ -1,125 +1,144 @@
-/***
-*limits.h - implementation dependent values
-*
-*       Copyright (c) Microsoft Corporation.  All rights reserved.
-*
-*Purpose:
-*       Contains defines for a number of implementation dependent values
-*       which are commonly used in C programs.
-*       [ANSI]
-*
-*       [Public]
-*
-****/
+/* Copyright (c) 2002 Jeff Johnston  <jjohnstn@redhat.com> */
+#ifndef _LIBC_LIMITS_H_
+#define _LIBC_LIMITS_H_ 1
 
-#if     _MSC_VER > 1000
-#pragma once
-#endif
+#include <sys/cdefs.h>
+#include <sys/syslimits.h>
 
-#ifndef _INC_LIMITS
-#define _INC_LIMITS
-
-#if     !defined(_WIN32)
-#error ERROR: Only Win32 target supported!
-#endif
-
-
-#define CHAR_BIT      8         /* number of bits in a char */
-#define SCHAR_MIN   (-128)      /* minimum signed char value */
-#define SCHAR_MAX     127       /* maximum signed char value */
-#define UCHAR_MAX     0xff      /* maximum unsigned char value */
-
-#ifndef _CHAR_UNSIGNED
-#define CHAR_MIN    SCHAR_MIN   /* mimimum char value */
-#define CHAR_MAX    SCHAR_MAX   /* maximum char value */
+#ifndef __MB_LEN_MAX
+#ifdef __MB_CAPABLE
+#define __MB_LEN_MAX 8
 #else
-#define CHAR_MIN      0
-#define CHAR_MAX    UCHAR_MAX
-#endif  /* _CHAR_UNSIGNED */
+#define __MB_LEN_MAX 1
+#endif
+#endif
+#define MB_LEN_MAX __MB_LEN_MAX
 
-#define MB_LEN_MAX    5             /* max. # bytes in multibyte char */
-#define SHRT_MIN    (-32768)        /* minimum (signed) short value */
-#define SHRT_MAX      32767         /* maximum (signed) short value */
-#define USHRT_MAX     0xffff        /* maximum unsigned short value */
-#define INT_MIN     (-2147483647 - 1) /* minimum (signed) int value */
-#define INT_MAX       2147483647    /* maximum (signed) int value */
-#define UINT_MAX      0xffffffff    /* maximum unsigned int value */
-#define LONG_MIN    (-2147483647L - 1) /* minimum (signed) long value */
-#define LONG_MAX      2147483647L   /* maximum (signed) long value */
-#define ULONG_MAX     0xffffffffUL  /* maximum unsigned long value */
-
-/* Make sure these macros don't show up in ANSI C++ code */
-#if !defined(__cplusplus) || defined(_MSC_EXTENSIONS)
-#define LLONG_MAX     0x7fffffffffffffff  /*maximum signed __int64 value */
-#define LLONG_MIN     0x8000000000000000  /*minimum signed __int64 value */
-#define ULLONG_MAX    0xffffffffffffffff  /*maximum unsigned __int64 value */
+/* Maximum number of positional arguments, if __IO_POS_ARGS.  */
+#ifndef NL_ARGMAX
+#define NL_ARGMAX 32
 #endif
 
-#if     _INTEGRAL_MAX_BITS >= 8
-#define _I8_MIN     (-127i8 - 1)    /* minimum signed 8 bit value */
-#define _I8_MAX       127i8         /* maximum signed 8 bit value */
-#define _UI8_MAX      0xffui8       /* maximum unsigned 8 bit value */
+/* if do not have #include_next support, then we
+   have to define the limits here. */
+#if !defined __GNUC__ || __GNUC__ < 2
+
+#ifndef _LIMITS_H
+#define _LIMITS_H 1
+
+/* Number of bits in a `char'.  */
+#undef CHAR_BIT
+#define CHAR_BIT 8
+
+/* Minimum and maximum values a `signed char' can hold.  */
+#undef SCHAR_MIN
+#define SCHAR_MIN (-128)
+#undef SCHAR_MAX
+#define SCHAR_MAX 127
+
+/* Maximum value an `unsigned char' can hold.  (Minimum is 0).  */
+#undef UCHAR_MAX
+#define UCHAR_MAX 255
+
+/* Minimum and maximum values a `char' can hold.  */
+#ifdef __CHAR_UNSIGNED__
+#undef CHAR_MIN
+#define CHAR_MIN 0
+#undef CHAR_MAX
+#define CHAR_MAX 255
+#else
+#undef CHAR_MIN
+#define CHAR_MIN (-128)
+#undef CHAR_MAX
+#define CHAR_MAX 127
 #endif
 
-#if     _INTEGRAL_MAX_BITS >= 16
-#define _I16_MIN    (-32767i16 - 1) /* minimum signed 16 bit value */
-#define _I16_MAX      32767i16      /* maximum signed 16 bit value */
-#define _UI16_MAX     0xffffui16    /* maximum unsigned 16 bit value */
+/* Minimum and maximum values a `signed short int' can hold.  */
+#undef SHRT_MIN
+/* For the sake of 16 bit hosts, we may not use -32768 */
+#define SHRT_MIN (-32767 - 1)
+#undef SHRT_MAX
+#define SHRT_MAX 32767
+
+/* Maximum value an `unsigned short int' can hold.  (Minimum is 0).  */
+#undef USHRT_MAX
+#define USHRT_MAX 65535
+
+/* Minimum and maximum values a `signed int' can hold.  */
+#ifndef __INT_MAX__
+#define __INT_MAX__ 2147483647
+#endif
+#undef INT_MIN
+#define INT_MIN (-INT_MAX - 1)
+#undef INT_MAX
+#define INT_MAX __INT_MAX__
+
+/* Maximum value an `unsigned int' can hold.  (Minimum is 0).  */
+#undef UINT_MAX
+#define UINT_MAX (INT_MAX * 2U + 1)
+
+/* Minimum and maximum values a `signed long int' can hold.
+   (Same as `int').  */
+#ifndef __LONG_MAX__
+#if defined(__alpha__) || (defined(__sparc__) && defined(__arch64__)) || defined(__sparcv9)
+#define __LONG_MAX__ 9223372036854775807L
+#else
+#define __LONG_MAX__ 2147483647L
+#endif /* __alpha__ || sparc64 */
+#endif
+#undef LONG_MIN
+#define LONG_MIN (-LONG_MAX - 1)
+#undef LONG_MAX
+#define LONG_MAX __LONG_MAX__
+
+/* Maximum value an `unsigned long int' can hold.  (Minimum is 0).  */
+#undef ULONG_MAX
+#define ULONG_MAX (LONG_MAX * 2UL + 1)
+
+#ifndef __LONG_LONG_MAX__
+#define __LONG_LONG_MAX__ 9223372036854775807LL
 #endif
 
-#if     _INTEGRAL_MAX_BITS >= 32
-#define _I32_MIN    (-2147483647i32 - 1) /* minimum signed 32 bit value */
-#define _I32_MAX      2147483647i32 /* maximum signed 32 bit value */
-#define _UI32_MAX     0xffffffffui32 /* maximum unsigned 32 bit value */
+#if __ISO_C_VISIBLE >= 1999
+/* Minimum and maximum values a `signed long long int' can hold.  */
+#undef LLONG_MIN
+#define LLONG_MIN (-LLONG_MAX - 1)
+#undef LLONG_MAX
+#define LLONG_MAX __LONG_LONG_MAX__
+
+/* Maximum value an `unsigned long long int' can hold.  (Minimum is 0).  */
+#undef ULLONG_MAX
+#define ULLONG_MAX (LLONG_MAX * 2ULL + 1)
 #endif
 
-#if     _INTEGRAL_MAX_BITS >= 64
-/* minimum signed 64 bit value */
-#define _I64_MIN    (-9223372036854775807i64 - 1)
-/* maximum signed 64 bit value */
-#define _I64_MAX      9223372036854775807i64
-/* maximum unsigned 64 bit value */
-#define _UI64_MAX     0xffffffffffffffffui64
+#if __GNU_VISIBLE
+/* Minimum and maximum values a `signed long long int' can hold.  */
+#undef LONG_LONG_MIN
+#define LONG_LONG_MIN (-LONG_LONG_MAX - 1)
+#undef LONG_LONG_MAX
+#define LONG_LONG_MAX __LONG_LONG_MAX__
+
+/* Maximum value an `unsigned long long int' can hold.  (Minimum is 0).  */
+#undef ULONG_LONG_MAX
+#define ULONG_LONG_MAX (LONG_LONG_MAX * 2ULL + 1)
 #endif
 
-#if     _INTEGRAL_MAX_BITS >= 128
-/* minimum signed 128 bit value */
-#define _I128_MIN   (-170141183460469231731687303715884105727i128 - 1)
-/* maximum signed 128 bit value */
-#define _I128_MAX     170141183460469231731687303715884105727i128
-/* maximum unsigned 128 bit value */
-#define _UI128_MAX    0xffffffffffffffffffffffffffffffffui128
+#endif /* _LIMITS_H  */
+#endif /* GCC 2.  */
+
+#endif /* !_LIBC_LIMITS_H_ */
+
+/*
+ * Placing this outside of the above condition means that this will
+ * get run even from another picolibc provided limits.h file down the
+ * include chain. This also to see if the compiler limits.h has
+ * already been included as some clang configurations do that.
+ */
+#if defined __GNUC__ && !defined _GCC_LIMITS_H_
+#ifdef __clang__
+#ifndef __GLIBC_USE
+#define __GLIBC_USE(x) 1
 #endif
-
-#ifdef  _POSIX_
-
-#define _POSIX_ARG_MAX      4096
-#define _POSIX_CHILD_MAX    6
-#define _POSIX_LINK_MAX     8
-#define _POSIX_MAX_CANON    255
-#define _POSIX_MAX_INPUT    255
-#define _POSIX_NAME_MAX     14
-#define _POSIX_NGROUPS_MAX  0
-#define _POSIX_OPEN_MAX     16
-#define _POSIX_PATH_MAX     255
-#define _POSIX_PIPE_BUF     512
-#define _POSIX_SSIZE_MAX    32767
-#define _POSIX_STREAM_MAX   8
-#define _POSIX_TZNAME_MAX   3
-
-#define ARG_MAX             14500       /* 16k heap, minus overhead */
-#define LINK_MAX            1024
-#define MAX_CANON           _POSIX_MAX_CANON
-#define MAX_INPUT           _POSIX_MAX_INPUT
-#define NAME_MAX            255
-#define NGROUPS_MAX         16
-#define OPEN_MAX            32
-#define PATH_MAX            512
-#define PIPE_BUF            _POSIX_PIPE_BUF
-#define SSIZE_MAX           _POSIX_SSIZE_MAX
-#define STREAM_MAX          20
-#define TZNAME_MAX          10
-
-#endif  /* POSIX */
-
-#endif  /* _INC_LIMITS */
+#endif
+#include_next <limits.h>
+#endif /* __GNUC__ && !_GCC_LIMITS_H_ */

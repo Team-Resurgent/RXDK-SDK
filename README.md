@@ -1,46 +1,69 @@
 # RXDK-SDK
 
-Consumer SDK for original Xbox development — static libraries and headers for building Xbox titles with Visual Studio 2022.
+Consumer SDK for original Xbox homebrew development — static libraries and public
+headers for building Xbox titles (`.xbe`) with the LLVM/clang toolchain.
 
 Current release: see [`VERSION`](VERSION).
+
+Produced by the **RXDK-Libs** build — a from-source, MSVC-free port of the Xbox
+runtime (kernel import library, C/C++ runtimes, xAPI, D3D8/D3DX8, DirectSound, XNet,
+XMV). The `.lib` files are standard COFF archives; the headers are a clean
+picolibc + libc++ + Xbox-API tree.
 
 ## Layout
 
 ```
-lib/        # ship static libraries (retail + *d debug names in one folder)
-include/    # consumer headers (platform + Xbox CRT + modern MSVC STL + shims)
-VERSION     # SDK tag (e.g. v0.1.0-cpp17)
+libs/       # static import / runtime libraries (.lib)
+include/    # public headers: C, C++ (c++/v1), and the Xbox APIs
+VERSION     # SDK tag
 ```
 
-`lib/xboxkrnl.lib` is the kernel import library. Host-side packaging and deploy tools are not included in this repo.
+## Libraries (`libs/`)
 
-## Using the SDK in a project
+| Library | Role |
+|---------|------|
+| `libkernel.lib`    | Xbox kernel (xboxkrnl) import library — **every title links this last** |
+| `libc.lib`         | C runtime (picolibc, C17/C23) + Xbox HAL |
+| `libcpp.lib`       | C++ runtime (libc++ / libc++abi / DWARF unwinder) |
+| `libxapi.lib`      | Xbox application API: XInput, memory units, fibers, files, TLS, … |
+| `libd3d8.lib`      | Direct3D 8 — NV2A GPU driver |
+| `libd3dx8.lib`     | D3DX8 helpers: math, textures, mesh, `.X` files |
+| `libxgraphics.lib` | xgraphics: swizzle, S3TC, shader assembler |
+| `libdsound.lib`    | DirectSound — MCPX APU driver |
+| `libxnet.lib`      | XNet TCP/IP stack |
+| `libxmv.lib`       | XMV (FMV) video decoder |
 
-Point your Xbox title project at this tree:
+Release builds only — there are no separate `*d` debug variants.
 
-| Setting | Value |
-|---------|--------|
-| Include | single `/I` to `include/` |
-| Library path | single `/LIBPATH` to `lib/` |
-| C standard | `/std:c17` |
-| C++ standard | `/std:c++17` |
-| C++ force-includes | `/FI include/xdk_modern_stl.h` and `/FI include/xdk_crt_heap.h` |
+## Headers (`include/`)
 
-**Retail vs debug:** pick libs by name — `d3d8.lib` for Release, `d3d8d.lib` for Debug. Both live in `lib/`. Config-agnostic names (`*ltcg`, `*i`, `uuid`, `xbdm`, …) have no `*d` sibling and appear once.
+- **C** — standard library (picolibc-derived): `stdio.h`, `stdlib.h`, `string.h`,
+  `math.h`, … plus the `bits/`, `machine/`, and `sys/` support trees.
+- **C++** — `c++/v1/` (libc++), a standard libc++ install layout, so a libc++
+  toolchain finds it automatically.
+- **Xbox** — `xboxkrnl/` (kernel API), `xbox/`, `xt.h`, `xapi.h`, `d3d8*.h`,
+  `d3dx8*.h`, `dsound*.h`, `xgraphics.h`, `xmv.h`, `conio.h`, `xkbd.h`, …
 
-**Link line (typical):** `libcmt` + `libcpmt` + tier libs + `xboxkrnl.lib`. Do **not** mix in MSVC redist CRT/libs from Program Files.
+## Using the SDK
 
-For C++ exceptions, use `/EHsc`.
+Titles are compiled with **clang/LLVM** targeting x86 (Pentium III — MMX/SSE1, no
+SSE2) and linked into an `.xbe`; this is **not** an MSVC SDK, so don't mix in CRT/libs
+from Visual Studio.
 
-## Shipped libraries
+- Include path: `-I include/`
+- Library path: `libs/`
 
-52 ship libs in flat layout (Release + Debug names together, matching original XDK `lib\`):
+**Link order** — specific device libs first, then xAPI, then the kernel import lib
+last (it resolves the `__imp__*` kernel imports):
 
-| Tier | Libraries |
-|------|-----------|
-| CRT | `libcmt`, `libcmtd`, `libcpmt`, `libcpmtd`, `libc`, `libcd`, `libci`, `libcid`, `libcimt`, `libcimtd`, `libcp`, `libcpd` |
-| xAPI | `xapilib`, `xapilibd`, `xbdm` |
-| DirectX | `d3d8`, `d3d8d`, `d3d8i`, `d3d8ltcg`, `d3dx8`, `d3dx8d`, `dsound`, `dsoundd`, `xgraphics`, `xgraphicsd`, `xgraphicsltcg` |
-| Audio / media | `dmusic`, `dmusicd`, `dmusici`, `dmusicltcg`, `xacteng`, `xactengd`, `xactengi`, `xactengltcg`, `xsndtrk`, `xsndtrkd`, `xvoice`, `xvoiced`, `wmvdec`, `wmvdecd` |
-| Network / online | `xnet`, `xnetd`, `xnets`, `xnetsd`, `xkbd`, `xkbdd`, `xonline`, `xonlined`, `xonlines`, `xonlinesd` |
-| System | `uuid`, `xboxkrnl` |
+```
+libd3dx8  libxgraphics  libd3d8  libdsound  libxmv   →   libxapi   →   libkernel
+```
+
+(plus `libc` / `libcpp`). A title only needs the device libs it actually uses; e.g. a
+plain xAPI app links just `libxapi` + `libkernel`, a D3D title adds `libd3d8`
+(`+ libd3dx8`/`libxgraphics` for the helpers).
+
+For the exact compile/link recipe — target triple, `-nostdinc`, `-fms-extensions`,
+the force-included `picolibc.h`, the XBE bootstrap entry point — see the sample
+projects in the RXDK-Libs build that produces this SDK.

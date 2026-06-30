@@ -1,13 +1,5 @@
-/************************************************************************
-*                                                                       *
-*   Xbox.h -- This module defines the Xbox APIs                         *
-*                                                                       *
-*   Copyright (c) 2000 - 2003 Microsoft Corp. All rights reserved.      *
-*                                                                       *
-************************************************************************/
-#ifndef _XBOX_
+#pragma once
 #define _XBOX_
-
 
 //
 // Define API decoration for direct importing of DLL references.
@@ -19,82 +11,43 @@
 extern "C" {
 #endif
 
-XBOXAPI
-PVOID
-WINAPI
-XLoadSectionA(
-    IN LPCSTR pSectionName
-    );
+
+//========================================================================
+//  Resource sections
+//========================================================================
+XBOXAPI PVOID __attribute__((__stdcall__)) XLoadSectionA(IN LPCSTR pSectionName);
 #define XLoadSection  XLoadSectionA
 
-XBOXAPI
-BOOL
-WINAPI
-XFreeSectionA(
-    IN LPCSTR pSectionName
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XFreeSectionA(IN LPCSTR pSectionName);
 #define XFreeSection  XFreeSectionA
 
-XBOXAPI
-HANDLE
-WINAPI
-XGetSectionHandleA(
-    IN LPCSTR pSectionName
-    );
+XBOXAPI HANDLE __attribute__((__stdcall__)) XGetSectionHandleA(IN LPCSTR pSectionName);
 #define XGetSectionHandle  XGetSectionHandleA
 
-XBOXAPI
-PVOID
-WINAPI
-XLoadSectionByHandle(
-    IN HANDLE hSection
-    );
+XBOXAPI PVOID __attribute__((__stdcall__)) XLoadSectionByHandle(IN HANDLE hSection);
 
-XBOXAPI
-BOOL
-WINAPI
-XFreeSectionByHandle(
-    HANDLE hSection
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XFreeSectionByHandle(HANDLE hSection);
 
-XBOXAPI
-DWORD
-WINAPI
-XGetSectionSize(
-    HANDLE hSection
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetSectionSize(HANDLE hSection);
 
+
+//========================================================================
+//  Display blocks
+//========================================================================
 #define MAX_DISPLAY_BLOCKS  50001
 
-XBOXAPI
-DWORD
-WINAPI
-XGetDisplayBlocks(
-    IN LPCSTR lpPathName
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetDisplayBlocks(IN LPCSTR lpPathName);
 
 
+
+//========================================================================
+//  Save games
+//========================================================================
 #define XSAVEGAME_NOCOPY   1
 
-XBOXAPI
-DWORD
-WINAPI
-XCreateSaveGame(
-    IN LPCSTR lpRootPathName,
-    IN LPCWSTR lpSaveGameName,
-    IN DWORD dwCreationDisposition,
-    IN DWORD dwCreateFlags,
-    OUT LPSTR lpPathBuffer,
-    IN UINT uSize
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XCreateSaveGame(IN LPCSTR lpRootPathName, IN LPCWSTR lpSaveGameName, IN DWORD dwCreationDisposition, IN DWORD dwCreateFlags, OUT LPSTR lpPathBuffer, IN UINT uSize);
 
-XBOXAPI
-DWORD
-WINAPI
-XDeleteSaveGame(
-    IN LPCSTR lpRootPathName,
-    IN LPCWSTR lpSaveGameName
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XDeleteSaveGame(IN LPCSTR lpRootPathName, IN LPCWSTR lpSaveGameName);
 
 #define MAX_GAMENAME     128
 
@@ -104,60 +57,31 @@ typedef struct _XGAME_FIND_DATA {
     WCHAR szSaveGameName[MAX_GAMENAME];
 } XGAME_FIND_DATA, *PXGAME_FIND_DATA;
 
-XBOXAPI
-HANDLE
-WINAPI
-XFindFirstSaveGame(
-    IN LPCSTR lpRootPathName,
-    OUT PXGAME_FIND_DATA pFindGameData
-    );
+XBOXAPI HANDLE __attribute__((__stdcall__)) XFindFirstSaveGame(IN LPCSTR lpRootPathName, OUT PXGAME_FIND_DATA pFindGameData);
 
-XBOXAPI
-BOOL
-WINAPI
-XFindNextSaveGame(
-    IN HANDLE hFindGame,
-    OUT PXGAME_FIND_DATA pFindGameData
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XFindNextSaveGame(IN HANDLE hFindGame, OUT PXGAME_FIND_DATA pFindGameData);
 
-XBOXAPI
-BOOL
-WINAPI
-XFindClose(
-    IN HANDLE hFind
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XFindClose(IN HANDLE hFind);
 
+
+//========================================================================
+//  Nicknames
+//========================================================================
 #define MAX_NICKNAME 32
 
-XBOXAPI
-BOOL
-WINAPI
-XSetNicknameW(
-    IN LPCWSTR lpNickname,
-    IN BOOL fPreserveCase
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XSetNicknameW(IN LPCWSTR lpNickname, IN BOOL fPreserveCase);
 #define XSetNickname XSetNicknameW
 
-XBOXAPI
-HANDLE
-WINAPI
-XFindFirstNicknameW(
-    IN BOOL fThisTitleOnly,
-    OUT LPWSTR lpNickname,
-    IN UINT uSize
-    );
+XBOXAPI HANDLE __attribute__((__stdcall__)) XFindFirstNicknameW(IN BOOL fThisTitleOnly, OUT LPWSTR lpNickname, IN UINT uSize);
 #define XFindFirstNickname XFindFirstNicknameW
 
-XBOXAPI
-BOOL
-WINAPI
-XFindNextNicknameW(
-    IN HANDLE hFindNickname,
-    OUT LPWSTR lpNickname,
-    IN UINT uSize
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XFindNextNicknameW(IN HANDLE hFindNickname, OUT LPWSTR lpNickname, IN UINT uSize);
 #define XFindNextNickname XFindNextNicknameW
 
+
+//========================================================================
+//  Content and offerings
+//========================================================================
 typedef ULONGLONG XOFFERING_ID;
 
 #define MAX_CONTENT_DISPLAY_NAME 128
@@ -170,120 +94,39 @@ typedef struct _XCONTENT_FIND_DATA {
     WCHAR szDisplayName[MAX_CONTENT_DISPLAY_NAME];
 } XCONTENT_FIND_DATA, *PXCONTENT_FIND_DATA;
 
-XBOXAPI
-HANDLE
-WINAPI
-XFindFirstContent(
-    IN LPCSTR lpRootPathName,
-    IN DWORD dwFlagFilter,
-    OUT PXCONTENT_FIND_DATA pFindContentData
-    );
+XBOXAPI HANDLE __attribute__((__stdcall__)) XFindFirstContent(IN LPCSTR lpRootPathName, IN DWORD dwFlagFilter, OUT PXCONTENT_FIND_DATA pFindContentData);
 
-XBOXAPI
-BOOL
-WINAPI
-XFindNextContent(
-    IN HANDLE hFindContent,
-    OUT PXCONTENT_FIND_DATA pFindContentData
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XFindNextContent(IN HANDLE hFindContent, OUT PXCONTENT_FIND_DATA pFindContentData);
 
-XBOXAPI
-BOOL
-WINAPI
-XGetContentInstallLocation(
-    IN DWORD dwTitleID,
-    IN LPCSTR lpSourceMetadataFileName,
-    OUT LPSTR lpInstallDirectory
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XGetContentInstallLocation(IN DWORD dwTitleID, IN LPCSTR lpSourceMetadataFileName, OUT LPSTR lpInstallDirectory);
 
-XBOXAPI
-BOOL
-WINAPI
-XGetContentInstallLocationFromIDs(
-    IN DWORD dwTitleID,
-    IN XOFFERING_ID xOfferingID,
-    OUT LPSTR lpInstallDirectory
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XGetContentInstallLocationFromIDs(IN DWORD dwTitleID, IN XOFFERING_ID xOfferingID, OUT LPSTR lpInstallDirectory);
 
-XBOXAPI
-BOOL
-WINAPI
-XInstallContentSignatures(
-    IN DWORD dwTitleID,
-    IN LPCSTR lpSourceMetadataFileName,
-    IN LPCSTR lpDestinationDirectory
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XInstallContentSignatures(IN DWORD dwTitleID, IN LPCSTR lpSourceMetadataFileName, IN LPCSTR lpDestinationDirectory);
 
-XBOXAPI
-BOOL
-WINAPI
-XCreateContentSimple(
-    IN DWORD dwTitleID,
-    IN XOFFERING_ID xOfferingID,
-    IN DWORD dwContentFlags,
-    IN LPCWSTR lpContentName,
-    IN LPCSTR lpDestinationDirectory
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XCreateContentSimple(IN DWORD dwTitleID, IN XOFFERING_ID xOfferingID, IN DWORD dwContentFlags, IN LPCWSTR lpContentName, IN LPCSTR lpDestinationDirectory);
 
-XBOXAPI
-BOOL
-WINAPI
-XRemoveContent(
-    IN LPCSTR lpDirectoryName
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XRemoveContent(IN LPCSTR lpDirectoryName);
 
 
-XBOXAPI
-HANDLE
-WINAPI
-XLoadContentSignaturesEx(
-    IN DWORD dwTitleID,
-    IN LPCSTR lpDirectoryName
-    );
+XBOXAPI HANDLE __attribute__((__stdcall__)) XLoadContentSignaturesEx(IN DWORD dwTitleID, IN LPCSTR lpDirectoryName);
 
 #define XLoadContentSignatures(lpDirectoryName) \
     XLoadContentSignaturesEx(0, lpDirectoryName)
 
-XBOXAPI
-BOOL
-WINAPI
-XLocateSignatureByIndex(
-    IN HANDLE hSignature,
-    IN DWORD dwSignatureIndex,
-    OUT LPBYTE *ppbSignatureData,
-    OUT LPDWORD pdwSignatureSize
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XLocateSignatureByIndex(IN HANDLE hSignature, IN DWORD dwSignatureIndex, OUT LPBYTE *ppbSignatureData, OUT LPDWORD pdwSignatureSize);
 
-XBOXAPI
-BOOL
-WINAPI
-XLocateSignatureByName(
-    IN HANDLE hSignature,
-    IN LPCSTR lpFileName,
-    IN DWORD dwFileOffset,
-    IN DWORD dwDataSize,
-    OUT LPBYTE *ppbSignatureData,
-    OUT LPDWORD pdwSignatureSize
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XLocateSignatureByName(IN HANDLE hSignature, IN LPCSTR lpFileName, IN DWORD dwFileOffset, IN DWORD dwDataSize, OUT LPBYTE *ppbSignatureData, OUT LPDWORD pdwSignatureSize);
 
-XBOXAPI
-BOOL
-WINAPI
-XCalculateContentSignature(
-    IN LPBYTE pbData,
-    IN DWORD dwDataSize,
-    OUT LPBYTE pbSignature,
-    IN OUT LPDWORD pdwSignatureSize
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XCalculateContentSignature(IN LPBYTE pbData, IN DWORD dwDataSize, OUT LPBYTE pbSignature, IN OUT LPDWORD pdwSignatureSize);
 
-XBOXAPI
-VOID
-WINAPI
-XCloseContentSignatures(
-    IN HANDLE hSignature
-    );
+XBOXAPI VOID __attribute__((__stdcall__)) XCloseContentSignatures(IN HANDLE hSignature);
 
 
+
+//========================================================================
+//  Soundtracks
+//========================================================================
 #define MAX_SONG_NAME       32
 #define MAX_SOUNDTRACK_NAME 32
 #define MAX_SOUNDTRACKS     100
@@ -296,52 +139,19 @@ typedef struct _XSOUNDTRACK_DATA {
     WCHAR   szName[MAX_SOUNDTRACK_NAME];
 } XSOUNDTRACK_DATA, *PXSOUNDTRACK_DATA;
 
-XBOXAPI
-HANDLE
-WINAPI
-XFindFirstSoundtrack(
-    OUT PXSOUNDTRACK_DATA pSoundtrackData
-    );
+XBOXAPI HANDLE __attribute__((__stdcall__)) XFindFirstSoundtrack(OUT PXSOUNDTRACK_DATA pSoundtrackData);
 
-XBOXAPI
-BOOL
-WINAPI
-XFindNextSoundtrack(
-    IN HANDLE hFindHandle,
-    OUT PXSOUNDTRACK_DATA pSoundtrackData
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XFindNextSoundtrack(IN HANDLE hFindHandle, OUT PXSOUNDTRACK_DATA pSoundtrackData);
 
-XBOXAPI
-HANDLE
-WINAPI
-XOpenSoundtrackSong(
-    IN DWORD dwSongId,
-    IN BOOL fAsyncMode
-    );
+XBOXAPI HANDLE __attribute__((__stdcall__)) XOpenSoundtrackSong(IN DWORD dwSongId, IN BOOL fAsyncMode);
 
-XBOXAPI
-BOOL
-WINAPI
-XGetSoundtrackSongInfo(
-    IN DWORD dwSoundtrackId,
-    IN UINT uIndex,
-    OUT PDWORD pdwSongId,
-    OUT PDWORD pdwSongLength,
-    OUT OPTIONAL PWSTR szNameBuffer,
-    IN UINT uBufferSize
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XGetSoundtrackSongInfo(IN DWORD dwSoundtrackId, IN UINT uIndex, OUT PDWORD pdwSongId, OUT PDWORD pdwSongLength, OUT OPTIONAL PWSTR szNameBuffer, IN UINT uBufferSize);
 
-XBOXAPI
-DWORD
-WINAPI
-XAddSoundtrack(
-    IN  LPCWSTR pszSoundtrackName,
-    OUT PUINT pdwSoundtrackId
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XAddSoundtrack(IN LPCWSTR pszSoundtrackName, OUT PUINT pdwSoundtrackId);
 
 typedef
 DWORD
-(WINAPI *LP_SOUNDTRACK_PROGRESS_ROUTINE)(
+(__attribute__((__stdcall__)) *LP_SOUNDTRACK_PROGRESS_ROUTINE)(
     IN PCWSTR pszSoundtrackName,
     IN PCWSTR pszSongName,
     IN LARGE_INTEGER TotalFileSize,
@@ -349,18 +159,12 @@ DWORD
     IN LPVOID Context OPTIONAL
     );
 
-XBOXAPI
-HRESULT
-WINAPI
-XAddSongToSoundtrack(
-    IN  UINT dwSoundtrackId,
-    IN  LPCSTR pszSongPath,
-    IN  LPCWSTR pszSongName OPTIONAL,
-    IN  LP_SOUNDTRACK_PROGRESS_ROUTINE lpRoutine OPTIONAL,
-    IN  LPVOID Context OPTIONAL,
-    OUT PUINT pdwSongId OPTIONAL
-    );
+XBOXAPI HRESULT __attribute__((__stdcall__)) XAddSongToSoundtrack(IN UINT dwSoundtrackId, IN LPCSTR pszSongPath, IN LPCWSTR pszSongName OPTIONAL, IN LP_SOUNDTRACK_PROGRESS_ROUTINE lpRoutine OPTIONAL, IN LPVOID Context OPTIONAL, OUT PUINT pdwSongId OPTIONAL);
 
+
+//========================================================================
+//  Configuration settings (XGetXConfig)
+//========================================================================
 #define XC_LANGUAGE_ENGLISH         1
 #define XC_LANGUAGE_JAPANESE        2
 #define XC_LANGUAGE_GERMAN          3
@@ -372,23 +176,13 @@ XAddSongToSoundtrack(
 #define XC_LANGUAGE_PORTUGUESE      9
 
 
-XBOXAPI
-DWORD
-WINAPI
-XGetLanguage(
-    VOID
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetLanguage(VOID);
 
 
 #define XC_AUTO_LOGON_ALLOWED       1
 #define XC_AUTO_LOGON_NOT_ALLOWED   2
 
-XBOXAPI
-DWORD
-WINAPI
-XGetAutoLogonFlag(
-    VOID
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetAutoLogonFlag(VOID);
 
 
 #define XC_AV_PACK_SCART            0
@@ -398,23 +192,13 @@ XGetAutoLogonFlag(
 #define XC_AV_PACK_SVIDEO           4
 #define XC_AV_PACK_STANDARD         6
 
-XBOXAPI
-DWORD
-WINAPI
-XGetAVPack(
-    VOID
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetAVPack(VOID);
 
 #define XC_VIDEO_STANDARD_NTSC_M    1
 #define XC_VIDEO_STANDARD_NTSC_J    2
 #define XC_VIDEO_STANDARD_PAL_I     3
 
-XBOXAPI
-DWORD
-WINAPI
-XGetVideoStandard(
-    VOID
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetVideoStandard(VOID);
 
 #define XC_VIDEO_FLAGS_WIDESCREEN   0x00000001
 #define XC_VIDEO_FLAGS_HDTV_720p    0x00000002
@@ -423,12 +207,7 @@ XGetVideoStandard(
 #define XC_VIDEO_FLAGS_LETTERBOX    0x00000010
 #define XC_VIDEO_FLAGS_PAL_60Hz     0x00000040
 
-XBOXAPI
-DWORD
-WINAPI
-XGetVideoFlags(
-    VOID
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetVideoFlags(VOID);
 
 #define XC_AUDIO_FLAGS_STEREO       0x00000000
 #define XC_AUDIO_FLAGS_MONO         0x00000001
@@ -443,12 +222,7 @@ XGetVideoFlags(
 #define XC_AUDIO_FLAGS_ENCODED(c)    ((DWORD)(c) & XC_AUDIO_FLAGS_ENCODEDMASK)
 #define XC_AUDIO_FLAGS_COMBINED(b,e) (XC_AUDIO_FLAGS_BASIC(b) | XC_AUDIO_FLAGS_ENCODED(e))
 
-XBOXAPI
-DWORD
-WINAPI
-XGetAudioFlags(
-    VOID
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetAudioFlags(VOID);
 
 #define XC_PC_ESRB_ALL              0
 #define XC_PC_ESRB_ADULT            1
@@ -458,26 +232,20 @@ XGetAudioFlags(
 #define XC_PC_ESRB_KIDS_TO_ADULTS   5
 #define XC_PC_ESRB_EARLY_CHILDHOOD  6
 
-XBOXAPI
-DWORD
-WINAPI
-XGetParentalControlSetting(
-    VOID
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetParentalControlSetting(VOID);
 
 #define XC_GAME_REGION_NA             0x00000001
 #define XC_GAME_REGION_JAPAN          0x00000002
 #define XC_GAME_REGION_RESTOFWORLD    0x00000004
 #define XC_GAME_REGION_MANUFACTURING  0x80000000
 
-XBOXAPI
-DWORD
-WINAPI
-XGetGameRegion(
-    VOID
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetGameRegion(VOID);
 
 
+
+//========================================================================
+//  Input devices
+//========================================================================
 typedef struct _XPP_DEVICE_TYPE
 {
     ULONG Reserved[3];
@@ -495,16 +263,9 @@ extern XPP_DEVICE_TYPE XDEVICE_TYPE_HIGHFIDELITY_MICROPHONE_TABLE;
 #define     XDEVICE_TYPE_VOICE_HEADPHONE    (&XDEVICE_TYPE_VOICE_HEADPHONE_TABLE)
 #define     XDEVICE_TYPE_HIGHFIDELITY_MICROPHONE (&XDEVICE_TYPE_HIGHFIDELITY_MICROPHONE_TABLE)
 
-#ifdef DEBUG_MOUSE
 extern  XPP_DEVICE_TYPE            XDEVICE_TYPE_DEBUG_MOUSE_TABLE;
 #define XDEVICE_TYPE_DEBUG_MOUSE (&XDEVICE_TYPE_DEBUG_MOUSE_TABLE)
-#endif //DEBUG_MOUSE
 
-
-
-#ifdef DEBUG_KEYBOARD
-#include <xkbd.h>
-#endif
 
 #define     XDEVICE_PORT0               0
 #define     XDEVICE_PORT1               1
@@ -537,42 +298,23 @@ typedef struct _XDEVICE_PREALLOC_TYPE
 #define XGetPortCount() 4
 
 
-XBOXAPI
-VOID
-WINAPI
-XInitDevices(
-    DWORD                  dwPreallocTypeCount,
-    PXDEVICE_PREALLOC_TYPE PreallocTypes
-    );
+XBOXAPI VOID __attribute__((__stdcall__)) XInitDevices(DWORD dwPreallocTypeCount, PXDEVICE_PREALLOC_TYPE PreallocTypes);
 
-XBOXAPI
-DWORD
-WINAPI
-XGetDevices(
-    IN PXPP_DEVICE_TYPE DeviceType
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetDevices(IN PXPP_DEVICE_TYPE DeviceType);
 
-XBOXAPI
-BOOL
-WINAPI
-XGetDeviceChanges(
-    IN PXPP_DEVICE_TYPE DeviceType,
-    OUT PDWORD pdwInsertions,
-    OUT PDWORD pdwRemovals
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XGetDeviceChanges(IN PXPP_DEVICE_TYPE DeviceType, OUT PDWORD pdwInsertions, OUT PDWORD pdwRemovals);
 
 
 #define XDEVICE_ENUMERATION_IDLE 0
 #define XDEVICE_ENUMERATION_BUSY 1
 
-XBOXAPI
-DWORD
-WINAPI
-XGetDeviceEnumerationStatus();
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetDeviceEnumerationStatus();
 
 
-#include <PSHPACK1.H>
 
+//========================================================================
+//  XInput
+//========================================================================
 typedef struct _XINPUT_GAMEPAD
 {
     WORD    wButtons;
@@ -581,7 +323,7 @@ typedef struct _XINPUT_GAMEPAD
     SHORT   sThumbLY;
     SHORT   sThumbRX;
     SHORT   sThumbRY;
-} XINPUT_GAMEPAD, *PXINPUT_GAMEPAD;
+} __attribute__((packed)) XINPUT_GAMEPAD, *PXINPUT_GAMEPAD;
 
 #define XINPUT_GAMEPAD_DPAD_UP           0x0001
 #define XINPUT_GAMEPAD_DPAD_DOWN         0x0002
@@ -613,23 +355,21 @@ typedef struct _XINPUT_RUMBLE
 {
    WORD   wLeftMotorSpeed;
    WORD   wRightMotorSpeed;
-} XINPUT_RUMBLE, *PXINPUT_RUMBLE;
+} __attribute__((packed)) XINPUT_RUMBLE, *PXINPUT_RUMBLE;
 
-#ifdef DEBUG_MOUSE
 typedef struct _XINPUT_MOUSE
 {
     BYTE bButtons;
     char cMickeysX;
     char cMickeysY;
     char cWheel;
-} XINPUT_MOUSE, *PXINPUT_MOUSE;
+} __attribute__((packed)) XINPUT_MOUSE, *PXINPUT_MOUSE;
 
 #define XINPUT_DEBUG_MOUSE_LEFT_BUTTON    0x01
 #define XINPUT_DEBUG_MOUSE_RIGHT_BUTTON   0x02
 #define XINPUT_DEBUG_MOUSE_MIDDLE_BUTTON  0x04
 #define XINPUT_DEBUG_MOUSE_XBUTTON1       0x08
 #define XINPUT_DEBUG_MOUSE_XBUTTON2       0x10
-#endif //DEBUG_MOUSE
 
 typedef struct _XINPUT_STATE
 {
@@ -637,11 +377,9 @@ typedef struct _XINPUT_STATE
     union
     {
         XINPUT_GAMEPAD Gamepad;
-#ifdef DEBUG_MOUSE
         XINPUT_MOUSE   DebugMouse;
-#endif //DEBUG_MOUSE
     };
-} XINPUT_STATE, *PXINPUT_STATE;
+} __attribute__((packed)) XINPUT_STATE, *PXINPUT_STATE;
 
 
 #define XINPUT_FEEDBACK_HEADER_INTERNAL_SIZE 58
@@ -650,7 +388,7 @@ typedef struct _XINPUT_FEEDBACK_HEADER
     DWORD           dwStatus;
     HANDLE OPTIONAL hEvent;
     BYTE            Reserved[XINPUT_FEEDBACK_HEADER_INTERNAL_SIZE];
-} XINPUT_FEEDBACK_HEADER, *PXINPUT_FEEDBACK_HEADER;
+} __attribute__((packed)) XINPUT_FEEDBACK_HEADER, *PXINPUT_FEEDBACK_HEADER;
 
 typedef struct _XINPUT_FEEDBACK
 {
@@ -659,7 +397,7 @@ typedef struct _XINPUT_FEEDBACK
     {
       XINPUT_RUMBLE Rumble;
     };
-} XINPUT_FEEDBACK, *PXINPUT_FEEDBACK;
+} __attribute__((packed)) XINPUT_FEEDBACK, *PXINPUT_FEEDBACK;
 
 typedef struct _XINPUT_CAPABILITIES
 {
@@ -673,9 +411,7 @@ typedef struct _XINPUT_CAPABILITIES
     {
       XINPUT_RUMBLE Rumble;
     } Out;
-} XINPUT_CAPABILITIES, *PXINPUT_CAPABILITIES;
-
-#include <POPPACK.H>
+} __attribute__((packed)) XINPUT_CAPABILITIES, *PXINPUT_CAPABILITIES;
 
 #define XINPUT_DEVSUBTYPE_GC_GAMEPAD              0x01
 #define XINPUT_DEVSUBTYPE_GC_GAMEPAD_ALT          0x02
@@ -699,53 +435,17 @@ typedef struct _XINPUT_POLLING_PARAMETERS
     BYTE       ReservedMBZ2;
 } XINPUT_POLLING_PARAMETERS, *PXINPUT_POLLING_PARAMETERS;
 
-XBOXAPI
-HANDLE
-WINAPI
-XInputOpen(
-    IN PXPP_DEVICE_TYPE DeviceType,
-    IN DWORD dwPort,
-    IN DWORD dwSlot,
-    IN PXINPUT_POLLING_PARAMETERS pPollingParameters OPTIONAL
-    );
+XBOXAPI HANDLE __attribute__((__stdcall__)) XInputOpen(IN PXPP_DEVICE_TYPE DeviceType, IN DWORD dwPort, IN DWORD dwSlot, IN PXINPUT_POLLING_PARAMETERS pPollingParameters OPTIONAL);
 
-XBOXAPI
-VOID
-WINAPI
-XInputClose(
-    IN HANDLE hDevice
-    );
+XBOXAPI VOID __attribute__((__stdcall__)) XInputClose(IN HANDLE hDevice);
 
-XBOXAPI
-DWORD
-WINAPI
-XInputGetState(
-    IN HANDLE hDevice,
-    OUT PXINPUT_STATE  pState
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XInputGetState(IN HANDLE hDevice, OUT PXINPUT_STATE pState);
 
-XBOXAPI
-DWORD
-WINAPI
-XInputPoll(
-    IN HANDLE hDevice
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XInputPoll(IN HANDLE hDevice);
 
-XBOXAPI
-DWORD
-WINAPI
-XInputSetState(
-    IN HANDLE hDevice,
-    IN OUT PXINPUT_FEEDBACK pFeedback
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XInputSetState(IN HANDLE hDevice, IN OUT PXINPUT_FEEDBACK pFeedback);
 
-XBOXAPI
-DWORD
-WINAPI
-XInputGetCapabilities(
-    IN HANDLE hDevice,
-    OUT PXINPUT_CAPABILITIES pCapabilities
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XInputGetCapabilities(IN HANDLE hDevice, OUT PXINPUT_CAPABILITIES pCapabilities);
 
 
 typedef struct _XINPUT_DEVICE_DESCRIPTION
@@ -755,13 +455,7 @@ typedef struct _XINPUT_DEVICE_DESCRIPTION
     WORD wVersion;
 } XINPUT_DEVICE_DESCRIPTION, *PXINPUT_DEVICE_DESCRIPTION;
 
-XBOXAPI
-DWORD
-WINAPI
-XInputGetDeviceDescription(
- IN  HANDLE hDevice,
- OUT PXINPUT_DEVICE_DESCRIPTION pDescription
-);
+XBOXAPI DWORD __attribute__((__stdcall__)) XInputGetDeviceDescription(IN HANDLE hDevice, OUT PXINPUT_DEVICE_DESCRIPTION pDescription);
 
 #define XINPUT_LIGHTGUN_CALIBRATION_CENTER_X      0
 #define XINPUT_LIGHTGUN_CALIBRATION_CENTER_Y      0
@@ -776,59 +470,27 @@ typedef struct _XINPUT_LIGHTGUN_CALIBRATION_OFFSETS
     WORD wUpperLeftY;
 } XINPUT_LIGHTGUN_CALIBRATION_OFFSETS, *PXINPUT_LIGHTGUN_CALIBRATION_OFFSETS;
 
-XBOXAPI
-DWORD
-WINAPI
-XInputSetLightgunCalibration(
-    IN HANDLE hDevice,
-    IN PXINPUT_LIGHTGUN_CALIBRATION_OFFSETS pCalibrationOffsets
-);
+XBOXAPI DWORD __attribute__((__stdcall__)) XInputSetLightgunCalibration(IN HANDLE hDevice, IN PXINPUT_LIGHTGUN_CALIBRATION_OFFSETS pCalibrationOffsets);
 
-XBOXAPI
-DWORD
-WINAPI
-XMountMUA(
-    IN DWORD dwPort,
-    IN DWORD dwSlot,
-    OUT PCHAR pchDrive
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XMountMUA(IN DWORD dwPort, IN DWORD dwSlot, OUT PCHAR pchDrive);
 #define XMountMU  XMountMUA
 
 
-XBOXAPI
-DWORD
-WINAPI
-XUnmountMU(
-    IN DWORD dwPort,
-    IN DWORD dwSlot
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XUnmountMU(IN DWORD dwPort, IN DWORD dwSlot);
 
-XBOXAPI
-DWORD
-WINAPI
-XMUPortFromDriveLetterA(
-    IN CHAR chDrive
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XMUPortFromDriveLetterA(IN CHAR chDrive);
 #define XMUPortFromDriveLetter  XMUPortFromDriveLetterA
 
-XBOXAPI
-DWORD
-WINAPI
-XMUSlotFromDriveLetterA(
-    IN CHAR chDrive
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XMUSlotFromDriveLetterA(IN CHAR chDrive);
 #define XMUSlotFromDriveLetter  XMUSlotFromDriveLetterA
 
+
+//========================================================================
+//  Memory units
+//========================================================================
 #define MAX_MUNAME 32
 
-XBOXAPI
-DWORD
-WINAPI
-XMUNameFromDriveLetter(
-    IN CHAR chDrive,
-    OUT LPWSTR lpName,
-    IN UINT cchName
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XMUNameFromDriveLetter(IN CHAR chDrive, OUT LPWSTR lpName, IN UINT cchName);
 
 
 #define XINIT_MOUNT_UTILITY_DRIVE               0x00000001
@@ -841,81 +503,38 @@ XMUNameFromDriveLetter(
 #define XINIT_UTILITY_DRIVE_64K_CLUSTER_SIZE    0x80000000
 #define XINIT_UTILITY_DRIVE_128K_CLUSTER_SIZE   0xC0000000
 
-XBOXAPI
-BOOL
-WINAPI
-XMountUtilityDrive(
-    IN BOOL fFormatClean
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XMountUtilityDrive(IN BOOL fFormatClean);
 
-XBOXAPI
-BOOL
-WINAPI
-XFormatUtilityDrive(
-    VOID
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XFormatUtilityDrive(VOID);
 
-XBOXAPI
-BOOL
-WINAPI
-XMountSecondaryUtilityDrive(
-    VOID
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XMountSecondaryUtilityDrive(VOID);
 
-XBOXAPI
-BOOL
-WINAPI
-XSwapUtilityDrives(
-    VOID
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XSwapUtilityDrives(VOID);
 
 
-XBOXAPI
-BOOL
-WINAPI
-XFormatSecondaryUtilityDrive(
-    VOID
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XFormatSecondaryUtilityDrive(VOID);
 
 
-XBOXAPI
-DWORD
-WINAPI
-XMountAlternateTitleA(
-    IN LPCSTR lpRootPath,
-    IN DWORD dwAltTitleId,
-    OUT PCHAR pchDrive
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XMountAlternateTitleA(IN LPCSTR lpRootPath, IN DWORD dwAltTitleId, OUT PCHAR pchDrive);
 #define XMountAlternateTitle  XMountAlternateTitleA
 
-XBOXAPI
-DWORD
-WINAPI
-XUnmountAlternateTitleA(
-    IN CHAR chDrive
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XUnmountAlternateTitleA(IN CHAR chDrive);
 #define XUnmountAlternateTitle  XUnmountAlternateTitleA
 
-XBOXAPI
-DWORD
-WINAPI
-XGetDiskSectorSizeA(
-    IN LPCSTR lpRootPathName
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetDiskSectorSizeA(IN LPCSTR lpRootPathName);
 #define XGetDiskSectorSize  XGetDiskSectorSizeA
 
 #define XBOX_HD_SECTOR_SIZE   512
 #define XBOX_DVD_SECTOR_SIZE  2048
 #define XBOX_MU_SECTOR_SIZE   4096
 
-XBOXAPI
-DWORD
-WINAPI
-XGetDiskClusterSizeA(
-    IN LPCSTR lpRootPathName
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetDiskClusterSizeA(IN LPCSTR lpRootPathName);
 #define XGetDiskClusterSize  XGetDiskClusterSizeA
 
+
+//========================================================================
+//  Launch data
+//========================================================================
 #define MAX_LAUNCH_DATA_SIZE 3072
 
 typedef struct _LAUNCH_DATA
@@ -1007,13 +626,7 @@ typedef struct _LD_FROM_UPDATE  // Required for launching out of auto-updates, d
     BYTE    Data[MAX_LAUNCH_DATA_SIZE - 28];
 } LD_FROM_UPDATE, *PLD_FROM_UPDATE;
 
-XBOXAPI
-DWORD
-WINAPI
-XLaunchNewImageA(
-    IN LPCSTR lpImagePath,
-    IN PLAUNCH_DATA pLaunchData
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XLaunchNewImageA(IN LPCSTR lpImagePath, IN PLAUNCH_DATA pLaunchData);
 #define XLaunchNewImage XLaunchNewImageA
 
 #define LDT_TITLE                 0
@@ -1022,127 +635,46 @@ XLaunchNewImageA(
 #define LDT_FROM_UPDATE           4
 
 
-XBOXAPI
-DWORD
-WINAPI
-XGetLaunchInfo(
-    OUT PDWORD pdwLaunchDataType,
-    OUT PLAUNCH_DATA pLaunchData
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetLaunchInfo(OUT PDWORD pdwLaunchDataType, OUT PLAUNCH_DATA pLaunchData);
 
 
-typedef VOID (WINAPI *XTHREAD_NOTIFY_PROC)(BOOL fCreate);
+
+//========================================================================
+//  Thread notifications
+//========================================================================
+typedef VOID (__attribute__((__stdcall__)) *XTHREAD_NOTIFY_PROC)(BOOL fCreate);
 typedef struct _XTHREAD_NOTIFICATION {
     LIST_ENTRY ListEntry;
     XTHREAD_NOTIFY_PROC pfnNotifyRoutine;
 } XTHREAD_NOTIFICATION, *PXTHREAD_NOTIFICATION;
 
-XBOXAPI
-VOID
-WINAPI
-XRegisterThreadNotifyRoutine(
-    IN OUT PXTHREAD_NOTIFICATION pThreadNotification,
-    IN BOOL fRegister
-    );
+XBOXAPI VOID __attribute__((__stdcall__)) XRegisterThreadNotifyRoutine(IN OUT PXTHREAD_NOTIFICATION pThreadNotification, IN BOOL fRegister);
 
-XBOXAPI
-VOID
-WINAPI
-XSetProcessQuantumLength(
-    IN DWORD dwMilliseconds
-    );
+XBOXAPI VOID __attribute__((__stdcall__)) XSetProcessQuantumLength(IN DWORD dwMilliseconds);
 
-XBOXAPI
-DWORD
-WINAPI
-XGetProcessQuantumLength(
-    VOID
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetProcessQuantumLength(VOID);
 
-XBOXAPI
-BOOL
-WINAPI
-XSetFileCacheSize(
-    IN SIZE_T dwCacheSize
-    );
+XBOXAPI BOOL __attribute__((__stdcall__)) XSetFileCacheSize(IN SIZE_T dwCacheSize);
 
-XBOXAPI
-SIZE_T
-WINAPI
-XGetFileCacheSize(
-    VOID
-    );
+XBOXAPI SIZE_T __attribute__((__stdcall__)) XGetFileCacheSize(VOID);
 
-DWORD
-WINAPI
-XGetFilePhysicalSortKey(
-    HANDLE hFile
-    );
+DWORD __attribute__((__stdcall__)) XGetFilePhysicalSortKey(HANDLE hFile);
 
-XBOXAPI
-VOID
-WINAPI
-XSaveFloatingPointStateForDpc(
-    VOID
-    );
+XBOXAPI VOID __attribute__((__stdcall__)) XSaveFloatingPointStateForDpc(VOID);
 
-XBOXAPI
-VOID
-WINAPI
-XRestoreFloatingPointStateForDpc(
-    VOID
-    );
+XBOXAPI VOID __attribute__((__stdcall__)) XRestoreFloatingPointStateForDpc(VOID);
 
-XBOXAPI
-LPVOID
-WINAPI
-XPhysicalAlloc(
-    IN SIZE_T dwSize,
-    IN ULONG_PTR ulPhysicalAddress,
-    IN ULONG_PTR ulAlignment,
-    IN DWORD flProtect
-    );
+XBOXAPI LPVOID __attribute__((__stdcall__)) XPhysicalAlloc(IN SIZE_T dwSize, IN ULONG_PTR ulPhysicalAddress, IN ULONG_PTR ulAlignment, IN DWORD flProtect);
 
-XBOXAPI
-LPVOID
-WINAPI
-XPhysicalAllocEx(
-    IN SIZE_T dwSize,
-    IN ULONG_PTR ulLowestAcceptableAddress,
-    IN ULONG_PTR ulHighestAcceptableAddress,
-    IN ULONG_PTR ulAlignment,
-    IN DWORD flProtect
-    );
+XBOXAPI LPVOID __attribute__((__stdcall__)) XPhysicalAllocEx(IN SIZE_T dwSize, IN ULONG_PTR ulLowestAcceptableAddress, IN ULONG_PTR ulHighestAcceptableAddress, IN ULONG_PTR ulAlignment, IN DWORD flProtect);
 
-XBOXAPI
-SIZE_T
-WINAPI
-XPhysicalSize(
-    IN LPVOID lpAddress
-    );
+XBOXAPI SIZE_T __attribute__((__stdcall__)) XPhysicalSize(IN LPVOID lpAddress);
 
-XBOXAPI
-VOID
-WINAPI
-XPhysicalProtect(
-    IN LPVOID lpAddress,
-    IN SIZE_T dwSize,
-    IN DWORD flNewProtect
-    );
+XBOXAPI VOID __attribute__((__stdcall__)) XPhysicalProtect(IN LPVOID lpAddress, IN SIZE_T dwSize, IN DWORD flNewProtect);
 
-XBOXAPI
-VOID
-WINAPI
-XPhysicalFree(
-    IN LPVOID lpAddress
-    );
+XBOXAPI VOID __attribute__((__stdcall__)) XPhysicalFree(IN LPVOID lpAddress);
 
-XBOXAPI
-DWORD
-WINAPI
-XQueryMemoryProtect(
-    IN LPVOID lpAddress
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XQueryMemoryProtect(IN LPVOID lpAddress);
 
 //
 // allocation attribute definitions for XMemAlloc and XMemFree APIs
@@ -1178,6 +710,10 @@ XQueryMemoryProtect(
 #define XALLOC_PHYSICAL_ALIGNMENT_16K           0xE
 #define XALLOC_PHYSICAL_ALIGNMENT_32K           0xF
 
+
+//========================================================================
+//  Memory allocation
+//========================================================================
 typedef enum _XALLOC_ALLOCATOR_IDS {
     eXALLOCAllocatorId_GameMin = 0,
     eXALLOCAllocatorId_GameMax = 127,
@@ -1235,66 +771,21 @@ typedef struct _XALLOC_ATTRIBUTES {
 
 #define XALLOC_IS_PHYSICAL(Attributes) ((BOOL)(Attributes & 0x80000000)!=0)
 
-XBOXAPI
-LPVOID
-WINAPI
-XMemAlloc(
-    IN SIZE_T dwSize,
-    IN DWORD dwAllocAttributes
-    );
+XBOXAPI LPVOID __attribute__((__stdcall__)) XMemAlloc(IN SIZE_T dwSize, IN DWORD dwAllocAttributes);
 
-XBOXAPI
-LPVOID
-WINAPI
-XMemAllocDefault(
-    IN SIZE_T dwSize,
-    IN DWORD dwAllocAttributes
-    );
+XBOXAPI LPVOID __attribute__((__stdcall__)) XMemAllocDefault(IN SIZE_T dwSize, IN DWORD dwAllocAttributes);
 
-XBOXAPI
-VOID
-WINAPI
-XMemFree(
-    IN PVOID pAddress,
-    IN DWORD dwAllocAttributes
-    );
+XBOXAPI VOID __attribute__((__stdcall__)) XMemFree(IN PVOID pAddress, IN DWORD dwAllocAttributes);
 
-XBOXAPI
-VOID
-WINAPI
-XMemFreeDefault(
-    IN PVOID pAddress,
-    IN DWORD dwAllocAttributes
-    );
+XBOXAPI VOID __attribute__((__stdcall__)) XMemFreeDefault(IN PVOID pAddress, IN DWORD dwAllocAttributes);
 
-XBOXAPI
-SIZE_T
-WINAPI
-XMemSize(
-    IN PVOID pAddress,
-    IN DWORD dwAllocAttributes
-    );
+XBOXAPI SIZE_T __attribute__((__stdcall__)) XMemSize(IN PVOID pAddress, IN DWORD dwAllocAttributes);
 
-XBOXAPI
-SIZE_T
-WINAPI
-XMemSizeDefault(
-    IN PVOID pAddress,
-    IN DWORD dwAllocAttributes
-    );
+XBOXAPI SIZE_T __attribute__((__stdcall__)) XMemSizeDefault(IN PVOID pAddress, IN DWORD dwAllocAttributes);
 
-XBOXAPI
-VOID
-WINAPI
-XSetAttributesOnHeapAlloc(
-    PVOID pBaseAddress,
-    DWORD dwAllocAttributes);
+XBOXAPI VOID __attribute__((__stdcall__)) XSetAttributesOnHeapAlloc(PVOID pBaseAddress, DWORD dwAllocAttributes);
 
-XBOXAPI
-DWORD
-WINAPI
-XGetAttributesOnHeapAlloc(
-    PVOID pBaseAddress);
+XBOXAPI DWORD __attribute__((__stdcall__)) XGetAttributesOnHeapAlloc(PVOID pBaseAddress);
 
 
 #ifdef _DEBUG
@@ -1302,22 +793,10 @@ XGetAttributesOnHeapAlloc(
 #define XVER_DEVKIT 1
 #define XVER_RETAIL 2
 
-XBOXAPI
-DWORD
-WINAPI
-XDebugGetSystemVersionA(
-    OUT LPSTR pszVersionString,
-    IN UINT cchVersionString
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XDebugGetSystemVersionA(OUT LPSTR pszVersionString, IN UINT cchVersionString);
 #define XDebugGetSystemVersion XDebugGetSystemVersionA
 
-XBOXAPI
-DWORD
-WINAPI
-XDebugGetXTLVersionA(
-    OUT LPSTR pszVersionString,
-    IN UINT cchVersionString
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XDebugGetXTLVersionA(OUT LPSTR pszVersionString, IN UINT cchVersionString);
 #define XDebugGetXTLVersion XDebugGetXTLVersionA
 
 #endif // _DEBUG
@@ -1334,53 +813,25 @@ typedef struct {
 #define XCALCSIG_FLAG_DIGEST            (0x00000004)
 #define XCALCSIG_FLAG_ONLINE            (0x00000008)
 
-XBOXAPI
-DWORD
-WINAPI
-XCalculateSignatureGetSize(
-    IN DWORD dwFlags
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XCalculateSignatureGetSize(IN DWORD dwFlags);
 
-XBOXAPI
-HANDLE
-WINAPI
-XCalculateSignatureBegin(
-    IN DWORD dwFlags
-    );
+XBOXAPI HANDLE __attribute__((__stdcall__)) XCalculateSignatureBegin(IN DWORD dwFlags);
 
-XBOXAPI
-HANDLE
-WINAPI
-XCalculateSignatureBeginEx(
-    IN DWORD dwFlags,
-    IN DWORD dwAltTitleId
-    );
+XBOXAPI HANDLE __attribute__((__stdcall__)) XCalculateSignatureBeginEx(IN DWORD dwFlags, IN DWORD dwAltTitleId);
 
-XBOXAPI
-DWORD
-WINAPI
-XCalculateSignatureUpdate(
-    IN HANDLE hCalcSig,
-    IN const BYTE *pbData,
-    IN ULONG cbData
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XCalculateSignatureUpdate(IN HANDLE hCalcSig, IN const BYTE *pbData, IN ULONG cbData);
 
-XBOXAPI
-DWORD
-WINAPI
-XCalculateSignatureEnd(
-    IN HANDLE hCalcSig,
-    OUT PVOID pSignature
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XCalculateSignatureEnd(IN HANDLE hCalcSig, OUT PVOID pSignature);
 
-XBOXAPI
-ULONG
-WINAPI
-XAutoPowerDownTimeRemaining();
+XBOXAPI ULONG __attribute__((__stdcall__)) XAutoPowerDownTimeRemaining();
 
 
 #define     STATS_OFFLINE_LOCALUSERNAME_MAX_LENGTH      MAX_NICKNAME
 
+
+//========================================================================
+//  Offline statistics
+//========================================================================
 typedef enum _XOFFLINE_STAT_TYPE {
     XOFFLINE_STAT_NONE,
     XOFFLINE_STAT_LONG,
@@ -1389,29 +840,13 @@ typedef enum _XOFFLINE_STAT_TYPE {
 } XOFFLINE_STAT_TYPE;
 
 
-XBOXAPI
-DWORD
-WINAPI
-XWriteStatStore(
-    IN LPCWSTR lpLocalUserName,
-    IN DWORD dwLeaderBoardIndex,
-    IN WORD wAttributeIndex,
-    XOFFLINE_STAT_TYPE Type,
-    VOID* pStatValue
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XWriteStatStore(IN LPCWSTR lpLocalUserName, IN DWORD dwLeaderBoardIndex, IN WORD wAttributeIndex, XOFFLINE_STAT_TYPE Type, VOID* pStatValue);
 
-XBOXAPI
-DWORD
-WINAPI
-XClearStatStore(
-    IN LPCWSTR lpLocalUserName
-    );
+XBOXAPI DWORD __attribute__((__stdcall__)) XClearStatStore(IN LPCWSTR lpLocalUserName);
 
 
 #ifdef __cplusplus
 }
 #endif
 
-
-#endif // _XBOX_
 

@@ -21,7 +21,7 @@
 extern "C++" {
 #endif // __cplusplus
 
-#include "xdk_math.h"
+#include <math.h>
 
 #pragma warning(disable:4201) // anonymous unions warning
 

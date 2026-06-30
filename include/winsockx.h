@@ -14,7 +14,6 @@
 #define _WINSOCK2API_
 #define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
 
-
 /*
  * Ensure structures are packed consistently.
  */
@@ -639,7 +638,7 @@ struct  linger {
  * WinSock 2 extension -- new error codes and type definition
  */
 
-#ifdef _WIN32
+#ifdef WIN32
 
 #define WSAAPI                  FAR PASCAL
 #define WSAEVENT                HANDLE
@@ -665,7 +664,12 @@ typedef struct _OVERLAPPED *    LPWSAOVERLAPPED;
 #else /* WIN16 */
 
 #define WSAAPI                  FAR PASCAL
-typedef DWORD                   WSAEVENT, FAR * LPWSAEVENT;
+/* RXDK: WSAEVENT is a kernel HANDLE (Win32 def). The leak's title-facing
+   winsockx.h typedef'd it as DWORD (opaque to titles), but the stack impl
+   (private/ntos/net) passes WSAEVENTs straight to WaitForSingleObject/SetEvent/
+   CloseHandle etc., and clang rejects the DWORD->void* conversion MSVC allowed
+   with a warning. HANDLE is ABI-identical (both 32-bit) and type-correct. */
+typedef HANDLE                  WSAEVENT, FAR * LPWSAEVENT;
 
 typedef struct _WSAOVERLAPPED {
     DWORD    Internal;
@@ -1603,15 +1607,6 @@ typedef struct {
             // This will save several seconds when starting up if you know
             // that there is no DHCP server configured.  This flag is silently
             // ignored by the secure versions of the library.
-            //
-            // If you use XNET_STARTUP_BYPASS_DHCP, you will usually
-            // want to specify XNET_STARTUP_ALLOW_AUTOIP as well. Otherwise
-            // DHCP will be bypassed, but auto-ip won't be run, and as
-            // result no IP address will be chosen.
-
-        #define XNET_STARTUP_ALLOW_AUTOIP                0x04
-            // This flag tells the XNet stack to use auto-ip to obtain an
-            // IP address if DHCP fails or is bypassed.
 
         // The default is 0 (no flags specified).
 
@@ -1706,10 +1701,10 @@ typedef struct {
 
      BYTE       cfgQosDataLimitDiv4;
 
-        // The maximum amount of Qos data, in units of DWORD (4 bytes), that can be supplied
-        // to a call to XNetQosListen or returned in the result set of a call to XNetQosLookup.
+        // The maximum amount of Qos data that can be supplied to a call to XNetQosListen
+        // or returned in the result set of a call to XNetQosXnAddr or XNetQosServer.
         //
-        // The default is 64 (256 bytes).
+        // The default is 128 (512 bytes).
 
 } XNetStartupParams;
 
@@ -1725,23 +1720,19 @@ typedef struct {
     BYTE        ab[8];                          // xbox to xbox key identifier
 } XNKID;
 
-typedef XNADDR TSADDR;
+#define XNET_XNKID_MASK             0xF0        // Mask of flag bits in first byte of XNKID
+#define XNET_XNKID_SYSTEM_LINK      0x00        // Peer to peer system link session
+#define XNET_XNKID_ONLINE_PEER      0x80        // Peer to peer online session
+#define XNET_XNKID_ONLINE_SERVER    0xC0        // Client to server online session
 
-
-#define XNET_XNKID_MASK                 0xF0    // Mask of flag bits in first byte of XNKID
-#define XNET_XNKID_SYSTEM_LINK          0x00    // Peer to peer system link session
-#define XNET_XNKID_ONLINE_PEER          0x80    // Peer to peer online session
-#define XNET_XNKID_ONLINE_SERVER        0xC0    // Client to server online session
-#define XNET_XNKID_ONLINE_TITLESERVER   0xE0    // Client to title server online session
-
-#define XNetXnKidIsSystemLink(pxnkid)           (((pxnkid)->ab[0] & 0xE0) == XNET_XNKID_SYSTEM_LINK)
-#define XNetXnKidIsOnlinePeer(pxnkid)           (((pxnkid)->ab[0] & 0xE0) == XNET_XNKID_ONLINE_PEER)
-#define XNetXnKidIsOnlineServer(pxnkid)         (((pxnkid)->ab[0] & 0xE0) == XNET_XNKID_ONLINE_SERVER)
-#define XNetXnKidIsOnlineTitleServer(pxnkid)    (((pxnkid)->ab[0] & 0xE0) == XNET_XNKID_ONLINE_TITLESERVER)
+#define XNetXnKidIsSystemLink(pxnkid)           (((pxnkid)->ab[0] & 0xC0) == XNET_XNKID_SYSTEM_LINK)
+#define XNetXnKidIsOnlinePeer(pxnkid)           (((pxnkid)->ab[0] & 0xC0) == XNET_XNKID_ONLINE_PEER)
+#define XNetXnKidIsOnlineServer(pxnkid)         (((pxnkid)->ab[0] & 0xC0) == XNET_XNKID_ONLINE_SERVER)
 
 typedef struct {
     BYTE        ab[16];                         // xbox to xbox key exchange key
 } XNKEY;
+
 
 typedef struct {
     INT         iStatus;                        // WSAEINPROGRESS if pending; 0 if success; error if failed
@@ -1750,30 +1741,20 @@ typedef struct {
 } XNDNS;
 
 typedef struct {
-    BYTE        bFlags;                         // See XNET_XNQOSINFO_* below
+    BYTE        bDone;                          // FALSE if pending; TRUE if completed
+    BYTE        cXmit;                          // Number of packets transmitted
+    BYTE        cRecv;                          // Number of packets received
     BYTE        bReserved;                      // Reserved
-    WORD        cProbesXmit;                    // Count of Qos probes transmitted
-    WORD        cProbesRecv;                    // Count of Qos probes successfully received
-    WORD        cbData;                         // Size of Qos data supplied by target (may be zero)
+    DWORD       dwPingTime;                     // Average ping time in milliseconds
     BYTE *      pbData;                         // Qos data supplied by target (may be NULL)
-    WORD        wRttMinInMsecs;                 // Minimum round-trip time in milliseconds
-    WORD        wRttMedInMsecs;                 // Median round-trip time in milliseconds
-    DWORD       dwUpBitsPerSec;                 // Upstream bandwidth in bits per second
-    DWORD       dwDnBitsPerSec;                 // Downstream bandwidth in bits per second
+    UINT        cbData;                         // Size of Qos data supplied by target (may be zero)
 } XNQOSINFO;
-
-#define XNET_XNQOSINFO_COMPLETE         0x01    // Qos has finished processing this entry
-#define XNET_XNQOSINFO_TARGET_CONTACTED 0x02    // Target host was successfully contacted
-#define XNET_XNQOSINFO_TARGET_DISABLED  0x04    // Target host has disabled its Qos listener
-#define XNET_XNQOSINFO_DATA_RECEIVED    0x08    // Target host supplied Qos data
-#define XNET_XNQOSINFO_PARTIAL_COMPLETE 0x10    // Qos has unfinsihed estimates for this entry
 
 typedef struct {
     UINT        cxnqos;                         // Count of items in axnqosinfo[] array
     UINT        cxnqosPending;                  // Count of items still pending
     XNQOSINFO   axnqosinfo[1];                  // Vector of Qos results
 } XNQOS;
-
 
 #include <poppack.h>
 
@@ -1788,63 +1769,45 @@ INT   WSAAPI XNetUnregisterKey(const XNKID * pxnkid);
 
 INT   WSAAPI XNetXnAddrToInAddr(const XNADDR * pxna, const XNKID * pxnkid, IN_ADDR * pina);
 INT   WSAAPI XNetServerToInAddr(const IN_ADDR ina, DWORD dwServiceId, IN_ADDR * pina);
-INT   WSAAPI XNetTsAddrToInAddr(const TSADDR * ptsa, DWORD dwServiceId, const XNKID * pxnkid, IN_ADDR * pina);
 INT   WSAAPI XNetInAddrToXnAddr(const IN_ADDR ina, XNADDR * pxna, XNKID * pxnkid);
-INT   WSAAPI XNetInAddrToServer(const IN_ADDR ina, IN_ADDR *pina);
 INT   WSAAPI XNetInAddrToString(const IN_ADDR ina, char * pchBuf, INT cchBuf);
 INT   WSAAPI XNetUnregisterInAddr(const IN_ADDR ina);
-INT   WSAAPI XNetXnAddrToMachineId(const XNADDR *pxnaddr, ULONGLONG *pqwMachineId);
-
-INT   WSAAPI XNetConnect(const IN_ADDR ina);
-DWORD WSAAPI XNetGetConnectStatus(const IN_ADDR ina);
-
-#define XNET_CONNECT_STATUS_IDLE            0x0000  // Connection not started; use XNetConnect or send packet
-#define XNET_CONNECT_STATUS_PENDING         0x0001  // Connecting in progress; not complete yet
-#define XNET_CONNECT_STATUS_CONNECTED       0x0002  // Connection is established
-#define XNET_CONNECT_STATUS_LOST            0x0003  // Connection was lost
 
 INT   WSAAPI XNetDnsLookup(const char * pszHost, WSAEVENT hEvent, XNDNS ** ppxndns);
 INT   WSAAPI XNetDnsRelease(XNDNS * pxndns);
 
 INT   WSAAPI XNetQosListen(const XNKID * pxnkid, const BYTE * pb, UINT cb, DWORD dwBitsPerSec, DWORD dwFlags);
-INT   WSAAPI XNetQosLookup(UINT cxna, const XNADDR * apxna[], const XNKID * apxnkid[], const XNKEY * apxnkey[], UINT cina, const IN_ADDR aina[], const DWORD adwServiceId[], UINT cProbes, DWORD dwBitsPerSec, DWORD dwFlags, WSAEVENT hEvent, XNQOS ** ppxnqos);
-INT   WSAAPI XNetQosServiceLookup(DWORD dwFlags, WSAEVENT hEvent, XNQOS ** ppxnqos);
+INT   WSAAPI XNetQosXnAddr(UINT cxnqos, const XNADDR * apxna[], const XNKID * apxnkid[], const XNKEY * apxnkey[], DWORD dwFlags, WSAEVENT hEvent, XNQOS ** ppxnqos);
+INT   WSAAPI XNetQosServer(UINT cxnqos, const IN_ADDR aina[], const DWORD adwServiceId[], DWORD dwFlags, WSAEVENT hEvent, XNQOS ** ppxnqos);
 INT   WSAAPI XNetQosRelease(XNQOS * pxnqos);
 
-#define XNET_QOS_LISTEN_ENABLE              0x01    // Responds to queries on the given XNKID
-#define XNET_QOS_LISTEN_DISABLE             0x02    // Rejects queries on the given XNKID
-#define XNET_QOS_LISTEN_SET_DATA            0x04    // Sets the block of data to send back to queriers
-#define XNET_QOS_LISTEN_SET_BITSPERSEC      0x08    // Sets max bandwidth that query reponses may consume
-#define XNET_QOS_LISTEN_RELEASE             0x10    // Stops listening on given XNKID and releases memory
-#define XNET_QOS_LOOKUP_RESERVED            0x00    // No flags defined yet for XNetQosLookup
-#define XNET_QOS_SERVICE_LOOKUP_RESERVED    0x00    // No flags defined yet for XNetQosServiceLookup
+#define XNET_QOS_LISTEN_ENABLE          0x00    // Starts listening to queries on the given XNKID
+#define XNET_QOS_LISTEN_DISABLE         0x01    // Stops listening to queries on the given XNKID
+#define XNET_QOS_LISTEN_SET_DATA        0x02    // Sets the block of data to send to queriers
+#define XNET_QOS_LISTEN_SET_BITSPERSEC  0x04    // Sets max bandwidth that query reponses may consume
+#define XNET_QOS_XNADDR_RESERVED        0x00    // No flags currently defined
+#define XNET_QOS_SERVER_RESERVED        0x00    // No flags currently defined
 
 DWORD WSAAPI XNetGetTitleXnAddr(XNADDR * pxna);
 DWORD WSAAPI XNetGetDebugXnAddr(XNADDR * pxna);
 
-#define XNET_GET_XNADDR_PENDING             0x0000  // Address acquisition is not yet complete
-#define XNET_GET_XNADDR_NONE                0x0001  // XNet is uninitialized or no debugger found
-#define XNET_GET_XNADDR_ETHERNET            0x0002  // Host has ethernet address (no IP address)
-#define XNET_GET_XNADDR_STATIC              0x0004  // Host has staticically assigned IP address
-#define XNET_GET_XNADDR_DHCP                0x0008  // Host has DHCP assigned IP address
-#define XNET_GET_XNADDR_PPPOE               0x0010  // Host has PPPoE assigned IP address
-#define XNET_GET_XNADDR_GATEWAY             0x0020  // Host has one or more gateways configured
-#define XNET_GET_XNADDR_DNS                 0x0040  // Host has one or more DNS servers configured
-#define XNET_GET_XNADDR_ONLINE              0x0080  // Host is currently connected to online service
-#define XNET_GET_XNADDR_TROUBLESHOOT        0x8000  // Network configuration requires troubleshooting
+#define XNET_GET_XNADDR_PENDING         0x00    // Address acquisition is not yet complete
+#define XNET_GET_XNADDR_NONE            0x01    // XNet is uninitialized or no debugger found
+#define XNET_GET_XNADDR_ETHERNET        0x02    // Host has ethernet address (no IP address)
+#define XNET_GET_XNADDR_STATIC          0x04    // Host has static IP address
+#define XNET_GET_XNADDR_DHCP            0x08    // Host has dynamic IP address via DHCP
+#define XNET_GET_XNADDR_AUTO            0x10    // Host has auto IP address in 169.254/16
+#define XNET_GET_XNADDR_GATEWAY         0x20    // Host has one or more gateways configured
+#define XNET_GET_XNADDR_DNS             0x40    // Host has one or more DNS servers configured
+#define XNET_GET_XNADDR_ONLINE          0x80    // Host is currently connected to online service
 
 DWORD WSAAPI XNetGetEthernetLinkStatus();
 
-#define XNET_ETHERNET_LINK_ACTIVE           0x01    // Ethernet cable is connected and active
-#define XNET_ETHERNET_LINK_100MBPS          0x02    // Ethernet link is set to 100 Mbps
-#define XNET_ETHERNET_LINK_10MBPS           0x04    // Ethernet link is set to 10 Mbps
-#define XNET_ETHERNET_LINK_FULL_DUPLEX      0x08    // Ethernet link is in full duplex mode
-#define XNET_ETHERNET_LINK_HALF_DUPLEX      0x10    // Ethernet link is in half duplex mode
-
-DWORD WSAAPI XNetGetBroadcastVersionStatus(BOOL fReset);
-
-#define XNET_BROADCAST_VERSION_OLDER        0x0001  // Got broadcast packet(s) from incompatible older version of title
-#define XNET_BROADCAST_VERSION_NEWER        0x0002  // Got broadcast packet(s) from incompatible newer version of title
+#define XNET_ETHERNET_LINK_ACTIVE       0x01    // Ethernet cable is connected and active
+#define XNET_ETHERNET_LINK_100MBPS      0x02    // Ethernet link is set to 100 Mbps
+#define XNET_ETHERNET_LINK_10MBPS       0x04    // Ethernet link is set to 10 Mbps
+#define XNET_ETHERNET_LINK_FULL_DUPLEX  0x08    // Ethernet link is in full duplex mode
+#define XNET_ETHERNET_LINK_HALF_DUPLEX  0x10    // Ethernet link is in half duplex mode
 
 //
 // Since our socket handles are not file handles, apps can NOT call CancelIO API to cancel
@@ -1852,14 +1815,6 @@ DWORD WSAAPI XNetGetBroadcastVersionStatus(BOOL fReset);
 //
 
 INT WSAAPI WSACancelOverlappedIO(SOCKET s);
-
-//
-// The following protocol can be passed to the socket() API to create a datagram socket that
-// transports encrypted data and unencrypted voice in the same packet.
-//
-
-#define IPPROTO_VDP                         254
-
 
 
 #ifdef __cplusplus

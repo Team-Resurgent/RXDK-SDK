@@ -1,274 +1,195 @@
-/***
-*sys/stat.h - defines structure used by stat() and fstat()
-*
-*       Copyright (c) 1985-2001, Microsoft Corporation. All rights reserved.
-*
-*Purpose:
-*       This file defines the structure used by the _stat() and _fstat()
-*       routines.
-*       [System V]
-*
-*       [Public]
-*
-*Revision History:
-*       07-28-87  SKS   Fixed TIME_T_DEFINED to be _TIME_T_DEFINED
-*       12-11-87  JCR   Added "_loadds" functionality
-*       12-18-87  JCR   Added _FAR_ to declarations
-*       02-10-88  JCR   Cleaned up white space
-*       08-22-88  GJF   Modified to also work for the 386 (small model only)
-*       05-03-89  JCR   Added _INTERNAL_IFSTRIP for relinc usage
-*       08-22-89  GJF   Cleanup, now specific to OS/2 2.0 (i.e., 386 flat model)
-*       10-30-89  GJF   Fixed copyright
-*       11-02-89  JCR   Changed "DLL" to "_DLL"
-*       03-09-90  GJF   Added #ifndef _INC_STAT and #include <cruntime.h>
-*                       stuff. Also, removed some (now) useless preprocessor
-*                       directives.
-*       03-21-90  GJF   Replaced _cdecl with _CALLTYPE1.
-*       01-18-91  GJF   ANSI naming.
-*       01-25-91  GJF   Protect _stat struct with pack pragma.
-*       08-20-91  JCR   C++ and ANSI naming
-*       09-28-91  JCR   ANSI names: DOSX32=prototypes, WIN32=#defines for now
-*       08-07-92  GJF   Function calling type and variable type macros. Also
-*                       #include <types.h> (common user request).
-*       11-10-92  SKS   Need #pragma pack(4) around definition of struct _stat
-*                       in case the user has specified non-default packing
-*       12-15-92  GJF   Added _S_IFIFO for pipes (based on Unix/Posix def.
-*                       for FIFO special files and pipes).
-*       01-21-93  GJF   Removed support for C6-386's _cdecl.
-*       04-06-93  SKS   Replace _CRTAPI1/2 with __cdecl, _CRTVAR1 with nothing
-*       04-07-93  GJF   Changed type of first arg to _stat to const char *.
-*       04-07-93  SKS   Add _CRTIMP keyword for CRT DLL model
-*                       Use link-time aliases for old names, not #define's
-*       10-13-93  GJF   Merged NT and Cuda versions.
-*       12-16-93  GJF   Add _wstat.
-*       11-03-94  GJF   Changed pack pragma to 8 byte alignment.
-*       12-28-94  GJF   Added _stati64 structure and protos for _fstati64,
-*                       _[w]stati64.
-*       02-14-95  CFW   Clean up Mac merge, add _CRTBLD.
-*       04-27-95  CFW   Add mac/win32 test.
-*       12-14-95  JWM   Add "#pragma once".
-*       01-23-97  GJF   Cleaned out obsolete support for _NTSDK and _CRTAPI*.
-*                       Also, detab-ed.
-*       09-30-97  JWM   Restored not-so-obsolete _CRTAPI1 support.
-*       10-07-97  RDL   Added IA64.
-*       05-06-98  GJF   Added __time64_t support.
-*       02-25-99  GJF   Changed time_t to __int64
-*       05-13-99  PML   Remove _CRTAPI1
-*       05-17-99  PML   Remove all Macintosh support.
-*
-****/
+/*
+Copyright (c) 1982, 1986, 1993
+The Regents of the University of California.  All rights reserved.
 
-#if     _MSC_VER > 1000 /*IFSTRIP=IGN*/
-#pragma once
-#endif
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+3. Neither the name of the University nor the names of its contributors
+may be used to endorse or promote products derived from this software
+without specific prior written permission.
 
-#ifndef _INC_STAT
-#define _INC_STAT
-
-#if     !defined(_WIN32)
-#error ERROR: Only Win32 target supported!
-#endif
-
-#ifndef _CRTBLD
-/* This version of the header files is NOT for user programs.
- * It is intended for use when building the C runtimes ONLY.
- * The version intended for public use will not have this message.
+THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
  */
-#error ERROR: Use of C runtime library internal header file.
-#endif  /* _CRTBLD */
+#ifndef _SYS_STAT_H
+#define _SYS_STAT_H
 
-#ifdef  _MSC_VER
-#pragma pack(push,8)
-#endif  /* _MSC_VER */
+#include <sys/cdefs.h>
+#include <sys/_types.h>
+#include <sys/_timespec.h>
 
-#ifdef  __cplusplus
-extern "C" {
+_BEGIN_STD_C
+
+#ifndef _BLKCNT_T_DECLARED
+typedef __blkcnt_t blkcnt_t;
+#define _BLKCNT_T_DECLARED
 #endif
 
-#ifndef _INTERNAL_IFSTRIP_
-#include <cruntime.h>
-#endif  /* _INTERNAL_IFSTRIP_ */
-
-
-/* Define _CRTIMP */
-
-#ifndef _CRTIMP
-#ifdef  CRTDLL
-#define _CRTIMP __declspec(dllexport)
-#else   /* ndef CRTDLL */
-#ifdef  _DLL
-#define _CRTIMP __declspec(dllimport)
-#else   /* ndef _DLL */
-#define _CRTIMP
-#endif  /* _DLL */
-#endif  /* CRTDLL */
-#endif  /* _CRTIMP */
-
-
-/* Define __cdecl for non-Microsoft compilers */
-
-#if     ( !defined(_MSC_VER) && !defined(__cdecl) )
-#define __cdecl
+#ifndef _BLKSIZE_T_DECLARED
+typedef __blksize_t blksize_t;
+#define _BLKSIZE_T_DECLARED
 #endif
 
-
-#include <sys/types.h>
-
-
-#ifndef _TIME_T_DEFINED
-#ifdef  _WIN64
-typedef __int64 time_t;         /* time value */
-#else
-typedef long    time_t;         /* time value */
-#endif
-#if     _INTEGRAL_MAX_BITS >= 64    /*IFSTRIP=IGN*/
-typedef __int64 __time64_t;     /* 64-bit time value */
-#endif
-#define _TIME_T_DEFINED         /* avoid multiple def's of time_t */
+#ifndef _DEV_T_DECLARED
+typedef __dev_t dev_t; /* device number or struct cdev */
+#define _DEV_T_DECLARED
 #endif
 
-
-#ifndef _WCHAR_T_DEFINED
-typedef unsigned short wchar_t;
-#define _WCHAR_T_DEFINED
+#ifndef _INO_T_DECLARED
+typedef __ino_t ino_t; /* inode number */
+#define _INO_T_DECLARED
 #endif
 
+#ifndef _MODE_T_DECLARED
+typedef __mode_t mode_t; /* permissions */
+#define _MODE_T_DECLARED
+#endif
 
-/* define structure for returning status information */
+#ifndef _NLINK_T_DECLARED
+typedef __nlink_t nlink_t; /* link count */
+#define _NLINK_T_DECLARED
+#endif
 
-#ifndef _STAT_DEFINED
+#ifndef _UID_T_DECLARED
+typedef __uid_t uid_t; /* user id */
+#define _UID_T_DECLARED
+#endif
 
-struct _stat {
-        _dev_t st_dev;
-        _ino_t st_ino;
-        unsigned short st_mode;
-        short st_nlink;
-        short st_uid;
-        short st_gid;
-        _dev_t st_rdev;
-        _off_t st_size;
-        time_t st_atime;
-        time_t st_mtime;
-        time_t st_ctime;
-        };
+#ifndef _GID_T_DECLARED
+typedef __gid_t gid_t; /* group id */
+#define _GID_T_DECLARED
+#endif
 
-#if     !__STDC__
+#ifndef _OFF_T_DECLARED
+typedef __off_t off_t; /* file offset */
+#define _OFF_T_DECLARED
+#endif
 
-/* Non-ANSI names for compatibility */
+#ifndef _TIME_T_DECLARED
+typedef __time_t time_t;
+#define _TIME_T_DECLARED
+#endif
 
 struct stat {
-        _dev_t st_dev;
-        _ino_t st_ino;
-        unsigned short st_mode;
-        short st_nlink;
-        short st_uid;
-        short st_gid;
-        _dev_t st_rdev;
-        _off_t st_size;
-        time_t st_atime;
-        time_t st_mtime;
-        time_t st_ctime;
-        };
+    dev_t           st_dev;
+    ino_t           st_ino;
+    mode_t          st_mode;
+    nlink_t         st_nlink;
+    uid_t           st_uid;
+    gid_t           st_gid;
+    dev_t           st_rdev;
+    off_t           st_size;
+    blksize_t       st_blksize;
+    blkcnt_t        st_blocks;
+    struct timespec st_atim;
+    struct timespec st_mtim;
+    struct timespec st_ctim;
+};
 
-#endif  /* __STDC__ */
-
-#if     _INTEGRAL_MAX_BITS >= 64    /*IFSTRIP=IGN*/
-
-struct _stati64 {
-        _dev_t st_dev;
-        _ino_t st_ino;
-        unsigned short st_mode;
-        short st_nlink;
-        short st_uid;
-        short st_gid;
-        _dev_t st_rdev;
-        __int64 st_size;
-        time_t st_atime;
-        time_t st_mtime;
-        time_t st_ctime;
-        };
-
-struct __stat64 {
-        _dev_t st_dev;
-        _ino_t st_ino;
-        unsigned short st_mode;
-        short st_nlink;
-        short st_uid;
-        short st_gid;
-        _dev_t st_rdev;
-        __int64 st_size;
-        __time64_t st_atime;
-        __time64_t st_mtime;
-        __time64_t st_ctime;
-        };
-
+#if __BSD_VISIBLE
+#define _major_dev_shift ((sizeof(dev_t) >> 1) << 3)
+#define major(d)         ((d) >> _major_dev_shift)
+#define minor(d)         ((d) & (((dev_t)1 << _major_dev_shift) - 1))
+#define __make_dev(a, i) ((dev_t)(a) << _major_dev_shift | (i))
 #endif
 
-#define _STAT_DEFINED
+#define st_atime st_atim.tv_sec
+#define st_ctime st_ctim.tv_sec
+#define st_mtime st_mtim.tv_sec
+
+#define S_IFMT   0170000 /* type of file */
+#define S_IFDIR  0040000 /* directory */
+#define S_IFCHR  0020000 /* character special */
+#define S_IFBLK  0060000 /* block special */
+#define S_IFREG  0100000 /* regular */
+#define S_IFLNK  0120000 /* symbolic link */
+#define S_IFSOCK 0140000 /* socket */
+#define S_IFIFO  0010000 /* fifo */
+
+#define S_ISUID  0004000 /* set user id on execution */
+#define S_ISGID  0002000 /* set group id on execution */
+#define S_ISVTX  0001000 /* save swapped text even after use */
+#if __BSD_VISIBLE
+#define S_IREAD  0000400 /* read permission, owner */
+#define S_IWRITE 0000200 /* write permission, owner */
+#define S_IEXEC  0000100 /* execute/search permission, owner */
+#define S_ENFMT  0002000 /* enforcement-mode locking */
+#endif                   /* !_BSD_VISIBLE */
+
+#define S_IRWXU (S_IRUSR | S_IWUSR | S_IXUSR)
+#define S_IRUSR 0000400 /* read permission, owner */
+#define S_IWUSR 0000200 /* write permission, owner */
+#define S_IXUSR 0000100 /* execute/search permission, owner */
+#define S_IRWXG (S_IRGRP | S_IWGRP | S_IXGRP)
+#define S_IRGRP 0000040 /* read permission, group */
+#define S_IWGRP 0000020 /* write permission, grougroup */
+#define S_IXGRP 0000010 /* execute/search permission, group */
+#define S_IRWXO (S_IROTH | S_IWOTH | S_IXOTH)
+#define S_IROTH 0000004 /* read permission, other */
+#define S_IWOTH 0000002 /* write permission, other */
+#define S_IXOTH 0000001 /* execute/search permission, other */
+
+#if __BSD_VISIBLE
+#define ACCESSPERMS (S_IRWXU | S_IRWXG | S_IRWXO)                               /* 0777 */
+#define ALLPERMS    (S_ISUID | S_ISGID | S_ISVTX | S_IRWXU | S_IRWXG | S_IRWXO) /* 07777 */
+#define DEFFILEMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH) /* 0666 */
+#define S_BLKSIZE   512 /* blocksize for st_blocks */
 #endif
 
+#define S_ISBLK(m)  (((m) & S_IFMT) == S_IFBLK)
+#define S_ISCHR(m)  (((m) & S_IFMT) == S_IFCHR)
+#define S_ISDIR(m)  (((m) & S_IFMT) == S_IFDIR)
+#define S_ISFIFO(m) (((m) & S_IFMT) == S_IFIFO)
+#define S_ISREG(m)  (((m) & S_IFMT) == S_IFREG)
+#define S_ISLNK(m)  (((m) & S_IFMT) == S_IFLNK)
+#define S_ISSOCK(m) (((m) & S_IFMT) == S_IFSOCK)
 
-#define _S_IFMT         0170000         /* file type mask */
-#define _S_IFDIR        0040000         /* directory */
-#define _S_IFCHR        0020000         /* character special */
-#define _S_IFIFO        0010000         /* pipe */
-#define _S_IFREG        0100000         /* regular */
-#define _S_IREAD        0000400         /* read permission, owner */
-#define _S_IWRITE       0000200         /* write permission, owner */
-#define _S_IEXEC        0000100         /* execute/search permission, owner */
+int    chmod(const char *__path, mode_t __mode);
+int    fchmod(int __fd, mode_t __mode);
+int    fstat(int __fd, struct stat *__sbuf);
+int    mkdir(const char *_path, mode_t __mode);
+int    mkfifo(const char *__path, mode_t __mode);
+int    stat(const char    *__restrict __path, struct stat    *__restrict __sbuf);
+mode_t umask(mode_t __mask);
 
-
-/* Function prototypes */
-
-_CRTIMP int __cdecl _fstat(int, struct _stat *);
-_CRTIMP int __cdecl _stat(const char *, struct _stat *);
-
-#if     _INTEGRAL_MAX_BITS >= 64    /*IFSTRIP=IGN*/
-_CRTIMP int __cdecl _fstati64(int, struct _stati64 *);
-_CRTIMP int __cdecl _fstat64(int, struct __stat64 *);
-_CRTIMP int __cdecl _stati64(const char *, struct _stati64 *);
-_CRTIMP int __cdecl _stat64(const char *, struct __stat64 *);
+#if defined(__SPU__) || defined(__rtems__) || defined(__CYGWIN__) || __POSIX_VISIBLE >= 200112L \
+    || defined(__BSD_VISIBLE) || (_XOPEN_SOURCE - 0) >= 500
+int lstat(const char * __restrict __path, struct stat * __restrict __buf);
 #endif
 
-#ifndef _WSTAT_DEFINED
-
-/* wide function prototypes, also declared in wchar.h  */
-
-_CRTIMP int __cdecl _wstat(const wchar_t *, struct _stat *);
-
-#if     _INTEGRAL_MAX_BITS >= 64    /*IFSTRIP=IGN*/
-_CRTIMP int __cdecl _wstati64(const wchar_t *, struct _stati64 *);
-_CRTIMP int __cdecl _wstat64(const wchar_t *, struct __stat64 *);
+#if defined(__SPU__) || defined(__rtems__) || defined(__CYGWIN__) || defined(__BSD_VISIBLE) \
+    || (_XOPEN_SOURCE - 0) >= 500 || __SVID_VISIBLE
+int mknod(const char *__path, mode_t __mode, dev_t __dev);
 #endif
 
-#define _WSTAT_DEFINED
+#if __ATFILE_VISIBLE
+int fchmodat(int, const char *, mode_t, int);
+int fstatat(int, const char * __restrict, struct stat * __restrict, int);
+int mkdirat(int, const char *, mode_t);
+int mkfifoat(int, const char *, mode_t);
+int mknodat(int, const char *, mode_t, dev_t);
+int utimensat(int, const char *, const struct timespec[2], int);
 #endif
 
-
-#if     !__STDC__
-
-/* Non-ANSI names for compatibility */
-
-#define S_IFMT   _S_IFMT
-#define S_IFDIR  _S_IFDIR
-#define S_IFCHR  _S_IFCHR
-#define S_IFREG  _S_IFREG
-#define S_IREAD  _S_IREAD
-#define S_IWRITE _S_IWRITE
-#define S_IEXEC  _S_IEXEC
-
-_CRTIMP int __cdecl fstat(int, struct stat *);
-_CRTIMP int __cdecl stat(const char *, struct stat *);
-
-#endif  /* __STDC__ */
-
-
-#ifdef  __cplusplus
-}
+#if __POSIX_VISIBLE >= 200809
+int futimens(int, const struct timespec[2]);
 #endif
 
-#ifdef  _MSC_VER
-#pragma pack(pop)
-#endif  /* _MSC_VER */
+_END_STD_C
 
-#endif  /* _INC_STAT */
+#endif /* _SYS_STAT_H */

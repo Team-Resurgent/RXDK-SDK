@@ -5,8 +5,10 @@
 *   Copyright (c) 1990-2001, Microsoft Corp. All rights reserved.       *
 *                                                                       *
 ************************************************************************/
-#ifndef _WINBASE_
+
+#pragma once
 #define _WINBASE_
+
 
 
 //
@@ -172,12 +174,14 @@ typedef struct _SYSTEMTIME {
 } SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME;
 
 
-typedef DWORD (WINAPI *PTHREAD_START_ROUTINE)(
+typedef DWORD (__stdcall *PTHREAD_START_ROUTINE)(
     LPVOID lpThreadParameter
     );
 typedef PTHREAD_START_ROUTINE LPTHREAD_START_ROUTINE;
 
-typedef VOID (WINAPI *PFIBER_START_ROUTINE)(
+/* __stdcall pinned explicitly (not __attribute__((__stdcall__))): fiber entry points are invoked by
+ * the asm switch / XapiFiberStartup which assume the Xbox stdcall ABI. */
+typedef VOID (__stdcall *PFIBER_START_ROUTINE)(
     LPVOID lpFiberParameter
     );
 typedef PFIBER_START_ROUTINE LPFIBER_START_ROUTINE;
@@ -280,24 +284,25 @@ typedef PEXCEPTION_POINTERS LPEXCEPTION_POINTERS;
 
 
 #ifndef _NTOS_
+#if !defined(__clang__)
 
 WINBASEAPI
 LONG
-WINAPI
+__attribute__((__stdcall__))
 InterlockedIncrement(
     IN OUT LPLONG lpAddend
     );
 
 WINBASEAPI
 LONG
-WINAPI
+__attribute__((__stdcall__))
 InterlockedDecrement(
     IN OUT LPLONG lpAddend
     );
 
 WINBASEAPI
 LONG
-WINAPI
+__attribute__((__stdcall__))
 InterlockedExchange(
     IN OUT LPLONG Target,
     IN LONG Value
@@ -308,7 +313,7 @@ InterlockedExchange(
 
 WINBASEAPI
 LONG
-WINAPI
+__attribute__((__stdcall__))
 InterlockedExchangeAdd(
     IN OUT LPLONG Addend,
     IN LONG Value
@@ -316,7 +321,7 @@ InterlockedExchangeAdd(
 
 WINBASEAPI
 LONG
-WINAPI
+__attribute__((__stdcall__))
 InterlockedCompareExchange (
     IN OUT LPLONG Destination,
     IN LONG Exchange,
@@ -345,12 +350,14 @@ __InlineInterlockedCompareExchangePointer (
 
 #endif
 
-#endif /* NT_INCLUDED */
+#endif /* __clang__ */
+
+#endif /* _NTOS_ */
 
 
 WINBASEAPI
 HGLOBAL
-WINAPI
+__attribute__((__stdcall__))
 GlobalAlloc(
     IN UINT uFlags,
     IN SIZE_T dwBytes
@@ -358,7 +365,7 @@ GlobalAlloc(
 
 WINBASEAPI
 HGLOBAL
-WINAPI
+__attribute__((__stdcall__))
 GlobalReAlloc(
     IN HGLOBAL hMem,
     IN SIZE_T dwBytes,
@@ -367,7 +374,7 @@ GlobalReAlloc(
 
 WINBASEAPI
 UINT
-WINAPI
+__attribute__((__stdcall__))
 GlobalFlags(
     IN HGLOBAL hMem
     );
@@ -381,7 +388,7 @@ GlobalFlags(
 
 WINBASEAPI
 VOID
-WINAPI
+__attribute__((__stdcall__))
 GlobalMemoryStatus(
     IN OUT LPMEMORYSTATUS lpBuffer
     );
@@ -389,7 +396,7 @@ GlobalMemoryStatus(
 
 WINBASEAPI
 HLOCAL
-WINAPI
+__attribute__((__stdcall__))
 LocalAlloc(
     IN UINT uFlags,
     IN SIZE_T uBytes
@@ -397,7 +404,7 @@ LocalAlloc(
 
 WINBASEAPI
 HLOCAL
-WINAPI
+__attribute__((__stdcall__))
 LocalReAlloc(
     IN HLOCAL hMem,
     IN SIZE_T uBytes,
@@ -406,42 +413,42 @@ LocalReAlloc(
 
 WINBASEAPI
 LPVOID
-WINAPI
+__attribute__((__stdcall__))
 LocalLock(
     IN HLOCAL hMem
     );
 
 WINBASEAPI
 HLOCAL
-WINAPI
+__attribute__((__stdcall__))
 LocalHandle(
     IN LPCVOID pMem
     );
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 LocalUnlock(
     IN HLOCAL hMem
     );
 
 WINBASEAPI
 SIZE_T
-WINAPI
+__attribute__((__stdcall__))
 LocalSize(
     IN HLOCAL hMem
     );
 
 WINBASEAPI
 UINT
-WINAPI
+__attribute__((__stdcall__))
 LocalFlags(
     IN HLOCAL hMem
     );
 
 WINBASEAPI
 HLOCAL
-WINAPI
+__attribute__((__stdcall__))
 LocalFree(
     IN HLOCAL hMem
     );
@@ -449,7 +456,7 @@ LocalFree(
 
 WINBASEAPI
 LPVOID
-WINAPI
+__attribute__((__stdcall__))
 VirtualAlloc(
     IN LPVOID lpAddress,
     IN SIZE_T dwSize,
@@ -459,7 +466,7 @@ VirtualAlloc(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 VirtualFree(
     IN LPVOID lpAddress,
     IN SIZE_T dwSize,
@@ -468,7 +475,7 @@ VirtualFree(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 VirtualProtect(
     IN  LPVOID lpAddress,
     IN  SIZE_T dwSize,
@@ -478,7 +485,7 @@ VirtualProtect(
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 VirtualQuery(
     IN LPCVOID lpAddress,
     OUT PMEMORY_BASIC_INFORMATION lpBuffer,
@@ -487,7 +494,7 @@ VirtualQuery(
 
 WINBASEAPI
 LPVOID
-WINAPI
+__attribute__((__stdcall__))
 VirtualAllocEx(
     IN HANDLE hProcess,
     IN LPVOID lpAddress,
@@ -498,7 +505,7 @@ VirtualAllocEx(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 VirtualFreeEx(
     IN HANDLE hProcess,
     IN LPVOID lpAddress,
@@ -508,7 +515,7 @@ VirtualFreeEx(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 VirtualProtectEx(
     IN  HANDLE hProcess,
     IN  LPVOID lpAddress,
@@ -519,7 +526,7 @@ VirtualProtectEx(
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 VirtualQueryEx(
     IN HANDLE hProcess,
     IN LPCVOID lpAddress,
@@ -529,7 +536,7 @@ VirtualQueryEx(
 
 WINBASEAPI
 HANDLE
-WINAPI
+__attribute__((__stdcall__))
 HeapCreate(
     IN DWORD flOptions,
     IN SIZE_T dwInitialSize,
@@ -538,7 +545,7 @@ HeapCreate(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 HeapDestroy(
     IN OUT HANDLE hHeap
     );
@@ -548,7 +555,7 @@ HeapDestroy(
 
 WINBASEAPI
 LPVOID
-WINAPI
+__attribute__((__stdcall__))
 HeapAlloc(
     IN HANDLE hHeap,
     IN DWORD dwFlags,
@@ -557,7 +564,7 @@ HeapAlloc(
 
 WINBASEAPI
 LPVOID
-WINAPI
+__attribute__((__stdcall__))
 HeapReAlloc(
     IN HANDLE hHeap,
     IN DWORD dwFlags,
@@ -567,7 +574,7 @@ HeapReAlloc(
 
 WINBASEAPI
 SIZE_T
-WINAPI
+__attribute__((__stdcall__))
 HeapSize(
     IN HANDLE hHeap,
     IN DWORD dwFlags,
@@ -578,7 +585,7 @@ HeapSize(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 HeapFree(
     IN HANDLE hHeap,
     IN DWORD dwFlags,
@@ -587,7 +594,7 @@ HeapFree(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 HeapValidate(
     IN HANDLE hHeap,
     IN DWORD dwFlags,
@@ -596,7 +603,7 @@ HeapValidate(
 
 WINBASEAPI
 SIZE_T
-WINAPI
+__attribute__((__stdcall__))
 HeapCompact(
     IN HANDLE hHeap,
     IN DWORD dwFlags
@@ -604,7 +611,7 @@ HeapCompact(
 
 WINBASEAPI
 HANDLE
-WINAPI
+__attribute__((__stdcall__))
 GetProcessHeap( VOID );
 
 
@@ -636,14 +643,14 @@ typedef struct _PROCESS_HEAP_ENTRY {
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 HeapLock(
     IN HANDLE hHeap
     );
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 HeapUnlock(
     IN HANDLE hHeap
     );
@@ -651,7 +658,7 @@ HeapUnlock(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 HeapWalk(
     IN HANDLE hHeap,
     IN OUT LPPROCESS_HEAP_ENTRY lpEntry
@@ -664,7 +671,7 @@ HeapWalk(
 
 WINBASEAPI
 VOID
-WINAPI
+__attribute__((__stdcall__))
 RaiseException(
     IN DWORD dwExceptionCode,
     IN DWORD dwExceptionFlags,
@@ -674,30 +681,31 @@ RaiseException(
 
 WINBASEAPI
 LONG
-WINAPI
+__attribute__((__stdcall__))
 UnhandledExceptionFilter(
     IN struct _EXCEPTION_POINTERS *ExceptionInfo
     );
 
-typedef LONG (WINAPI *PTOP_LEVEL_EXCEPTION_FILTER)(
+typedef LONG (__attribute__((__stdcall__)) *PTOP_LEVEL_EXCEPTION_FILTER)(
     struct _EXCEPTION_POINTERS *ExceptionInfo
     );
 typedef PTOP_LEVEL_EXCEPTION_FILTER LPTOP_LEVEL_EXCEPTION_FILTER;
 
 WINBASEAPI
 LPTOP_LEVEL_EXCEPTION_FILTER
-WINAPI
+__attribute__((__stdcall__))
 SetUnhandledExceptionFilter(
     IN LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter
     );
 
-extern __declspec(thread) PVOID XapiCurrentFiber;
-#define GetCurrentFiber() XapiCurrentFiber
+
+PVOID *rxdk_xapi_current_fiber_slot(void);
+#define GetCurrentFiber() (*rxdk_xapi_current_fiber_slot())
 #define GetFiberData() (*(PVOID *)(GetCurrentFiber()))
 
 WINBASEAPI
 LPVOID
-WINAPI
+__stdcall
 CreateFiber(
     IN DWORD dwStackSize,
     IN LPFIBER_START_ROUTINE lpStartAddress,
@@ -706,35 +714,40 @@ CreateFiber(
 
 WINBASEAPI
 VOID
-WINAPI
+__stdcall
 DeleteFiber(
     IN LPVOID lpFiber
     );
 
 WINBASEAPI
 LPVOID
-WINAPI
+__stdcall
 ConvertThreadToFiber(
     IN LPVOID lpParameter
     );
 
 WINBASEAPI
 VOID
-WINAPI
+/* Pinned to __stdcall explicitly (not via the __attribute__((__stdcall__)) macro, which can collapse
+ * to cdecl depending on _MSC_VER/_STDCALL_SUPPORTED and include order). The
+ * implementation is hand-written asm (xapi_fiber_switch.S) that ends in
+ * `ret 4`, so the C caller MUST treat the single arg as callee-cleaned;
+ * otherwise the stack drifts +4 per switch and a later ret lands in garbage. */
+__stdcall
 SwitchToFiber(
     IN LPVOID lpFiber
     );
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 SwitchToThread(
     VOID
     );
 
 WINBASEAPI
 HANDLE
-WINAPI
+__stdcall
 CreateThread(
     IN LPSECURITY_ATTRIBUTES lpThreadAttributes,
     IN DWORD dwStackSize,
@@ -751,7 +764,7 @@ CreateThread(
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 GetCurrentThreadId(
     VOID
     );
@@ -759,7 +772,7 @@ GetCurrentThreadId(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 SetThreadPriority(
     IN HANDLE hThread,
     IN int nPriority
@@ -767,7 +780,7 @@ SetThreadPriority(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 SetThreadPriorityBoost(
     IN HANDLE hThread,
     IN BOOL bDisablePriorityBoost
@@ -775,7 +788,7 @@ SetThreadPriorityBoost(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 GetThreadPriorityBoost(
     IN HANDLE hThread,
     OUT PBOOL pDisablePriorityBoost
@@ -783,14 +796,14 @@ GetThreadPriorityBoost(
 
 WINBASEAPI
 int
-WINAPI
+__attribute__((__stdcall__))
 GetThreadPriority(
     IN HANDLE hThread
     );
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 GetThreadTimes(
     IN HANDLE hThread,
     OUT LPFILETIME lpCreationTime,
@@ -802,7 +815,7 @@ GetThreadTimes(
 WINBASEAPI
 DECLSPEC_NORETURN
 VOID
-WINAPI
+__attribute__((__stdcall__))
 ExitThread(
     IN DWORD dwExitCode
     );
@@ -810,7 +823,7 @@ ExitThread(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 GetExitCodeThread(
     IN HANDLE hThread,
     OUT LPDWORD lpExitCode
@@ -818,14 +831,14 @@ GetExitCodeThread(
 
 WINBASEAPI
 DWORD
-WINAPI
+__stdcall
 GetLastError(
     VOID
     );
 
 WINBASEAPI
 VOID
-WINAPI
+__stdcall
 SetLastError(
     IN DWORD dwErrCode
     );
@@ -834,7 +847,7 @@ SetLastError(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 GetOverlappedResult(
     IN HANDLE hFile,
     IN LPOVERLAPPED lpOverlapped,
@@ -844,7 +857,7 @@ GetOverlappedResult(
 
 WINBASEAPI
 HANDLE
-WINAPI
+__attribute__((__stdcall__))
 CreateIoCompletionPort(
     IN HANDLE FileHandle,
     IN HANDLE ExistingCompletionPort,
@@ -854,7 +867,7 @@ CreateIoCompletionPort(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 GetQueuedCompletionStatus(
     IN  HANDLE CompletionPort,
     OUT LPDWORD lpNumberOfBytesTransferred,
@@ -865,7 +878,7 @@ GetQueuedCompletionStatus(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 PostQueuedCompletionStatus(
     IN HANDLE CompletionPort,
     IN DWORD dwNumberOfBytesTransferred,
@@ -876,14 +889,14 @@ PostQueuedCompletionStatus(
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 SuspendThread(
     IN HANDLE hThread
     );
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 ResumeThread(
     IN HANDLE hThread
     );
@@ -897,7 +910,7 @@ VOID
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 QueueUserAPC(
     IN PAPCFUNC pfnAPC,
     IN HANDLE hThread,
@@ -908,7 +921,7 @@ QueueUserAPC(
 
 WINBASEAPI
 VOID
-WINAPI
+__attribute__((__stdcall__))
 DebugBreak(
     VOID
     );
@@ -916,28 +929,28 @@ DebugBreak(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 SetEvent(
     IN HANDLE hEvent
     );
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 ResetEvent(
     IN HANDLE hEvent
     );
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 PulseEvent(
     IN HANDLE hEvent
     );
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 ReleaseSemaphore(
     IN HANDLE hSemaphore,
     IN LONG lReleaseCount,
@@ -946,14 +959,14 @@ ReleaseSemaphore(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 ReleaseMutex(
     IN HANDLE hMutex
     );
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 WaitForSingleObject(
     IN HANDLE hHandle,
     IN DWORD dwMilliseconds
@@ -961,7 +974,7 @@ WaitForSingleObject(
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 WaitForMultipleObjects(
     IN DWORD nCount,
     IN CONST HANDLE *lpHandles,
@@ -971,7 +984,7 @@ WaitForMultipleObjects(
 
 WINBASEAPI
 VOID
-WINAPI
+__attribute__((__stdcall__))
 Sleep(
     IN DWORD dwMilliseconds
     );
@@ -992,7 +1005,7 @@ typedef struct _BY_HANDLE_FILE_INFORMATION {
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 GetFileInformationByHandle(
     IN HANDLE hFile,
     OUT LPBY_HANDLE_FILE_INFORMATION lpFileInformation
@@ -1001,7 +1014,7 @@ GetFileInformationByHandle(
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 GetFileSize(
     IN HANDLE hFile,
     OUT LPDWORD lpFileSizeHigh
@@ -1009,7 +1022,7 @@ GetFileSize(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 GetFileSizeEx(
     HANDLE hFile,
     PLARGE_INTEGER lpFileSize
@@ -1017,7 +1030,7 @@ GetFileSizeEx(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 WriteFile(
     IN HANDLE hFile,
     IN LPCVOID lpBuffer,
@@ -1028,7 +1041,7 @@ WriteFile(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 ReadFile(
     IN HANDLE hFile,
     OUT LPVOID lpBuffer,
@@ -1039,14 +1052,14 @@ ReadFile(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 FlushFileBuffers(
     IN HANDLE hFile
     );
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 DeviceIoControl(
     IN HANDLE hDevice,
     IN DWORD dwIoControlCode,
@@ -1060,14 +1073,14 @@ DeviceIoControl(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 SetEndOfFile(
     IN HANDLE hFile
     );
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 SetFilePointer(
     IN HANDLE hFile,
     IN LONG lDistanceToMove,
@@ -1077,7 +1090,7 @@ SetFilePointer(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 SetFilePointerEx(
     HANDLE hFile,
     LARGE_INTEGER liDistanceToMove,
@@ -1089,7 +1102,7 @@ SetFilePointerEx(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 GetFileTime(
     IN HANDLE hFile,
     OUT LPFILETIME lpCreationTime,
@@ -1099,7 +1112,7 @@ GetFileTime(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 SetFileTime(
     IN HANDLE hFile,
     IN CONST FILETIME *lpCreationTime,
@@ -1109,14 +1122,14 @@ SetFileTime(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 CloseHandle(
     IN OUT HANDLE hObject
     );
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 DuplicateHandle(
     IN HANDLE hSourceProcessHandle,
     IN HANDLE hSourceHandle,
@@ -1130,7 +1143,7 @@ DuplicateHandle(
 
 WINBASEAPI
 int
-WINAPI
+__attribute__((__stdcall__))
 MulDiv(
     IN int nNumber,
     IN int nNumerator,
@@ -1139,14 +1152,14 @@ MulDiv(
 
 WINBASEAPI
 VOID
-WINAPI
+__attribute__((__stdcall__))
 GetSystemTime(
     OUT LPSYSTEMTIME lpSystemTime
     );
 
 WINBASEAPI
 VOID
-WINAPI
+__attribute__((__stdcall__))
 GetSystemTimeAsFileTime(
     OUT LPFILETIME lpSystemTimeAsFileTime
     );
@@ -1154,7 +1167,7 @@ GetSystemTimeAsFileTime(
 
 WINBASEAPI
 VOID
-WINAPI
+__attribute__((__stdcall__))
 GetLocalTime(
     OUT LPSYSTEMTIME lpSystemTime
     );
@@ -1173,7 +1186,7 @@ typedef struct _TIME_ZONE_INFORMATION {
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 GetTimeZoneInformation(
     OUT LPTIME_ZONE_INFORMATION lpTimeZoneInformation
     );
@@ -1185,7 +1198,7 @@ GetTimeZoneInformation(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 SystemTimeToFileTime(
     IN CONST SYSTEMTIME *lpSystemTime,
     OUT LPFILETIME lpFileTime
@@ -1193,7 +1206,7 @@ SystemTimeToFileTime(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 FileTimeToLocalFileTime(
     IN CONST FILETIME *lpFileTime,
     OUT LPFILETIME lpLocalFileTime
@@ -1201,7 +1214,7 @@ FileTimeToLocalFileTime(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 LocalFileTimeToFileTime(
     IN CONST FILETIME *lpLocalFileTime,
     OUT LPFILETIME lpFileTime
@@ -1209,7 +1222,7 @@ LocalFileTimeToFileTime(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 FileTimeToSystemTime(
     IN CONST FILETIME *lpFileTime,
     OUT LPSYSTEMTIME lpSystemTime
@@ -1217,7 +1230,7 @@ FileTimeToSystemTime(
 
 WINBASEAPI
 LONG
-WINAPI
+__attribute__((__stdcall__))
 CompareFileTime(
     IN CONST FILETIME *lpFileTime1,
     IN CONST FILETIME *lpFileTime2
@@ -1226,7 +1239,7 @@ CompareFileTime(
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 GetTickCount(
     VOID
     );
@@ -1238,14 +1251,14 @@ GetTickCount(
 
 WINBASEAPI
 int
-WINAPI
+__attribute__((__stdcall__))
 lstrcmpA(
     IN LPCSTR lpString1,
     IN LPCSTR lpString2
     );
 WINBASEAPI
 int
-WINAPI
+__attribute__((__stdcall__))
 lstrcmpW(
     IN LPCWSTR lpString1,
     IN LPCWSTR lpString2
@@ -1258,14 +1271,14 @@ lstrcmpW(
 
 WINBASEAPI
 int
-WINAPI
+__attribute__((__stdcall__))
 lstrcmpiA(
     IN LPCSTR lpString1,
     IN LPCSTR lpString2
     );
 WINBASEAPI
 int
-WINAPI
+__attribute__((__stdcall__))
 lstrcmpiW(
     IN LPCWSTR lpString1,
     IN LPCWSTR lpString2
@@ -1278,7 +1291,7 @@ lstrcmpiW(
 
 WINBASEAPI
 LPSTR
-WINAPI
+__attribute__((__stdcall__))
 lstrcpynA(
     OUT LPSTR lpString1,
     IN LPCSTR lpString2,
@@ -1286,7 +1299,7 @@ lstrcpynA(
     );
 WINBASEAPI
 LPWSTR
-WINAPI
+__attribute__((__stdcall__))
 lstrcpynW(
     OUT LPWSTR lpString1,
     IN LPCWSTR lpString2,
@@ -1300,14 +1313,14 @@ lstrcpynW(
 
 WINBASEAPI
 LPSTR
-WINAPI
+__attribute__((__stdcall__))
 lstrcpyA(
     OUT LPSTR lpString1,
     IN LPCSTR lpString2
     );
 WINBASEAPI
 LPWSTR
-WINAPI
+__attribute__((__stdcall__))
 lstrcpyW(
     OUT LPWSTR lpString1,
     IN LPCWSTR lpString2
@@ -1320,14 +1333,14 @@ lstrcpyW(
 
 WINBASEAPI
 LPSTR
-WINAPI
+__attribute__((__stdcall__))
 lstrcatA(
     IN OUT LPSTR lpString1,
     IN LPCSTR lpString2
     );
 WINBASEAPI
 LPWSTR
-WINAPI
+__attribute__((__stdcall__))
 lstrcatW(
     IN OUT LPWSTR lpString1,
     IN LPCWSTR lpString2
@@ -1340,13 +1353,13 @@ lstrcatW(
 
 WINBASEAPI
 int
-WINAPI
+__attribute__((__stdcall__))
 lstrlenA(
     IN LPCSTR lpString
     );
 WINBASEAPI
 int
-WINAPI
+__attribute__((__stdcall__))
 lstrlenW(
     IN LPCWSTR lpString
     );
@@ -1359,7 +1372,7 @@ lstrlenW(
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 TlsAlloc(
     VOID
     );
@@ -1368,14 +1381,14 @@ TlsAlloc(
 
 WINBASEAPI
 LPVOID
-WINAPI
+__attribute__((__stdcall__))
 TlsGetValue(
     IN DWORD dwTlsIndex
     );
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 TlsSetValue(
     IN DWORD dwTlsIndex,
     IN LPVOID lpTlsValue
@@ -1383,14 +1396,14 @@ TlsSetValue(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 TlsFree(
     IN DWORD dwTlsIndex
     );
 
 typedef
 VOID
-(WINAPI *LPOVERLAPPED_COMPLETION_ROUTINE)(
+(__attribute__((__stdcall__)) *LPOVERLAPPED_COMPLETION_ROUTINE)(
     DWORD dwErrorCode,
     DWORD dwNumberOfBytesTransfered,
     LPOVERLAPPED lpOverlapped
@@ -1398,7 +1411,7 @@ VOID
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 SleepEx(
     IN DWORD dwMilliseconds,
     IN BOOL bAlertable
@@ -1406,7 +1419,7 @@ SleepEx(
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 WaitForSingleObjectEx(
     IN HANDLE hHandle,
     IN DWORD dwMilliseconds,
@@ -1415,7 +1428,7 @@ WaitForSingleObjectEx(
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 WaitForMultipleObjectsEx(
     IN DWORD nCount,
     IN CONST HANDLE *lpHandles,
@@ -1426,7 +1439,7 @@ WaitForMultipleObjectsEx(
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 SignalObjectAndWait(
     IN HANDLE hObjectToSignal,
     IN HANDLE hObjectToWaitOn,
@@ -1436,7 +1449,7 @@ SignalObjectAndWait(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 ReadFileEx(
     IN HANDLE hFile,
     OUT LPVOID lpBuffer,
@@ -1447,7 +1460,7 @@ ReadFileEx(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 WriteFileEx(
     IN HANDLE hFile,
     IN LPCVOID lpBuffer,
@@ -1458,7 +1471,7 @@ WriteFileEx(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 ReadFileScatter(
     IN HANDLE hFile,
     IN FILE_SEGMENT_ELEMENT aSegmentArray[],
@@ -1469,7 +1482,7 @@ ReadFileScatter(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 WriteFileGather(
     IN HANDLE hFile,
     OUT FILE_SEGMENT_ELEMENT aSegmentArray[],
@@ -1509,7 +1522,7 @@ typedef struct _WIN32_FILE_ATTRIBUTE_DATA {
 
 WINBASEAPI
 HANDLE
-WINAPI
+__attribute__((__stdcall__))
 CreateMutexA(
     IN LPSECURITY_ATTRIBUTES lpMutexAttributes,
     IN BOOL bInitialOwner,
@@ -1519,7 +1532,7 @@ CreateMutexA(
 
 WINBASEAPI
 HANDLE
-WINAPI
+__attribute__((__stdcall__))
 OpenMutexA(
     IN DWORD dwDesiredAccess,
     IN BOOL bInheritHandle,
@@ -1529,7 +1542,7 @@ OpenMutexA(
 
 WINBASEAPI
 HANDLE
-WINAPI
+__attribute__((__stdcall__))
 CreateEventA(
     IN LPSECURITY_ATTRIBUTES lpEventAttributes,
     IN BOOL bManualReset,
@@ -1540,7 +1553,7 @@ CreateEventA(
 
 WINBASEAPI
 HANDLE
-WINAPI
+__attribute__((__stdcall__))
 OpenEventA(
     IN DWORD dwDesiredAccess,
     IN BOOL bInheritHandle,
@@ -1550,7 +1563,7 @@ OpenEventA(
 
 WINBASEAPI
 HANDLE
-WINAPI
+__attribute__((__stdcall__))
 CreateSemaphoreA(
     IN LPSECURITY_ATTRIBUTES lpSemaphoreAttributes,
     IN LONG lInitialCount,
@@ -1561,7 +1574,7 @@ CreateSemaphoreA(
 
 WINBASEAPI
 HANDLE
-WINAPI
+__attribute__((__stdcall__))
 OpenSemaphoreA(
     IN DWORD dwDesiredAccess,
     IN BOOL bInheritHandle,
@@ -1579,7 +1592,7 @@ VOID
 
 WINBASEAPI
 HANDLE
-WINAPI
+__attribute__((__stdcall__))
 CreateWaitableTimerA(
     IN LPSECURITY_ATTRIBUTES lpTimerAttributes,
     IN BOOL bManualReset,
@@ -1589,7 +1602,7 @@ CreateWaitableTimerA(
 
 WINBASEAPI
 HANDLE
-WINAPI
+__attribute__((__stdcall__))
 OpenWaitableTimerA(
     IN DWORD dwDesiredAccess,
     IN BOOL bInheritHandle,
@@ -1599,7 +1612,7 @@ OpenWaitableTimerA(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 SetWaitableTimer(
     IN HANDLE hTimer,
     IN const LARGE_INTEGER *lpDueTime,
@@ -1611,7 +1624,7 @@ SetWaitableTimer(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 CancelWaitableTimer(
     IN HANDLE hTimer
     );
@@ -1619,13 +1632,13 @@ CancelWaitableTimer(
 
 WINBASEAPI
 VOID
-WINAPI
+__attribute__((__stdcall__))
 OutputDebugStringA(
     IN LPCSTR lpOutputString
     );
 WINBASEAPI
 VOID
-WINAPI
+__attribute__((__stdcall__))
 OutputDebugStringW(
     IN LPCWSTR lpOutputString
     );
@@ -1638,7 +1651,7 @@ OutputDebugStringW(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 GetDiskFreeSpaceExA(
     IN LPCSTR lpDirectoryName,
     OUT PULARGE_INTEGER lpFreeBytesAvailableToCaller,
@@ -1649,7 +1662,7 @@ GetDiskFreeSpaceExA(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 CreateDirectoryA(
     IN LPCSTR lpPathName,
     IN LPSECURITY_ATTRIBUTES lpSecurityAttributes
@@ -1659,7 +1672,7 @@ CreateDirectoryA(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 RemoveDirectoryA(
     IN LPCSTR lpPathName
     );
@@ -1668,7 +1681,7 @@ RemoveDirectoryA(
 
 WINBASEAPI
 HANDLE
-WINAPI
+__attribute__((__stdcall__))
 CreateFileA(
     IN LPCSTR lpFileName,
     IN DWORD dwDesiredAccess,
@@ -1682,7 +1695,7 @@ CreateFileA(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 SetFileAttributesA(
     IN LPCSTR lpFileName,
     IN DWORD dwFileAttributes
@@ -1691,7 +1704,7 @@ SetFileAttributesA(
 
 WINBASEAPI
 DWORD
-WINAPI
+__attribute__((__stdcall__))
 GetFileAttributesA(
     IN LPCSTR lpFileName
     );
@@ -1704,7 +1717,7 @@ typedef enum _GET_FILEEX_INFO_LEVELS {
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 GetFileAttributesExA(
     IN LPCSTR lpFileName,
     IN GET_FILEEX_INFO_LEVELS fInfoLevelId,
@@ -1714,7 +1727,7 @@ GetFileAttributesExA(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 DeleteFileA(
     IN LPCSTR lpFileName
     );
@@ -1722,7 +1735,7 @@ DeleteFileA(
 
 WINBASEAPI
 HANDLE
-WINAPI
+__attribute__((__stdcall__))
 FindFirstFileA(
     IN LPCSTR lpFileName,
     OUT LPWIN32_FIND_DATA lpFindFileData
@@ -1731,7 +1744,7 @@ FindFirstFileA(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 FindNextFileA(
     IN HANDLE hFindFile,
     OUT LPWIN32_FIND_DATAA lpFindFileData
@@ -1741,7 +1754,7 @@ FindNextFileA(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 CopyFileA(
     IN LPCSTR lpExistingFileName,
     IN LPCSTR lpNewFileName,
@@ -1751,7 +1764,7 @@ CopyFileA(
 
 typedef
 DWORD
-(WINAPI *LPPROGRESS_ROUTINE)(
+(__attribute__((__stdcall__)) *LPPROGRESS_ROUTINE)(
     LARGE_INTEGER TotalFileSize,
     LARGE_INTEGER TotalBytesTransferred,
     LARGE_INTEGER StreamSize,
@@ -1765,7 +1778,7 @@ DWORD
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 CopyFileExA(
     IN LPCSTR lpExistingFileName,
     IN LPCSTR lpNewFileName,
@@ -1778,7 +1791,7 @@ CopyFileExA(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 MoveFileA(
     IN LPCSTR lpExistingFileName,
     IN LPCSTR lpNewFileName
@@ -1787,7 +1800,7 @@ MoveFileA(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 MoveFileExA(
     IN LPCSTR lpExistingFileName,
     IN LPCSTR lpNewFileName,
@@ -1797,7 +1810,7 @@ MoveFileExA(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 MoveFileWithProgressA(
     IN LPCSTR lpExistingFileName,
     IN LPCSTR lpNewFileName,
@@ -1814,7 +1827,7 @@ MoveFileWithProgressA(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 GetVolumeInformationA(
     IN LPCSTR lpRootPathName,
     OUT LPSTR lpVolumeNameBuffer,
@@ -1829,7 +1842,7 @@ GetVolumeInformationA(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 CancelIo(
     IN HANDLE hFile
     );
@@ -1837,7 +1850,7 @@ CancelIo(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 IsBadReadPtr(
     IN CONST VOID *lp,
     IN UINT_PTR ucb
@@ -1845,7 +1858,7 @@ IsBadReadPtr(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 IsBadWritePtr(
     IN LPVOID lp,
     IN UINT_PTR ucb
@@ -1854,21 +1867,21 @@ IsBadWritePtr(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 IsBadCodePtr(
     IN FARPROC lpfn
     );
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 IsBadStringPtrA(
     IN LPCSTR lpsz,
     IN UINT_PTR ucchMax
     );
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 IsBadStringPtrW(
     IN LPCWSTR lpsz,
     IN UINT_PTR ucchMax
@@ -1884,16 +1897,17 @@ IsBadStringPtrW(
 // Performance counter API's
 //
 
+/* __stdcall pinned explicitly: naked asm defs (perfctr.c) end in `ret 4`. */
 WINBASEAPI
 BOOL
-WINAPI
+__stdcall
 QueryPerformanceCounter(
     OUT LARGE_INTEGER *lpPerformanceCount
     );
 
 WINBASEAPI
 BOOL
-WINAPI
+__stdcall
 QueryPerformanceFrequency(
     OUT LARGE_INTEGER *lpFrequency
     );
@@ -1914,14 +1928,14 @@ QueryPerformanceFrequency(
 
 WINBASEAPI
 int
-WINAPI
+__attribute__((__stdcall__))
 wvsprintfA(
     OUT LPSTR,
     IN LPCSTR,
     IN va_list arglist);
 WINBASEAPI
 int
-WINAPI
+__attribute__((__stdcall__))
 wvsprintfW(
     OUT LPWSTR,
     IN LPCWSTR,
@@ -1957,7 +1971,7 @@ wsprintfW(
 
 WINBASEAPI
 int
-WINAPI
+__attribute__((__stdcall__))
 MultiByteToWideChar(
     IN UINT     CodePage,
     IN DWORD    dwFlags,
@@ -1968,7 +1982,7 @@ MultiByteToWideChar(
 
 WINBASEAPI
 int
-WINAPI
+__attribute__((__stdcall__))
 WideCharToMultiByte(
     IN UINT     CodePage,
     IN DWORD    dwFlags,
@@ -1982,12 +1996,12 @@ WideCharToMultiByte(
 
 WINBASEAPI
 LPSTR
-WINAPI
+__attribute__((__stdcall__))
 CharUpperA(
     IN OUT LPSTR lpsz);
 WINBASEAPI
 LPWSTR
-WINAPI
+__attribute__((__stdcall__))
 CharUpperW(
     IN OUT LPWSTR lpsz);
 #ifdef UNICODE
@@ -1998,12 +2012,12 @@ CharUpperW(
 
 WINBASEAPI
 LPSTR
-WINAPI
+__attribute__((__stdcall__))
 CharLowerA(
     IN OUT LPSTR lpsz);
 WINBASEAPI
 LPWSTR
-WINAPI
+__attribute__((__stdcall__))
 CharLowerW(
     IN OUT LPWSTR lpsz);
 #ifdef UNICODE
@@ -2014,7 +2028,7 @@ CharLowerW(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 SetRect(
     OUT LPRECT lprc,
     IN int xLeft,
@@ -2024,20 +2038,20 @@ SetRect(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 SetRectEmpty(
     OUT LPRECT lprc);
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 CopyRect(
     OUT LPRECT lprcDst,
     IN CONST RECT *lprcSrc);
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 InflateRect(
     IN OUT LPRECT lprc,
     IN int dx,
@@ -2045,7 +2059,7 @@ InflateRect(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 IntersectRect(
     OUT LPRECT lprcDst,
     IN CONST RECT *lprcSrc1,
@@ -2053,7 +2067,7 @@ IntersectRect(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 UnionRect(
     OUT LPRECT lprcDst,
     IN CONST RECT *lprcSrc1,
@@ -2061,7 +2075,7 @@ UnionRect(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 SubtractRect(
     OUT LPRECT lprcDst,
     IN CONST RECT *lprcSrc1,
@@ -2069,7 +2083,7 @@ SubtractRect(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 OffsetRect(
     IN OUT LPRECT lprc,
     IN int dx,
@@ -2077,20 +2091,20 @@ OffsetRect(
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 IsRectEmpty(
     IN CONST RECT *lprc);
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 EqualRect(
     IN CONST RECT *lprc1,
     IN CONST RECT *lprc2);
 
 WINBASEAPI
 BOOL
-WINAPI
+__attribute__((__stdcall__))
 PtInRect(
     IN CONST RECT *lprc,
     IN POINT pt);
@@ -2100,6 +2114,4 @@ PtInRect(
 }
 #endif
 
-
-#endif // _WINBASE_
 

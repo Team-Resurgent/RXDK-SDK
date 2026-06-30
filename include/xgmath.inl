@@ -1472,6 +1472,8 @@ XGINLINE FLOAT XGVec3LengthSq
 XGINLINE FLOAT XGVec3Dot
     ( CONST XGVECTOR3 *pV1, CONST XGVECTOR3 *pV2 )
 {
+    FLOAT res;
+
 #ifdef _DEBUG
 
 #ifdef ASSERT
@@ -1480,7 +1482,29 @@ XGINLINE FLOAT XGVec3Dot
 
 #endif
 
-    return pV1->x * pV2->x + pV1->y * pV2->y + pV1->z * pV2->z;
+    __asm {
+        mov     edx, pV1
+        movss   xmm1, [edx]
+        movhps  xmm1, [edx+4]
+
+        mov     edx, pV2
+        movss   xmm2, [edx]
+        movhps  xmm2, [edx+4]
+
+        mulps   xmm1, xmm2
+
+        movaps  xmm0, xmm1
+
+        shufps  xmm0, xmm0, 32h
+        addps   xmm1, xmm0
+
+        shufps  xmm0, xmm0, 32h
+        addps   xmm1, xmm0
+
+        movss   [res], xmm1
+    }
+
+    return res;
 }
 
 XGINLINE XGVECTOR3* XGVec3Cross

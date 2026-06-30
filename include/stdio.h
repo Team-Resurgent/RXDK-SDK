@@ -1,671 +1,696 @@
-/***
-*stdio.h - definitions/declarations for standard I/O routines
-*
-*       Copyright (c) 1985-2001, Microsoft Corporation. All rights reserved.
-*
-*Purpose:
-*       This file defines the structures, values, macros, and functions
-*       used by the level 2 I/O ("standard I/O") routines.
-*       [ANSI/System V]
-*
-*       [Public]
-*
-*Revision History:
-*       06-24-87  JMB   Added char cast to putc macro
-*       07-20-87  SKS   Fixed declaration of _flsbuf
-*       08-10-87  JCR   Modified P_tmpdir/L_tmpdir
-*       08-17-87  PHG   Fixed prototype for puts to take const char * per ANSI.
-*       10-02-87  JCR   Changed NULL from #else to #elif (C || L || H)
-*       10/20/87  JCR   Removed "MSC40_ONLY" entries
-*       11/09/87  JCR   Multi-thread support
-*       12-11-87  JCR   Added "_loadds" functionality
-*       12-17-87  JCR   Added _MTHREAD_ONLY comments
-*       12-18-87  JCR   Added _FAR_ to declarations
-*       01-07-88  JCR   _NFILE = 40 for mthread includes
-*       01-13-88  JCR   Removed mthread _fileno_lk/_feof_lk/_ferror_lk declarations
-*       01-15-88  JCR   DLL versions of stdin/stdout/stderr
-*       01-18-88  SKS   Change _stdio() to __iob()
-*       01-20-88  SKS   Change __iob() to _stdin(), _stdout(), _stderr()
-*       02-10-88  JCR   Cleaned up white space
-*       04-21-88  WAJ   Added _FAR_ to tempnam/_tmpnam_lk
-*       05-31-88  SKS   Add FILENAME_MAX and FOPEN_MAX
-*       06-01-88  JCR   Removed clearerr_lk macro
-*       07-28-88  GJF   Added casts to fileno() so the file handle is zero
-*                       extended instead of sign extended
-*       08-18-88  GJF   Revised to also work with the 386 (in small model only).
-*       11-14-88  GJF   Added _fsopen()
-*       12-07-88  JCR   DLL _iob[] references are now direct
-*       03-27-89  GJF   Brought into sync with CRT\H\STDIO.H
-*       05-03-89  JCR   Added _INTERNAL_IFSTRIP for relinc usage
-*       07-24-89  GJF   Changed FILE and fpos_t to be type names rather than
-*                       macros (ANSI requirement). Same as 04-06-89 change in
-*                       CRT
-*       07-25-89  GJF   Cleanup. Alignment of struct fields is now protected
-*                       by pack pragmas. Now specific to 386.
-*       10-30-89  GJF   Fixed copyright, removed dummy args from prototypes
-*       11-02-89  JCR   Changed "DLL" to "_DLL"
-*       11-17-89  GJF   Added const to appropriate arg type for fdopen() and
-*                       _popen().
-*       02-16-90  GJF   _iob[], _iob2[] merge
-*       03-02-90  GJF   Added #ifndef _INC_STDIO and #include <cruntime.h>
-*                       stuff. Also, removed some (now) useless preprocessor
-*                       directives and pragmas.
-*       03-21-90  GJF   Replaced _cdecl with _CALLTYPE1 or _CALLTYPE2 in
-*                       prototypes.
-*       04-10-90  GJF   Made _iob[] _VARTYPE1.
-*       10-30-90  GJF   Moved actual type for va_list into cruntime.h
-*       11-12-90  GJF   Changed NULL to (void *)0.
-*       01-21-91  GJF   ANSI naming.
-*       02-12-91  GJF   Only #define NULL if it isn't #define-d.
-*       08-01-91  GJF   No _popen(), _pclose() for Dosx32.
-*       08-20-91  JCR   C++ and ANSI naming
-*       09-24-91  JCR   Added _snprintf, _vsnprintf
-*       09-28-91  JCR   ANSI names: DOSX32=prototypes, WIN32=#defines for now
-*       01-22-92  GJF   Changed definition of _iob for users of crtdll.dll.
-*       02-14-92  GJF   Replaced _NFILE by _NSTREAM_ for Win32. _NFILE is
-*                       still supported for now, for backwards compatibility.
-*       03-17-92  GJF   Replaced __tmpnum field in _iobuf structure with
-*                       _tmpfname, altered L_tmpnam definition for Win32.
-*       03-30-92  DJM   POSIX support.
-*       06-02-92  KRS   Added Unicode printf versions.
-*       08-05-92  GJF   Fun. calling type and var. type macro.
-*       08-20-92  GJF   Some small changes for POSIX.
-*       08-20-92  GJF   Some small changes for POSIX.
-*       09-04-92  GJF   Merged changes from 8-5-92 on.
-*       11-05-92  GJF   Replaced #ifndef __STDC__ with #if !__STDC__. Also,
-*                       undid my ill-advised change to _P_tmpdir.
-*       12-12-92  SRW   Add L_cuserid constant for _POSIX_
-*       01-03-93  SRW   Fold in ALPHA changes
-*       01-09-93  SRW   Remove usage of MIPS and ALPHA to conform to ANSI
-*                       Use _MIPS_ and _ALPHA_ instead.
-*       01-21-93  GJF   Removed support for C6-386's _cdecl.
-*       01-25-93  GJF   Cosmetic change to va_list definition.
-*       02-01-93  GJF   Made FILENAME_MAX 260.
-*       04-06-93  SKS   Replace _CRTAPI1/2 with __cdecl, _CRTVAR1 with nothing
-*       04-07-93  SKS   Add _CRTIMP keyword for CRT DLL model
-*                       Use link-time aliases for old names, not #define's
-*       04-29-93  CFW   Add wide char get/put support.
-*       04-30-93  CFW   Fixed wide char get/put support.
-*       05-04-93  CFW   Remove uneeded _filwbuf, _flswbuf protos.
-*       05-11-93  GJF   Added _INTERNAL_BUFSIZ.
-*       05-24-93  GJF   Added _SMALL_BUFSIZ.
-*       06-02-93  CFW   Wide get/put use wint_t.
-*       09-15-93  CFW   Removed bogus _getc_lk/_putc_lk macros.
-*       09-17-93  GJF   Merged Cuda and NT SDK versions.
-*       10-04-93  SRW   Fix ifdefs for MIPS and ALPHA to only check for
-*                       _M_?????? defines
-*       10-12-93  GJF   Re-merged.
-*       12-07-93  CFW   Move wide defs outside __STDC__ check.
-*       02-04-94  CFW   Add _getwchar_lk and _putwchar_lk macros.
-*       04-13-94  GJF   Made _iob into a deference of a function return for
-*                       _DLL (for compatibility with the Win32s version of
-*                       msvcrt*.dll). Also, added conditional include for
-*                       win32s.h.
-*       05-03-94  GJF   Made declaration of _iob for _DLL also conditional
-*                       on _M_IX86.
-*       06-06-94  SKS   Change if def(_MT) to if def(_MT) || def(_DLL)
-*                       This will support single-thread apps using MSVCRT*.DLL
-*       11-03-94  GJF   Ensure 8 byte alignment.
-*       12-14-94  SKS   Increase FILE * stream limit for MSVCRT30.DLL
-*       12-23-94  GJF   Define fpos_t to be 64-bits (__int64).
-*       01-04-95  GJF   Changed definition of fpos_t slightly as suggested by
-*                       Richard Shupak.
-*       01-05-95  GJF   Temporarily commented out 12-23-94 change due to bugs
-*                       in MFC and IDE.
-*       01-06-95  GJF   -Za doesn't like C++ style comments so I deleted the
-*                       12-23-94 change altogether.
-*       01-24-95  GJF   Restored 64-bit fpos_t.
-*       02-11-95  CFW   Add _CRTBLD to avoid users getting wrong headers.
-*       02-14-95  CFW   Clean up Mac merge.
-*       03-03-95  GJF   Changes to manage streams via __piob[], rather than
-*                       _iob[].
-*       03-10-95  CFW   Make _[w]tempnam() parameters const.
-*       08-04-95  JWM   BUFSIZ increased to 4096 for PMac only.
-*       12-14-95  JWM   Add "#pragma once".
-*       12-22-95  GJF   Added _getmaxstdio prototype.
-*       02-22-96  JWM   Merge in PlumHall mods.
-*       04-18-96  JWM   Inlines removed: getwchar(), putwchar(), etc.
-*       04-19-96  SKS   Removed incorrect and inappropriate _CRTIMP on internal
-*                       only routines _getwc_lk, _putwc_lk, and _ungetwc_lk.
-*       06-27-96  SKS   Use __int64 for fpos_t on MAC as well as WIN32
-*       01-20-97  GJF   Cleaned out obsolete support for Win32s, _NTSDK and
-*                       _CRTAPI*.
-*       08-13-97  GJF   Strip __p__iob prototype from release version.
-*       09-26-97  BWT   Fix POSIX
-*       09-30-97  JWM   Restored not-so-obsolete _CRTAPI1 support.
-*       10-07-97  RDL   Added IA64.
-*       12-15-98  GJF   Changes for 64-bit size_t.
-*       05-13-99  PML   Remove _CRTAPI1
-*       05-17-99  PML   Remove all Macintosh support.
-*       10-06-99  PML   Add _W64 modifier to types which are 32 bits in Win32,
-*                       64 bits in Win64.
-*       11-03-99  PML   Add va_list definition for _M_CEE.
-*       11-08-99  PML   wctype_t is unsigned short, not wchar_t - it's a set
-*                       of bitflags, not a wide char.
-*       07-20-00  GB    typedefed wint_t to unsigned short
-*       09-07-00  PML   Remove va_list definition for _M_CEE (vs7#159777)
-*       09-08-00  GB    Added _snscanf and _snwscanf
-*       11-22-00  PML   Wide-char *putwc* functions take a wchar_t, not wint_t.
-*       12-10-00  PML   Define _FPOSOFF for _POSIX_ (vs7#122990)
-*       12-10-00  PML   Fix comments about L_tmpnam (vs7#5416)
-*       01-29-01  GB    Added _func function version of data variable used in
-*                       msvcprt.lib to work with STATIC_CPPLIB
-*
-****/
+/* Copyright (c) 2002, 2005, 2007 Joerg Wunsch
+   All rights reserved.
 
-#if     _MSC_VER > 1000 /*IFSTRIP=IGN*/
-#pragma once
+   Portions of documentation Copyright (c) 1990, 1991, 1993
+   The Regents of the University of California.
+
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+
+   * Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+
+   * Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in
+     the documentation and/or other materials provided with the
+     distribution.
+
+   * Neither the name of the copyright holders nor the names of
+     contributors may be used to endorse or promote products derived
+     from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+  $Id: stdio.h 2527 2016-10-27 20:41:22Z joerg_wunsch $
+*/
+
+#ifndef _STDIO_H_
+#define _STDIO_H_ 1
+
+#include <sys/cdefs.h>
+#define __need_NULL
+#define __need_size_t
+#include <stddef.h>
+#define __need___va_list
+#include <stdarg.h>
+#include <sys/lock.h>
+#include <sys/_types.h>
+
+_BEGIN_STD_C
+
+#if !((defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) \
+      || (defined(__cplusplus) && __cplusplus >= 201402L))
+// Provide this function for applications which use an earlier C standard before C11 and C++14
+#define _PICOLIBC_USE_DEPRECATED_GETS
 #endif
 
-#ifndef _INC_STDIO
-#define _INC_STDIO
-
-#if     !defined(_WIN32)
-#error ERROR: Only Win32 target supported!
-#endif
-
-#ifndef _CRTBLD
-/* This version of the header files is NOT for user programs.
- * It is intended for use when building the C runtimes ONLY.
- * The version intended for public use will not have this message.
- */
-#error ERROR: Use of C runtime library internal header file.
-#endif  /* _CRTBLD */
-
-#ifdef  _MSC_VER
 /*
- * Currently, all MS C compilers for Win32 platforms default to 8 byte
- * alignment.
+ * This is an internal structure of the library that is subject to be
+ * changed without warnings at any time.  Please do *never* reference
+ * elements of it beyond by using the official interfaces provided.
  */
-#pragma pack(push,8)
-#endif  /* _MSC_VER */
 
-#ifdef  __cplusplus
-extern "C" {
+#ifdef __ATOMIC_UNGETC
+#if defined(__riscv) || defined(__MICROBLAZE__) || (__loongarch__)
+/*
+ * Use 32-bit ungetc storage when doing atomic ungetc on RISC-V and
+ * MicroBlaze, which have 4-byte swap intrinsics but not 2-byte swap
+ * intrinsics. This increases the size of the __file struct by four
+ * bytes.
+ */
+#define __PICOLIBC_UNGETC_SIZE 4
+#endif
 #endif
 
-#ifndef _INTERNAL_IFSTRIP_
-#include <cruntime.h>
-#endif  /* _INTERNAL_IFSTRIP_ */
+#ifndef __PICOLIBC_UNGETC_SIZE
+#define __PICOLIBC_UNGETC_SIZE 2
+#endif
 
-#if !defined(_W64)
-#if !defined(__midl) && (defined(_X86_) || defined(_M_IX86)) && _MSC_VER >= 1300 /*IFSTRIP=IGN*/
-#define _W64 __w64
+#if __PICOLIBC_UNGETC_SIZE == 4
+typedef __uint32_t __ungetc_t;
+#endif
+
+#if __PICOLIBC_UNGETC_SIZE == 2
+typedef __uint16_t __ungetc_t;
+#endif
+
+struct __file {
+    __ungetc_t unget;                  /* ungetc() buffer */
+    __uint8_t  flags;                  /* flags, see below */
+#define __SRD    0x0001                /* OK to read */
+#define __SWR    0x0002                /* OK to write */
+#define __SERR   0x0004                /* found error */
+#define __SEOF   0x0008                /* found EOF */
+#define __SCLOSE 0x0010                /* struct is __file_close */
+#define __SEXT   0x0020                /* struct is __file_ext */
+#define __SBUF   0x0040                /* struct is __file_bufio */
+#define __SWIDE  0x0080                /* wchar output mode */
+    int (*put)(char, struct __file *); /* function to write one char to device */
+    int (*get)(struct __file *);       /* function to read one char from device */
+    int (*flush)(struct __file *);     /* function to flush output to device */
+#ifdef __STDIO_LOCKING
+    _LOCK_RECURSIVE_T lock;
+#endif
+};
+
+#ifdef __STDIO_LOCKING
+#define __STDIO_UNLOCKED(_fn) _fn##_unlocked
 #else
-#define _W64
-#endif
-#endif
-
-/* Define _CRTIMP */
-
-#ifndef _CRTIMP
-#ifdef  CRTDLL
-#define _CRTIMP __declspec(dllexport)
-#else   /* ndef CRTDLL */
-#ifdef  _DLL
-#define _CRTIMP __declspec(dllimport)
-#else   /* ndef _DLL */
-#define _CRTIMP
-#endif  /* _DLL */
-#endif  /* CRTDLL */
-#endif  /* _CRTIMP */
-
-
-/* Define __cdecl for non-Microsoft compilers */
-
-#if     ( !defined(_MSC_VER) && !defined(__cdecl) )
-#define __cdecl
+#define __STDIO_UNLOCKED(_fn) _fn
 #endif
 
+/*
+ * This variant includes a 'close' function which is
+ * invoked from fclose when the __SCLOSE bit is set
+ */
+struct __file_close {
+    struct __file file;                      /* main file struct */
+    int           (*close)(struct __file *); /* function to close file */
+};
 
-#ifndef _SIZE_T_DEFINED
-#ifdef  _WIN64
-typedef unsigned __int64    size_t;
+#define FDEV_SETUP_CLOSE(__put, __get, __flush, __close, __flags)               \
+    {                                                                           \
+        .file = FDEV_SETUP_STREAM(__put, __get, __flush, (__flags) | __SCLOSE), \
+        .close = (__close),                                                     \
+    }
+
+struct __file_ext {
+    struct __file_close cfile; /* close file struct */
+    __off_t             (*seek)(struct __file *, __off_t offset, int whence);
+    int                 (*setvbuf)(struct __file *, char *buf, int mode, size_t size);
+};
+
+#define FDEV_SETUP_EXT(__put, __get, __flush, __close, __seek, __setvbuf, __flags)     \
+    {                                                                                  \
+        .cfile = FDEV_SETUP_CLOSE(__put, __get, __flush, __close, (__flags) | __SEXT), \
+        .seek = (__seek),                                                              \
+        .setvbuf = (__setvbuf),                                                        \
+    }
+
+/*@{*/
+/**
+   \c FILE is the opaque structure that is passed around between the
+   various standard IO functions.
+*/
+#ifndef ___FILE_DECLARED
+typedef struct __file __FILE;
+#define ___FILE_DECLARED
+#endif
+
+#ifndef _FILE_DECLARED
+typedef __FILE FILE;
+#define _FILE_DECLARED
+#endif
+
+/**
+   This symbol is defined when stdin/stdout/stderr are global
+   variables. When undefined, the old __iob array is used which
+   contains the pointers instead
+*/
+#define __PICOLIBC_STDIO_GLOBALS
+
+extern __picolibc_export FILE * const stdin;
+extern __picolibc_export FILE * const stdout;
+extern __picolibc_export FILE * const stderr;
+
+/* The stdin, stdout, and stderr symbols are described as macros in the C
+ * standard. */
+#define stdin             stdin
+#define stdout            stdout
+#define stderr            stderr
+
+#define EOF               (-1)
+
+#define _IOFBF            0 /* setvbuf should set fully buffered */
+#define _IOLBF            1 /* setvbuf should set line buffered */
+#define _IONBF            2 /* setvbuf should set unbuffered */
+
+#define _FDEV_SETUP_READ  __SRD           /**< fdev_setup_stream() with read intent */
+#define _FDEV_SETUP_WRITE __SWR           /**< fdev_setup_stream() with write intent */
+#define _FDEV_SETUP_RW    (__SRD | __SWR) /**< fdev_setup_stream() with read/write intent */
+
+/**
+ * Return code for an error condition during device read.
+ *
+ * To be used in the get function of fdevopen().
+ */
+#define _FDEV_ERR (-1)
+
+/**
+ * Return code for an end-of-file condition during device read.
+ *
+ * To be used in the get function of fdevopen().
+ */
+#define _FDEV_EOF (-2)
+
+#define FDEV_SETUP_STREAM(__put, __get, __flush, __flags) \
+    {                                                     \
+        .flags = (__flags),                               \
+        .put = (__put),                                   \
+        .get = (__get),                                   \
+        .flush = (__flush),                               \
+    }
+
+FILE *fdevopen(int (*__put)(char, FILE *), int (*__get)(FILE *),
+               int (*__flush)(FILE *)) __picolibc_export;
+int   fclose(FILE *__stream) __nonnull((1)) __picolibc_export;
+int   fflush(FILE *stream)
+#ifndef __STDIO_EXIT_FLUSH
+    __nonnull((1))
+#endif
+    __picolibc_export;
+
+#define fdev_close(f) (fflush(f))
+
+/* Check for old-style printf selection symbols */
+
+#define __IO_VARIANT_DOUBLE  'd'
+#define __IO_VARIANT_FLOAT   'f'
+#define __IO_VARIANT_LLONG   'l'
+#define __IO_VARIANT_INTEGER 'i'
+#define __IO_VARIANT_MINIMAL 'm'
+
+#ifndef _PICOLIBC_PRINTF
+#if defined(PICOLIBC_DOUBLE_PRINTF_SCANF)
+#define _PICOLIBC_PRINTF __IO_VARIANT_DOUBLE
+#elif defined(PICOLIBC_FLOAT_PRINTF_SCANF)
+#define _PICOLIBC_PRINTF __IO_VARIANT_FLOAT
+#elif defined(PICOLIBC_LONG_LONG_PRINTF_SCANF)
+#define _PICOLIBC_PRINTF __IO_VARIANT_LLONG
+#elif defined(PICOLIBC_INTEGER_PRINTF_SCANF)
+#define _PICOLIBC_PRINTF __IO_VARIANT_INTEGER
+#elif defined(PICOLIBC_MINIMAL_PRINTF_SCANF)
+#define _PICOLIBC_PRINTF __IO_VARIANT_MINIMAL
 #else
-typedef _W64 unsigned int   size_t;
+#define _PICOLIBC_PRINTF __IO_DEFAULT
 #endif
-#define _SIZE_T_DEFINED
-#endif
-
-
-#ifndef _WCHAR_T_DEFINED
-typedef unsigned short wchar_t;
-#define _WCHAR_T_DEFINED
 #endif
 
+/* Check for old-style scanf selection symbols */
 
-#ifndef _WCTYPE_T_DEFINED
-typedef unsigned short wint_t;
-typedef unsigned short wctype_t;
-#define _WCTYPE_T_DEFINED
+#ifndef _PICOLIBC_SCANF
+#if defined(PICOLIBC_DOUBLE_PRINTF_SCANF)
+#define _PICOLIBC_SCANF __IO_VARIANT_DOUBLE
+#elif defined(PICOLIBC_FLOAT_PRINTF_SCANF)
+#define _PICOLIBC_SCANF __IO_VARIANT_FLOAT
+#elif defined(PICOLIBC_LONG_LONG_PRINTF_SCANF)
+#define _PICOLIBC_SCANF __IO_VARIANT_LLONG
+#elif defined(PICOLIBC_INTEGER_PRINTF_SCANF)
+#define _PICOLIBC_SCANF __IO_VARIANT_INTEGER
+#elif defined(PICOLIBC_MINIMAL_PRINTF_SCANF)
+#define _PICOLIBC_SCANF __IO_VARIANT_MINIMAL
+#else
+#define _PICOLIBC_SCANF __IO_DEFAULT
+#endif
 #endif
 
+#if _PICOLIBC_PRINTF == __IO_VARIANT_FLOAT
+#ifdef __GNUCLIKE_PRAGMA_DIAGNOSTIC
+#pragma GCC diagnostic ignored "-Wformat"
+#endif
+#define __FORMAT_ATTRIBUTE__(__a, __s, __f) __picolibc_format(__a, __s, 0)
+#else
+#define __FORMAT_ATTRIBUTE__(__a, __s, __f) __picolibc_format(__a, __s, __f)
+#endif
 
+#define __PRINTF_ATTRIBUTE__(__s, __f) __FORMAT_ATTRIBUTE__(printf, __s, __f)
+#define __SCANF_ATTRIBUTE__(__s, _f)   __FORMAT_ATTRIBUTE__(scanf, __s, __f)
+
+int fputc(int __c, FILE *__stream) __nonnull((2)) __picolibc_export;
+int putc(int __c, FILE *__stream) __nonnull((2)) __picolibc_export;
+int putchar(int __c) __picolibc_export;
+#define putc(__c, __stream) fputc(__c, __stream)
+#define putchar(__c)        fputc(__c, stdout)
+
+int printf(const char *__fmt, ...) __PRINTF_ATTRIBUTE__(1, 2) __picolibc_export;
+int fprintf(FILE *__stream, const char *__fmt, ...) __PRINTF_ATTRIBUTE__(2, 3)
+    __nonnull((1)) __picolibc_export;
+int vprintf(const char *__fmt, __gnuc_va_list __ap) __PRINTF_ATTRIBUTE__(1, 0) __picolibc_export;
+int vfprintf(FILE *__stream, const char *__fmt, __gnuc_va_list __ap) __PRINTF_ATTRIBUTE__(2, 0)
+    __nonnull((1)) __picolibc_export;
+int sprintf(char *__s, const char *__fmt, ...) __PRINTF_ATTRIBUTE__(2, 3) __picolibc_export;
+int snprintf(char *__s, size_t __n, const char *__fmt, ...)
+    __PRINTF_ATTRIBUTE__(3, 4) __picolibc_export;
+int vsprintf(char *__s, const char *__fmt, __gnuc_va_list ap)
+    __PRINTF_ATTRIBUTE__(2, 0) __picolibc_export;
+int vsnprintf(char *__s, size_t __n, const char *__fmt, __gnuc_va_list ap)
+    __PRINTF_ATTRIBUTE__(3, 0) __picolibc_export;
+int   asprintf(char **strp, const char *fmt, ...) __PRINTF_ATTRIBUTE__(2, 3) __picolibc_export;
+char *asnprintf(char *str, size_t *lenp, const char *fmt, ...)
+    __PRINTF_ATTRIBUTE__(3, 4) __picolibc_export;
+int vasprintf(char **strp, const char *fmt, __gnuc_va_list ap)
+    __PRINTF_ATTRIBUTE__(2, 0) __picolibc_export;
+char *vasnprintf(char *str, size_t *lenp, const char *fmt, __gnuc_va_list ap)
+    __PRINTF_ATTRIBUTE__(3, 0) __picolibc_export;
+
+int    fputs(const char *__str, FILE *__stream) __nonnull((2)) __picolibc_export;
+int    puts(const char *__str) __picolibc_export;
+size_t fwrite(const void *__ptr, size_t __size, size_t __nmemb, FILE *__stream)
+    __nonnull((4)) __picolibc_export;
+
+int fgetc(FILE *__stream) __nonnull((1)) __picolibc_export;
+int getc(FILE *__stream) __nonnull((1)) __picolibc_export;
+int getchar(void) __picolibc_export;
+#define getchar() getc(stdin)
+int ungetc(int __c, FILE *__stream) __nonnull((2)) __picolibc_export;
+
+int scanf(const char *__fmt, ...) __FORMAT_ATTRIBUTE__(scanf, 1, 2) __picolibc_export;
+int fscanf(FILE *__stream, const char *__fmt, ...) __FORMAT_ATTRIBUTE__(scanf, 2, 3)
+    __nonnull((1)) __picolibc_export;
+int vscanf(const char *__fmt, __gnuc_va_list __ap)
+    __FORMAT_ATTRIBUTE__(scanf, 1, 0) __picolibc_export;
+int vfscanf(FILE *__stream, const char *__fmt, __gnuc_va_list __ap)
+    __FORMAT_ATTRIBUTE__(scanf, 2, 0) __nonnull((1)) __picolibc_export;
+int sscanf(const char *__buf, const char *__fmt, ...)
+    __FORMAT_ATTRIBUTE__(scanf, 2, 3) __picolibc_export;
+int vsscanf(const char *__buf, const char *__fmt, __gnuc_va_list ap)
+    __FORMAT_ATTRIBUTE__(scanf, 2, 0) __picolibc_export;
+
+char *fgets(char *__str, int __size, FILE *__stream) __nonnull((3)) __picolibc_export;
+#ifdef _PICOLIBC_USE_DEPRECATED_GETS
+char *gets(char *str) __picolibc_export;
+#endif
+size_t fread(void *__ptr, size_t __size, size_t __nmemb, FILE *__stream)
+    __nonnull((4)) __picolibc_export;
+
+void clearerr(FILE *__stream) __nonnull((1)) __picolibc_export;
+int  ferror(FILE *__stream) __nonnull((1)) __picolibc_export;
+int  feof(FILE *__stream) __nonnull((1)) __picolibc_export;
+#ifdef __MISC_VISIBLE
+void __fseterr(FILE *__stream) __nonnull((1)) __picolibc_export;
+#endif
+
+/* fast inlined versions */
+#define __clearerr_unlocked(s)  ((s)->flags &= (__uint8_t) ~(__SERR | __SEOF))
+#define __ferror_unlocked(s)    ((s)->flags & __SERR)
+#define __feof_unlocked(s)      ((s)->flags & __SEOF)
+#define ____fseterr_unlocked(s) ((s)->flags |= __SERR)
+
+/* When locking is disabled, use the unlocked macros */
+#ifndef __STDIO_LOCKING
+#define clearerr(s) __clearerr_unlocked(s)
+#define ferror(s)   __ferror_unlocked(s)
+#define feof(s)     __feof_unlocked(s)
+#ifdef __MISC_VISIBLE
+#define __fseterr(s) ____fseterr_unlocked(s)
+#endif
+#endif
+
+/* Expose the unlocked symbols when requested */
+#ifdef __MISC_VISIBLE
+void clearerr_unlocked(FILE *__stream) __nonnull((1)) __picolibc_export;
+int  ferror_unlocked(FILE *__stream) __nonnull((1)) __picolibc_export;
+int  feof_unlocked(FILE *__stream) __nonnull((1)) __picolibc_export;
+void __fseterr_unlocked(FILE *__stream) __nonnull((1)) __picolibc_export;
+#define clearerr_unlocked(s)  __clearerr_unlocked(s)
+#define ferror_unlocked(s)    __ferror_unlocked(s)
+#define feof_unlocked(s)      __feof_unlocked(s)
+#define __fseterr_unlocked(s) ____fseterr_unlocked(s)
+#endif
+
+/* Expose printf variants */
+#ifdef __GNU_VISIBLE
+int __d_vfprintf(FILE *__stream, const char *__fmt, __gnuc_va_list __ap)
+    __FORMAT_ATTRIBUTE__(printf, 2, 0) __picolibc_export;
+int __f_vfprintf(FILE *__stream, const char *__fmt, __gnuc_va_list __ap)
+    __FORMAT_ATTRIBUTE__(printf, 2, 0) __picolibc_export;
+int __i_vfprintf(FILE *__stream, const char *__fmt, __gnuc_va_list __ap)
+    __FORMAT_ATTRIBUTE__(printf, 2, 0) __picolibc_export;
+int __l_vfprintf(FILE *__stream, const char *__fmt, __gnuc_va_list __ap)
+    __FORMAT_ATTRIBUTE__(printf, 2, 0) __picolibc_export;
+int __m_vfprintf(FILE *__stream, const char *__fmt, __gnuc_va_list __ap)
+    __FORMAT_ATTRIBUTE__(printf, 2, 0) __picolibc_export;
+
+int __d_sprintf(char *__s, const char *__fmt, ...)
+    __FORMAT_ATTRIBUTE__(printf, 2, 0) __picolibc_export;
+int __f_sprintf(char *__s, const char *__fmt, ...)
+    __FORMAT_ATTRIBUTE__(printf, 2, 0) __picolibc_export;
+int __i_sprintf(char *__s, const char *__fmt, ...)
+    __FORMAT_ATTRIBUTE__(printf, 2, 0) __picolibc_export;
+int __l_sprintf(char *__s, const char *__fmt, ...)
+    __FORMAT_ATTRIBUTE__(printf, 2, 0) __picolibc_export;
+int __m_sprintf(char *__s, const char *__fmt, ...)
+    __FORMAT_ATTRIBUTE__(printf, 2, 0) __picolibc_export;
+
+int __d_snprintf(char *__s, size_t __n, const char *__fmt, ...)
+    __FORMAT_ATTRIBUTE__(printf, 3, 0) __picolibc_export;
+int __f_snprintf(char *__s, size_t __n, const char *__fmt, ...)
+    __FORMAT_ATTRIBUTE__(printf, 3, 0) __picolibc_export;
+int __i_snprintf(char *__s, size_t __n, const char *__fmt, ...)
+    __FORMAT_ATTRIBUTE__(printf, 3, 0) __picolibc_export;
+int __l_snprintf(char *__s, size_t __n, const char *__fmt, ...)
+    __FORMAT_ATTRIBUTE__(printf, 3, 0) __picolibc_export;
+int __m_snprintf(char *__s, size_t __n, const char *__fmt, ...)
+    __FORMAT_ATTRIBUTE__(printf, 3, 0) __picolibc_export;
+
+int __d_vfscanf(FILE *__stream, const char *__fmt, __gnuc_va_list __ap)
+    __FORMAT_ATTRIBUTE__(scanf, 2, 0) __picolibc_export;
+int __f_vfscanf(FILE *__stream, const char *__fmt, __gnuc_va_list __ap)
+    __FORMAT_ATTRIBUTE__(scanf, 2, 0) __picolibc_export;
+int __i_vfscanf(FILE *__stream, const char *__fmt, __gnuc_va_list __ap)
+    __FORMAT_ATTRIBUTE__(scanf, 2, 0) __picolibc_export;
+int __l_vfscanf(FILE *__stream, const char *__fmt, __gnuc_va_list __ap)
+    __FORMAT_ATTRIBUTE__(scanf, 2, 0) __picolibc_export;
+int __m_vfscanf(FILE *__stream, const char *__fmt, __gnuc_va_list __ap)
+    __FORMAT_ATTRIBUTE__(scanf, 2, 0) __picolibc_export;
+
+#endif
+
+#ifndef SEEK_SET
+#define SEEK_SET 0 /* set file offset to offset */
+#endif
+#ifndef SEEK_CUR
+#define SEEK_CUR 1 /* set file offset to current plus offset */
+#endif
+#ifndef SEEK_END
+#define SEEK_END 2 /* set file offset to EOF plus offset */
+#endif
+
+/* only mentioned for libstdc++ support, not implemented in library */
+#ifndef BUFSIZ
+#define BUFSIZ 512
+#endif
+
+/*
+ * We don't have any way of knowing any underlying POSIX limits,
+ * so just use a reasonably small values here
+ */
+#ifndef FOPEN_MAX
+#define FOPEN_MAX 32
+#endif
+#ifndef FILENAME_MAX
+#define FILENAME_MAX 1024
+#endif
+
+/*
+ * Declare required C types
+ *
+ * size_t comes from stddef.h (included from cdefs.h)
+ */
+#ifndef _FPOS_T_DECLARED
+typedef __fpos_t fpos_t;
+#define _FPOS_T_DECLARED
+#endif
+
+#if __POSIX_VISIBLE
+/*
+ * Declare required additional POSIX types.
+ */
+
+#ifndef _OFF_T_DECLARED
+typedef __off_t off_t; /* file offset */
+#define _OFF_T_DECLARED
+#endif
+
+#ifndef _SSIZE_T_DECLARED
+typedef __ssize_t ssize_t;
+#define _SSIZE_T_DECLARED
+#endif
+
+/* This needs to agree with <stdarg.h> */
+#ifdef __GNUC__
 #ifndef _VA_LIST_DEFINED
-#ifdef  _M_ALPHA
-typedef struct {
-        char *a0;       /* pointer to first homed integer argument */
-        int offset;     /* byte offset of next parameter */
-} va_list;
-#else
-typedef char *  va_list;
-#endif
+typedef __gnuc_va_list va_list;
 #define _VA_LIST_DEFINED
 #endif
+#else
+#include <stdarg.h>
+#endif
 
+int dprintf(int fd, const char * __restrict fmt, ...) __picolibc_export;
+int vdprintf(int fd, const char * __restrict fmt, __gnuc_va_list ap) __picolibc_export;
 
-/* Buffered I/O macros */
+#endif
 
-#define BUFSIZ  512
+int   fgetpos(FILE   *__restrict stream, fpos_t   *__restrict pos) __nonnull((1)) __picolibc_export;
+FILE *fopen(const char *path, const char *mode)
+    __malloc_like_with_free(fclose, 1) __picolibc_export;
+FILE *freopen(const char *path, const char *mode, FILE *stream) __nonnull((3)) __picolibc_export;
+FILE *fdopen(int, const char *) __malloc_like_with_free(fclose, 1) __picolibc_export;
+FILE *fmemopen(void *buf, size_t size, const char *mode)
+    __malloc_like_with_free(fclose, 1) __picolibc_export;
+#if __POSIX_VISIBLE >= 200809
+FILE *open_memstream(char **bufp, size_t *sizep)
+    __malloc_like_with_free(fclose, 1) __picolibc_export;
+#endif
+int   fseek(FILE *stream, long offset, int whence) __nonnull((1)) __picolibc_export;
+int   fsetpos(FILE *stream, const fpos_t *pos) __nonnull((1)) __picolibc_export;
+long  ftell(FILE *stream) __nonnull((1)) __picolibc_export;
+int   fileno(FILE *stream) __nonnull((1)) __picolibc_export;
+void  perror(const char *s) __picolibc_export;
+int   remove(const char *pathname) __picolibc_export;
+int   rename(const char *oldpath, const char *newpath) __picolibc_export;
+void  rewind(FILE *stream) __nonnull((1)) __picolibc_export;
+void  setbuf(FILE *stream, char *buf) __nonnull((1)) __picolibc_export;
+void  setbuffer(FILE *stream, char *buf, size_t size) __nonnull((1)) __picolibc_export;
+void  setlinebuf(FILE *stream) __nonnull((1)) __picolibc_export;
+int   setvbuf(FILE *stream, char *buf, int mode, size_t size) __nonnull((1)) __picolibc_export;
+FILE *tmpfile(void) __picolibc_export;
+char *tmpnam(char *s) __picolibc_export;
 
-#ifndef _INTERNAL_IFSTRIP_
+#if __POSIX_VISIBLE
+int     fseeko(FILE *stream, off_t offset, int whence) __nonnull((1)) __picolibc_export;
+off_t   ftello(FILE *stream) __nonnull((1)) __picolibc_export;
+ssize_t getline(char ** __restrict lineptr, size_t * __restrict n, FILE * __restrict stream)
+    __nonnull((3)) __picolibc_export;
+ssize_t getdelim(char ** __restrict lineptr, size_t * __restrict n, int delim,
+                 FILE * __restrict stream) __nonnull((4)) __picolibc_export;
+FILE   *popen(const char *command, const char *type) __picolibc_export;
+int     pclose(FILE *stream) __picolibc_export;
+#endif
+
+#if __BSD_VISIBLE
+FILE *funopen(const void *cookie, ssize_t (*readfn)(void *cookie, void *buf, size_t n),
+              ssize_t (*writefn)(void *cookie, const void *buf, size_t n),
+              off_t   (*seekfn)(void *cookie, off_t off, int whence),
+              int     (*closefn)(void *cookie)) __picolibc_export;
+#define fropen(__cookie, __fn) funopen(__cookie, __fn, NULL, NULL, NULL)
+#define fwopen(__cookie, __fn) funopen(__cookie, NULL, __fn, NULL, NULL)
+#endif /*__BSD_VISIBLE */
+
+#if __GNU_VISIBLE
+typedef ssize_t cookie_read_function_t(void *cookie, char *buf, size_t n);
+typedef ssize_t cookie_write_function_t(void *cookie, const char *buf, size_t n);
+typedef int     cookie_seek_function_t(void *cookie, off_t *pos, int whence);
+typedef int     cookie_close_function_t(void *cookie);
+
+typedef struct cookie_io_functions_t {
+    cookie_read_function_t  *read;
+    cookie_write_function_t *write;
+    cookie_seek_function_t  *seek;
+    cookie_close_function_t *close;
+} cookie_io_functions_t;
+
+FILE *fopencookie(void *cookie, const char *modes,
+                  cookie_io_functions_t io_funcs) __picolibc_export;
+#endif /* __GNU_VISIBLE */
+
+#if __POSIX_VISIBLE >= 199309L
+int getc_unlocked(FILE *) __nonnull((1)) __picolibc_export;
+int getchar_unlocked(void) __picolibc_export;
+#ifdef __STDIO_LOCKING
+void flockfile(FILE *__f) __nonnull((1)) __acquire_capability(__f->lock) __picolibc_export;
+int  ftrylockfile(FILE *) __nonnull((1)) __picolibc_export;
+void funlockfile(FILE *__f) __nonnull((1)) __release_capability(__f->lock) __picolibc_export;
+#else
+void flockfile(FILE *) __nonnull((1)) __picolibc_export;
+int  ftrylockfile(FILE *) __nonnull((1)) __picolibc_export;
+void funlockfile(FILE *) __nonnull((1)) __picolibc_export;
+#endif
+int putc_unlocked(int, FILE *) __nonnull((2)) __picolibc_export;
+int putchar_unlocked(int) __picolibc_export;
+#ifndef __STDIO_LOCKING
+#define getc_unlocked(f)       getc(f)
+#define getchar_unlocked(f)    getc(stdin)
+#define putc_unlocked(c, f)    putc(c, f)
+#define putchar_unlocked(c, f) putc(c, stdout)
+#endif
+#endif
+
+#if __GNU_VISIBLE
+int ungetc_unlocked(int c, FILE *) __nonnull((2)) __picolibc_export;
+#ifndef __STDIO_LOCKING
+#define ungetc_unlocked(c, f) ungetc(c, f)
+#endif
+#endif
+
+#if __STDC_WANT_LIB_EXT1__ == 1
+#ifndef __STDC_LIB_EXT1__
+#define __STDC_LIB_EXT1__ 1
+#endif
+
+#include <sys/_types.h>
+#include <stdarg.h>
+
+#ifndef _ERRNO_T_DEFINED
+typedef __errno_t errno_t;
+#define _ERRNO_T_DEFINED
+#endif
+
+#ifndef _RSIZE_T_DEFINED
+typedef __rsize_t rsize_t;
+#define _RSIZE_T_DEFINED
+#endif
+
+int sprintf_s(char * __restrict __s, rsize_t __bufsize, const char * __restrict __format,
+              ...) __picolibc_export;
+int vsnprintf_s(char * __restrict s, rsize_t n, const char * __restrict fmt,
+                va_list arg) __picolibc_export;
+int vfprintf_s(FILE * __restrict stream, const char * __restrict fmt,
+               va_list ap_orig) __picolibc_export;
+#endif
+
 /*
- * Real default size for stdio buffers
+ * The format of tmpnam names is TXXXXXX, which works with mktemp
  */
-#define _INTERNAL_BUFSIZ    4096
-#define _SMALL_BUFSIZ       512
-#endif  /* _INTERNAL_IFSTRIP_ */
+#define L_tmpnam 16 /* RXDK: room for "Z:\\Txxxxxx" scratch paths (was 8) */
 
 /*
- * Default number of supported streams. _NFILE is confusing and obsolete, but
- * supported anyway for backwards compatibility.
+ * RXDK tmpfile/tmpnam place scratch files on the Z: utility drive.
  */
-#define _NFILE      _NSTREAM_
-
-#define _NSTREAM_   512
+#define P_tmpdir "Z:\\"
 
 /*
- * Number of entries in _iob[] (declared below). Note that _NSTREAM_ must be
- * greater than or equal to _IOB_ENTRIES.
+ * We don't have any way of knowing any underlying POSIX limits,
+ * so just use a reasonably small value here
  */
-#define _IOB_ENTRIES 20
-
-#define EOF     (-1)
-
-
-#ifndef _FILE_DEFINED
-struct _iobuf {
-        char *_ptr;
-        int   _cnt;
-        char *_base;
-        int   _flag;
-        int   _file;
-        int   _charbuf;
-        int   _bufsiz;
-        char *_tmpfname;
-        };
-typedef struct _iobuf FILE;
-#define _FILE_DEFINED
+#ifndef TMP_MAX
+#define TMP_MAX 32
 #endif
 
-
-/* Directory where temporary files may be created. */
-
-#ifdef  _POSIX_
-#define _P_tmpdir   "/"
-#define _wP_tmpdir  L"/"
-#else
-#ifdef _XBOX
-#define _P_tmpdir   "Z:\\"
-#define _wP_tmpdir  L"Z:\\"
-#else
-#define _P_tmpdir   "\\"
-#define _wP_tmpdir  L"\\"
-#endif
-#endif
-
-/* L_tmpnam = length of string _P_tmpdir
- *            + 1 if _P_tmpdir does not end in "/" or "\", else 0
- *            + 12 (for the filename string)
- *            + 1 (for the null terminator)
- */
-#define L_tmpnam sizeof(_P_tmpdir)+12
-
-
-#ifdef  _POSIX_
-#define L_ctermid   9
-#define L_cuserid   32
-#endif
-
-
-/* Seek method constants */
-
-#define SEEK_CUR    1
-#define SEEK_END    2
-#define SEEK_SET    0
-
-
-#define FILENAME_MAX    260
-#define FOPEN_MAX       20
-#define _SYS_OPEN       20
-#define TMP_MAX         32767
-
-
-/* Define NULL pointer value */
-
-#ifndef NULL
-#ifdef  __cplusplus
-#define NULL    0
-#else
-#define NULL    ((void *)0)
-#endif
-#endif
-
-
-/* Declare _iob[] array */
-
-#ifndef _STDIO_DEFINED
-#ifndef _INTERNAL_IFSTRIP_
-/* These functions are for enabling STATIC_CPPLIB functionality */
-_CRTIMP FILE * __cdecl __iob_func(void);
-#if     defined(_DLL) && defined(_M_IX86)
-/* Retained for compatibility with VC++ 5.0 and earlier versions */
-_CRTIMP extern FILE * __cdecl __p__iob(void);
-#endif
-#endif  /* _INTERNAL_IFSTRIP_ */
-_CRTIMP extern FILE _iob[];
-#endif  /* _STDIO_DEFINED */
-
-
-/* Define file position type */
-
-#ifndef _FPOS_T_DEFINED
-#undef _FPOSOFF
-
-#if     defined (_POSIX_)
-typedef long fpos_t;
-#define _FPOSOFF(fp) ((long)(fp))
-#else   /* _POSIX_ */
-
-#if     !__STDC__ && _INTEGRAL_MAX_BITS >= 64    /*IFSTRIP=IGN*/
-typedef __int64 fpos_t;
-#define _FPOSOFF(fp) ((long)(fp))
-#else
-typedef struct fpos_t {
-        unsigned int lopart;
-        int          hipart;
-        } fpos_t;
-#define _FPOSOFF(fp) ((long)(fp).lopart)
-#endif
-#endif  /* _POSIX_ */
-
-#define _FPOS_T_DEFINED
-#endif
-
-
-#define stdin  (&_iob[0])
-#define stdout (&_iob[1])
-#define stderr (&_iob[2])
-
-
-#define _IOREAD         0x0001
-#define _IOWRT          0x0002
-
-#define _IOFBF          0x0000
-#define _IOLBF          0x0040
-#define _IONBF          0x0004
-
-#define _IOMYBUF        0x0008
-#define _IOEOF          0x0010
-#define _IOERR          0x0020
-#define _IOSTRG         0x0040
-#define _IORW           0x0080
-#ifdef  _POSIX_
-#define _IOAPPEND       0x0200
-#endif
-
-
-/* Function prototypes */
-
-#ifndef _STDIO_DEFINED
-
-_CRTIMP int __cdecl _filbuf(FILE *);
-_CRTIMP int __cdecl _flsbuf(int, FILE *);
-
-#ifdef  _POSIX_
-_CRTIMP FILE * __cdecl _fsopen(const char *, const char *);
-#else
-_CRTIMP FILE * __cdecl _fsopen(const char *, const char *, int);
-#endif
-
-_CRTIMP void __cdecl clearerr(FILE *);
-_CRTIMP int __cdecl fclose(FILE *);
-_CRTIMP int __cdecl _fcloseall(void);
-
-#ifdef  _POSIX_
-_CRTIMP FILE * __cdecl fdopen(int, const char *);
-#else
-_CRTIMP FILE * __cdecl _fdopen(int, const char *);
-#endif
-
-_CRTIMP int __cdecl feof(FILE *);
-_CRTIMP int __cdecl ferror(FILE *);
-_CRTIMP int __cdecl fflush(FILE *);
-_CRTIMP int __cdecl fgetc(FILE *);
-_CRTIMP int __cdecl _fgetchar(void);
-_CRTIMP int __cdecl fgetpos(FILE *, fpos_t *);
-_CRTIMP char * __cdecl fgets(char *, int, FILE *);
-
-#ifdef  _POSIX_
-_CRTIMP int __cdecl fileno(FILE *);
-#else
-_CRTIMP int __cdecl _fileno(FILE *);
-#endif
-
-_CRTIMP int __cdecl _flushall(void);
-_CRTIMP FILE * __cdecl fopen(const char *, const char *);
-_CRTIMP int __cdecl fprintf(FILE *, const char *, ...);
-_CRTIMP int __cdecl fputc(int, FILE *);
-_CRTIMP int __cdecl _fputchar(int);
-_CRTIMP int __cdecl fputs(const char *, FILE *);
-_CRTIMP size_t __cdecl fread(void *, size_t, size_t, FILE *);
-_CRTIMP FILE * __cdecl freopen(const char *, const char *, FILE *);
-_CRTIMP int __cdecl fscanf(FILE *, const char *, ...);
-_CRTIMP int __cdecl fsetpos(FILE *, const fpos_t *);
-_CRTIMP int __cdecl fseek(FILE *, long, int);
-_CRTIMP long __cdecl ftell(FILE *);
-_CRTIMP size_t __cdecl fwrite(const void *, size_t, size_t, FILE *);
-_CRTIMP int __cdecl getc(FILE *);
-_CRTIMP int __cdecl getchar(void);
-_CRTIMP int __cdecl _getmaxstdio(void);
-_CRTIMP char * __cdecl gets(char *);
-_CRTIMP int __cdecl _getw(FILE *);
-_CRTIMP void __cdecl perror(const char *);
-#ifndef _XBSTRICT
-_CRTIMP int __cdecl _pclose(FILE *);
-_CRTIMP FILE * __cdecl _popen(const char *, const char *);
-#endif // XBSTRICT
-_CRTIMP int __cdecl printf(const char *, ...);
-_CRTIMP int __cdecl putc(int, FILE *);
-_CRTIMP int __cdecl putchar(int);
-_CRTIMP int __cdecl puts(const char *);
-_CRTIMP int __cdecl _putw(int, FILE *);
-_CRTIMP int __cdecl remove(const char *);
-_CRTIMP int __cdecl rename(const char *, const char *);
-_CRTIMP void __cdecl rewind(FILE *);
-_CRTIMP int __cdecl _rmtmp(void);
-_CRTIMP int __cdecl scanf(const char *, ...);
-_CRTIMP void __cdecl setbuf(FILE *, char *);
-_CRTIMP int __cdecl _setmaxstdio(int);
-_CRTIMP int __cdecl setvbuf(FILE *, char *, int, size_t);
-_CRTIMP int __cdecl _snprintf(char *, size_t, const char *, ...);
-_CRTIMP int __cdecl sprintf(char *, const char *, ...);
-_CRTIMP int __cdecl _scprintf(const char *, ...);
-_CRTIMP int __cdecl sscanf(const char *, const char *, ...);
-_CRTIMP int __cdecl _snscanf(const char *, size_t, const char *, ...);
-_CRTIMP char * __cdecl _tempnam(const char *, const char *);
-_CRTIMP FILE * __cdecl tmpfile(void);
-_CRTIMP char * __cdecl tmpnam(char *);
-_CRTIMP int __cdecl ungetc(int, FILE *);
-_CRTIMP int __cdecl _unlink(const char *);
-_CRTIMP int __cdecl vfprintf(FILE *, const char *, va_list);
-_CRTIMP int __cdecl vprintf(const char *, va_list);
-_CRTIMP int __cdecl _vsnprintf(char *, size_t, const char *, va_list);
-_CRTIMP int __cdecl vsprintf(char *, const char *, va_list);
-_CRTIMP int __cdecl _vscprintf(const char *, va_list);
-
-#ifndef _WSTDIO_DEFINED
-
-/* wide function prototypes, also declared in wchar.h  */
-
-#ifndef WEOF
-#define WEOF (wint_t)(0xFFFF)
-#endif
-
-#ifdef  _POSIX_
-_CRTIMP FILE * __cdecl _wfsopen(const wchar_t *, const wchar_t *);
-#else
-_CRTIMP FILE * __cdecl _wfsopen(const wchar_t *, const wchar_t *, int);
-#endif
-
-_CRTIMP wint_t __cdecl fgetwc(FILE *);
-_CRTIMP wint_t __cdecl _fgetwchar(void);
-_CRTIMP wint_t __cdecl fputwc(wchar_t, FILE *);
-_CRTIMP wint_t __cdecl _fputwchar(wchar_t);
-_CRTIMP wint_t __cdecl getwc(FILE *);
-_CRTIMP wint_t __cdecl getwchar(void);
-_CRTIMP wint_t __cdecl putwc(wchar_t, FILE *);
-_CRTIMP wint_t __cdecl putwchar(wchar_t);
-_CRTIMP wint_t __cdecl ungetwc(wint_t, FILE *);
-
-_CRTIMP wchar_t * __cdecl fgetws(wchar_t *, int, FILE *);
-_CRTIMP int __cdecl fputws(const wchar_t *, FILE *);
-_CRTIMP wchar_t * __cdecl _getws(wchar_t *);
-_CRTIMP int __cdecl _putws(const wchar_t *);
-
-_CRTIMP int __cdecl fwprintf(FILE *, const wchar_t *, ...);
-_CRTIMP int __cdecl wprintf(const wchar_t *, ...);
-_CRTIMP int __cdecl _snwprintf(wchar_t *, size_t, const wchar_t *, ...);
-_CRTIMP int __cdecl swprintf(wchar_t *, const wchar_t *, ...);
-_CRTIMP int __cdecl _scwprintf(const wchar_t *, ...);
-_CRTIMP int __cdecl vfwprintf(FILE *, const wchar_t *, va_list);
-_CRTIMP int __cdecl vwprintf(const wchar_t *, va_list);
-_CRTIMP int __cdecl _vsnwprintf(wchar_t *, size_t, const wchar_t *, va_list);
-_CRTIMP int __cdecl vswprintf(wchar_t *, const wchar_t *, va_list);
-_CRTIMP int __cdecl _vscwprintf(const wchar_t *, va_list);
-_CRTIMP int __cdecl fwscanf(FILE *, const wchar_t *, ...);
-_CRTIMP int __cdecl swscanf(const wchar_t *, const wchar_t *, ...);
-_CRTIMP int __cdecl _snwscanf(const wchar_t *, size_t, const wchar_t *, ...);
-_CRTIMP int __cdecl wscanf(const wchar_t *, ...);
-
-#define getwchar()              fgetwc(stdin)
-#define putwchar(_c)            fputwc((_c),stdout)
-#define getwc(_stm)             fgetwc(_stm)
-#define putwc(_c,_stm)          fputwc(_c,_stm)
-
-_CRTIMP FILE * __cdecl _wfdopen(int, const wchar_t *);
-_CRTIMP FILE * __cdecl _wfopen(const wchar_t *, const wchar_t *);
-_CRTIMP FILE * __cdecl _wfreopen(const wchar_t *, const wchar_t *, FILE *);
-_CRTIMP void __cdecl _wperror(const wchar_t *);
-#ifndef _XBSTRICT
-_CRTIMP FILE * __cdecl _wpopen(const wchar_t *, const wchar_t *);
-#endif // XBSTRICT
-_CRTIMP int __cdecl _wremove(const wchar_t *);
-#ifndef _XBOX
-_CRTIMP wchar_t * __cdecl _wtempnam(const wchar_t *, const wchar_t *);
-_CRTIMP wchar_t * __cdecl _wtmpnam(wchar_t *);
-#endif // XBOX
-
-#ifdef  _MT                                                 /* _MTHREAD_ONLY */
-wint_t __cdecl _getwc_lk(FILE *);                           /* _MTHREAD_ONLY */
-wint_t __cdecl _putwc_lk(wchar_t, FILE *);                  /* _MTHREAD_ONLY */
-wint_t __cdecl _ungetwc_lk(wint_t, FILE *);                 /* _MTHREAD_ONLY */
-#ifndef _XBOX
-char * __cdecl _wtmpnam_lk(char *);                         /* _MTHREAD_ONLY */
-#endif // XBOX
-#else   /* ndef _MT */                                      /* _MTHREAD_ONLY */
-#define _getwc_lk(_stm)         fgetwc(_stm)                /* _MTHREAD_ONLY */
-#define _putwc_lk(_c,_stm)      fputwc(_c,_stm)             /* _MTHREAD_ONLY */
-#define _ungetwc_lk(_c,_stm)    ungetwc(_c,_stm)            /* _MTHREAD_ONLY */
-#ifndef _XBOX
-#define _wtmpnam_lk(_string)    _wtmpnam(_string)           /* _MTHREAD_ONLY */
-#endif // XBOX
-#endif  /* _MT */                                           /* _MTHREAD_ONLY */
-
-#define _WSTDIO_DEFINED
-#endif  /* _WSTDIO_DEFINED */
-
-#define _STDIO_DEFINED
-#endif  /* _STDIO_DEFINED */
-
-
-/* Macro definitions */
-
-#define feof(_stream)     ((_stream)->_flag & _IOEOF)
-#define ferror(_stream)   ((_stream)->_flag & _IOERR)
-#define _fileno(_stream)  ((_stream)->_file)
-#define getc(_stream)     (--(_stream)->_cnt >= 0 \
-                ? 0xff & *(_stream)->_ptr++ : _filbuf(_stream))
-#define putc(_c,_stream)  (--(_stream)->_cnt >= 0 \
-                ? 0xff & (*(_stream)->_ptr++ = (char)(_c)) :  _flsbuf((_c),(_stream)))
-#define getchar()         getc(stdin)
-#define putchar(_c)       putc((_c),stdout)
-
-#define _getc_lk(_stream)       (--(_stream)->_cnt >= 0 ? 0xff & *(_stream)->_ptr++ : _filbuf(_stream))                         /* _MTHREAD_ONLY */
-#define _putc_lk(_c,_stream)    (--(_stream)->_cnt >= 0 ? 0xff & (*(_stream)->_ptr++ = (char)(_c)) :  _flsbuf((_c),(_stream)))  /* _MTHREAD_ONLY */
-#define _getchar_lk()           _getc_lk(stdin)             /* _MTHREAD_ONLY */
-#define _putchar_lk(_c)         _putc_lk((_c),stdout)       /* _MTHREAD_ONLY */
-#define _getwchar_lk()          _getwc_lk(stdin)            /* _MTHREAD_ONLY */
-#define _putwchar_lk(_c)        _putwc_lk((_c),stdout)      /* _MTHREAD_ONLY */
-
-
-#ifdef  _MT
-#undef  getc
-#undef  putc
-#undef  getchar
-#undef  putchar
-#endif
-
-#ifdef  _MT                                                                 /* _MTHREAD_ONLY */
-int __cdecl _fclose_lk(FILE *);                                             /* _MTHREAD_ONLY */
-int __cdecl _fflush_lk(FILE *);                                             /* _MTHREAD_ONLY */
-size_t __cdecl _fread_lk(void *, size_t, size_t, FILE *);                   /* _MTHREAD_ONLY */
-int __cdecl _fseek_lk(FILE *, long, int);                                   /* _MTHREAD_ONLY */
-long __cdecl _ftell_lk(FILE *);                                             /* _MTHREAD_ONLY */
-size_t __cdecl _fwrite_lk(const void *, size_t, size_t, FILE *);            /* _MTHREAD_ONLY */
-char * __cdecl _tmpnam_lk(char *);                                          /* _MTHREAD_ONLY */
-int __cdecl _ungetc_lk(int, FILE *);                                        /* _MTHREAD_ONLY */
-#else   /* not _MT */                                                       /* _MTHREAD_ONLY */
-#define _fclose_lk(_stm)                        fclose(_stm)                /* _MTHREAD_ONLY */
-#define _fflush_lk(_stm)                        fflush(_stm)                /* _MTHREAD_ONLY */
-#define _fread_lk(_buf,_siz,_cnt,_stm)          fread(_buf,_siz,_cnt,_stm)  /* _MTHREAD_ONLY */
-#define _fseek_lk(_stm,_offset,_origin)         fseek(_stm,_offset,_origin) /* _MTHREAD_ONLY */
-#define _ftell_lk(_stm)                         ftell(_stm)                 /* _MTHREAD_ONLY */
-#define _fwrite_lk(_buf,_siz,_cnt,_stm)         fwrite(_buf,_siz,_cnt,_stm) /* _MTHREAD_ONLY */
-#define _tmpnam_lk(_string)                     tmpnam(_string)             /* _MTHREAD_ONLY */
-#define _ungetc_lk(_c,_stm)                     ungetc(_c,_stm)             /* _MTHREAD_ONLY */
-#endif                                                                      /* _MTHREAD_ONLY */
-
-
-#if     !__STDC__ && !defined(_POSIX_)
-
-/* Non-ANSI names for compatibility */
-
-#define P_tmpdir  _P_tmpdir
-#define SYS_OPEN  _SYS_OPEN
-
-_CRTIMP int __cdecl fcloseall(void);
-_CRTIMP FILE * __cdecl fdopen(int, const char *);
-_CRTIMP int __cdecl fgetchar(void);
-_CRTIMP int __cdecl fileno(FILE *);
-_CRTIMP int __cdecl flushall(void);
-_CRTIMP int __cdecl fputchar(int);
-_CRTIMP int __cdecl getw(FILE *);
-_CRTIMP int __cdecl putw(int, FILE *);
-_CRTIMP int __cdecl rmtmp(void);
-#ifndef _XBOX
-_CRTIMP char * __cdecl tempnam(const char *, const char *);
-_CRTIMP int __cdecl unlink(const char *);
-#endif // XBOX
-
-#endif  /* __STDC__ */
-
-#ifdef  __cplusplus
+/*@}*/
+
+static __inline __uint32_t
+__printf_float(float f)
+{
+    union {
+        float      f;
+        __uint32_t u;
+    } u = { .f = f };
+    return u.u;
 }
+
+/* Express printf capabilities to applications in the form of _HAS_IO values */
+
+#if _PICOLIBC_PRINTF == __IO_VARIANT_MINIMAL
+#define printf_float(x) ((double)(x))
+#if defined(__IO_MINIMAL_LONG_LONG) || __SIZEOF_LONG_LONG__ == __SIZEOF_LONG__
+#define _HAS_IO_LONG_LONG
+#endif
+#ifdef __IO_C99_FORMATS
+#define _HAS_IO_C99_FORMATS
+#endif
+#elif _PICOLIBC_PRINTF == __IO_VARIANT_INTEGER
+#define printf_float(x) ((double)(x))
+#if defined(__IO_LONG_LONG) || __SIZEOF_LONG_LONG__ == __SIZEOF_LONG__
+#define _HAS_IO_LONG_LONG
+#endif
+#ifdef __IO_POS_ARGS
+#define _HAS_IO_POS_ARGS
+#endif
+#ifdef __IO_C99_FORMATS
+#define _HAS_IO_C99_FORMATS
+#endif
+#ifdef __IO_PERCENT_B
+#define _HAS_IO_PERCENT_B
+#endif
+#elif _PICOLIBC_PRINTF == __IO_VARIANT_LLONG
+#define printf_float(x) ((double)(x))
+#define _HAS_IO_LONG_LONG
+#ifdef __IO_POS_ARGS
+#define _HAS_IO_POS_ARGS
+#endif
+#ifdef __IO_C99_FORMATS
+#define _HAS_IO_C99_FORMATS
+#endif
+#ifdef __IO_PERCENT_B
+#define _HAS_IO_PERCENT_B
+#endif
+#elif _PICOLIBC_PRINTF == __IO_VARIANT_FLOAT
+#define printf_float(x) __printf_float(x)
+#define _HAS_IO_LONG_LONG
+#define _HAS_IO_POS_ARGS
+#define _HAS_IO_C99_FORMATS
+#ifdef __IO_PERCENT_B
+#define _HAS_IO_PERCENT_B
+#endif
+#define _HAS_IO_FLOAT
+#else /* _PICOLIBC_PRINTF == __IO_VARIANT_DOUBLE */
+#define printf_float(x) ((double)(x))
+#define _HAS_IO_LONG_LONG
+#define _HAS_IO_POS_ARGS
+#define _HAS_IO_C99_FORMATS
+#define _HAS_IO_DOUBLE
+#if defined(__MB_CAPABLE) || defined(__IO_WCHAR)
+#define _HAS_IO_WCHAR
+#endif
+#ifdef __MB_CAPABLE
+#define _HAS_IO_MBCHAR
+#endif
+#ifdef __IO_PERCENT_B
+#define _HAS_IO_PERCENT_B
+#endif
+#ifdef __IO_LONG_DOUBLE
+#define _HAS_IO_LONG_DOUBLE
+#endif
 #endif
 
-#ifdef  _MSC_VER
-#pragma pack(pop)
-#endif  /* _MSC_VER */
+_END_STD_C
 
-#endif  /* _INC_STDIO */
+#if __SSP_FORTIFY_LEVEL > 0
+#include <ssp/stdio.h>
+#endif
+
+#endif /* _STDIO_H_ */

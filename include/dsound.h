@@ -1,9 +1,9 @@
 /**************************************************************************
  *
- *  Copyright (C) 1995-2002 Microsoft Corporation.  All Rights Reserved.
+ *  Copyright (C) 1995-2000 Microsoft Corporation.  All Rights Reserved.
  *
  *  File:       dsound.h
- *  Content:    Xbox DirectSound.
+ *  Content:    X-Box DirectSound.
  *
  **************************************************************************/
 
@@ -61,761 +61,6 @@ typedef IDirectSoundStream *LPDIRECTSOUNDSTREAM;
 
 typedef struct XAc97MediaObject XAc97MediaObject;
 typedef XAc97MediaObject *LPAC97MEDIAOBJECT;
-
-//
-// Return Codes
-//
-
-#define _FACDS 0x878
-#define MAKE_DSHRESULT(code) MAKE_HRESULT(1, _FACDS, code)
-
-// The function completed successfully
-#define DS_OK                   S_OK                    
-
-// The control (vol, pan, etc.) requested by the caller is not available
-#define DSERR_CONTROLUNAVAIL    MAKE_DSHRESULT(30)      
-
-// This call is not valid for the current state of this object
-#define DSERR_INVALIDCALL       MAKE_DSHRESULT(50)      
-
-// An undetermined error occurred inside the DirectSound subsystem
-#define DSERR_GENERIC           E_FAIL                  
-
-// Not enough free memory is available to complete the operation
-#define DSERR_OUTOFMEMORY       E_OUTOFMEMORY           
-
-// The function called is not supported at this time
-#define DSERR_UNSUPPORTED       E_NOTIMPL               
-
-// No sound driver is available for use
-#define DSERR_NODRIVER          MAKE_DSHRESULT(120)     
-
-// This object does not support aggregation
-#define DSERR_NOAGGREGATION     CLASS_E_NOAGGREGATION   
-
-//
-// Format tags
-//
-
-#define WAVE_FORMAT_PCM                     1
-#define WAVE_FORMAT_XBOX_ADPCM              0x0069
-#define WAVE_FORMAT_VOXWARE_VR12            0x0077
-#define WAVE_FORMAT_VOXWARE_SC03            0x007A
-#define WAVE_FORMAT_VOXWARE_SC06            0x007B
-#define WAVE_FORMAT_EXTENSIBLE              0xFFFE
-
-//
-// WAVEFORMATEXTENSIBLE sub-format identifiers
-//
-
-EXTERN_C const GUID KSDATAFORMAT_SUBTYPE_PCM;
-EXTERN_C const GUID KSDATAFORMAT_SUBTYPE_XBOX_ADPCM;
-
-//
-// FOURCC codes
-//
-
-#ifndef MAKEFOURCC
-
-#define MAKEFOURCC(ch0, ch1, ch2, ch3) \
-    ((FOURCC)(BYTE)(ch0) | ((FOURCC)(BYTE)(ch1) << 8) | \
-    ((FOURCC)(BYTE)(ch2) << 16) | ((FOURCC)(BYTE)(ch3) << 24 ))
-
-#endif // MAKEFOURCC
-
-//
-// memory object types for game replaceable allocation scheme
-//
-
-typedef enum _DSOUND_MEMORY_OBJECT_TYPE
-{
-    eDSoundMemoryObject_WMADecoder = 0,
-    eDSoundMemoryObject_WMAXMediaObject,
-    eDSoundMemoryObject_WMALookaheadBuffer,
-    eDSoundMemoryObject_WMAAsyncContext,
-    eDSoundMemoryObject_Max    
-} DSOUND_MEMORY_OBJECT_TYPE, *PDSOUND_MEMORY_OBJECT_TYPE, *LPDSOUND_MEMORY_OBJECT_TYPE;
-
-//
-// XMediaObject constants
-//
-
-#define XMO_STATUSF_ACCEPT_INPUT_DATA           0x00000001      // The object is ready to accept input data
-#define XMO_STATUSF_ACCEPT_OUTPUT_DATA          0x00000002      // The object is ready to provide output data
-#define XMO_STATUSF_MASK                        0x00000003
-                                                
-#define XMO_STREAMF_FIXED_SAMPLE_SIZE           0x00000001      // The object supports only a fixed sample size
-#define XMO_STREAMF_FIXED_PACKET_ALIGNMENT      0x00000002      // The object supports only a fixed packet alignment
-#define XMO_STREAMF_INPUT_ASYNC                 0x00000004      // The object supports receiving input data asynchronously
-#define XMO_STREAMF_OUTPUT_ASYNC                0x00000008      // The object supports providing output data asynchronously
-#define XMO_STREAMF_IN_PLACE                    0x00000010      // The object supports in-place modification of data
-#define XMO_STREAMF_MASK                        0x0000001F
-
-#define XMEDIAPACKET_STATUS_SUCCESS             S_OK            // The packet completed successfully
-#define XMEDIAPACKET_STATUS_PENDING             E_PENDING       // The packet is waiting to be processed
-#define XMEDIAPACKET_STATUS_FLUSHED             E_ABORT         // The packet was completed as a result of a Flush operation
-#define XMEDIAPACKET_STATUS_FAILURE             E_FAIL          // The packet was completed as a result of a failure
-
-//
-// Cooperative levels (not used on Xbox)
-//
-
-#define DSSCL_NORMAL                0x00000001
-#define DSSCL_PRIORITY              0x00000002
-#define DSSCL_EXCLUSIVE             0x00000003
-#define DSSCL_WRITEPRIMARY          0x00000004
-
-//
-// Speaker configuration
-//
-
-#define DSSPEAKER_SURROUND          XC_AUDIO_FLAGS_SURROUND     // Dolby Surround
-#define DSSPEAKER_STEREO            XC_AUDIO_FLAGS_STEREO       // Stereo
-#define DSSPEAKER_MONO              XC_AUDIO_FLAGS_MONO         // Mono
-#define DSSPEAKER_ENABLE_AC3        XC_AUDIO_FLAGS_ENABLE_AC3   // Enable Dolby Digital output
-#define DSSPEAKER_ENABLE_DTS        XC_AUDIO_FLAGS_ENABLE_DTS   // Enable DTS output
-#define DSSPEAKER_USE_DEFAULT       0xFFFFFFFF                  // Use the speaker config set in the Dashboard
-
-#define DSSPEAKER_BASIC(c)          XC_AUDIO_FLAGS_BASIC(c)
-#define DSSPEAKER_ENCODED(c)        XC_AUDIO_FLAGS_ENCODED(c)
-#define DSSPEAKER_COMBINED(b,e)     XC_AUDIO_FLAGS_COMBINED(b,e)
-
-#define XAudioGetSpeakerConfig      XGetAudioFlags
-                                        
-//
-// DirectSound global headroom ranges
-//
-
-#define DSHEADROOM_MIN              0               // Minimum valid headroom value
-#define DSHEADROOM_MAX              7               // Maximum valid headroom value
-#define DSHEADROOM_DEFAULT          1               // Default headroom value
-                                                                        
-//
-// DirectSound Buffer creation flags
-//
-
-#define DSBCAPS_CTRL3D              0x00000010      // The buffer supports 3D
-#define DSBCAPS_CTRLFREQUENCY       0x00000020      // The buffer supports frequency changes
-#define DSBCAPS_CTRLVOLUME          0x00000080      // The buffer supports volume changes
-#define DSBCAPS_CTRLPOSITIONNOTIFY  0x00000100      // The buffer supports position notifications
-#define DSBCAPS_MIXIN               0x00002000      // The buffer is to be used as the destination of a submix operation
-#define DSBCAPS_MUTE3DATMAXDISTANCE 0x00020000      // The 3D buffer is muted at max distance and beyond
-#define DSBCAPS_LOCDEFER            0x00040000      // The buffer does not acquire resources at creation
-#define DSBCAPS_FXIN                0x00080000      // The buffer is to be used as the destination of a post-effects submix operation
-#define DSBCAPS_FXIN2               0x00100000      // Does not require SetOutputBuffer; does require Play/Stop
-                                                                        
-//
-// IDirectSoundBuffer::Play(Ex) flags
-//
-
-#define DSBPLAY_LOOPING             0x00000001      // The buffer should play in a loop
-#define DSBPLAY_FROMSTART           0x00000002      // Play the buffer from the beginning, regardless of current position
-#define DSBPLAY_SYNCHPLAYBACK       0x00000004      // Synchronize playback of multiple buffers and streams
-
-//
-// IDirectSoundBuffer::StopEx flags
-//
-
-#define DSBSTOPEX_IMMEDIATE         0x00000000      // The buffer should stop immediately
-#define DSBSTOPEX_ENVELOPE          0x00000001      // The buffer should enter its release phase
-#define DSBSTOPEX_RELEASEWAVEFORM   0x00000002      // The buffer should break out of the loop region and enter its release phase
-                                                                        
-//
-// Buffer status flags
-//
-
-#define DSBSTATUS_PLAYING           0x00000001      // The buffer is playing
-#define DSBSTATUS_PAUSED            0x00000002      // The buffer is paused
-#define DSBSTATUS_LOOPING           0x00000004      // The buffer is playing in a loop
-                                                                            
-//
-// IDirectSoundBuffer::Lock flags
-//
-
-#define DSBLOCK_FROMWRITECURSOR     0x00000001      // Lock the buffer from the current write cursor position
-#define DSBLOCK_ENTIREBUFFER        0x00000002      // Lock the entire buffer
-                                                                            
-//
-// Buffer frequency range
-//
-
-#define DSBFREQUENCY_MIN            188             // Minimum valid frequency value
-#define DSBFREQUENCY_MAX            191983          // Maximum valid frequency value
-#define DSBFREQUENCY_ORIGINAL       0               // Reserved value meaning original frequency
-                                                                        
-//
-// Buffer volume range
-//
-
-#define DSBVOLUME_MIN               -10000          // Maximum valid attenuation value
-#define DSBVOLUME_MAX               0               // Minimum valid attenuation value
-#define DSBVOLUME_HW_MIN            -6400           // Minimum volume supported by Xbox hardware
-
-//
-// Buffer headroom range 
-//
-
-#define DSBHEADROOM_MIN             0               // Minimum valid headroom value
-#define DSBHEADROOM_MAX             10000           // Maximum valid headroom value
-#define DSBHEADROOM_DEFAULT_2D      600             // Default headroom value for 2D voices
-#define DSBHEADROOM_DEFAULT_3D      0               // Default headroom value for 3D voices
-#define DSBHEADROOM_DEFAULT_SUBMIX  0               // Default headroom value for submix destinations
-
-//
-// Buffer pitch range
-//
-
-#define DSBPITCH_MIN                -32767          // Minimum valid pitch value
-#define DSBPITCH_MAX                8191            // Maximum valid pitch value
-                                                                        
-//
-// Buffer size range
-//
-
-#define DSBSIZE_MIN                 4               // Minimum valid buffer size, in bytes
-#define DSBSIZE_MAX                 0x0FFFFFFF      // Maximum valid buffer size, in bytes
-                                                                        
-//
-// Reserved notification offset values
-//
-
-#define DSBPN_OFFSETSTOP            0xFFFFFFFF      // Offset value representing "stop" to IDirectSoundNotify
-
-//
-// DirectSound Stream creation flags
-//
-
-#define DSSTREAMCAPS_CTRL3D                 DSBCAPS_CTRL3D              // The stream supports 3D
-#define DSSTREAMCAPS_CTRLFREQUENCY          DSBCAPS_CTRLFREQUENCY       // The stream supports frequency changes
-#define DSSTREAMCAPS_CTRLVOLUME             DSBCAPS_CTRLVOLUME          // The stream supports volume changes
-#define DSSTREAMCAPS_MUTE3DATMAXDISTANCE    DSBCAPS_MUTE3DATMAXDISTANCE // The 3D stream is muted at max distance and beyond
-#define DSSTREAMCAPS_LOCDEFER               DSBCAPS_LOCDEFER            // The stream does not acquire resources at creation
-#define DSSTREAMCAPS_NOCOALESCE             0x20000000                  // Do not coalesce packets when writing to hardware
-#define DSSTREAMCAPS_ACCURATENOTIFY         0x40000000                  // Do not coalesce packets when writing to hardware and provide more accurate completion notifications
-                                                                    
-//
-// Stream frequency range
-//
-
-#define DSSTREAMFREQUENCY_MIN       DSBFREQUENCY_MIN            // Minimum valid frequency value
-#define DSSTREAMFREQUENCY_MAX       DSBFREQUENCY_MAX            // Maximum valid frequency value
-#define DSSTREAMFREQUENCY_ORIGINAL  DSBFREQUENCY_ORIGINAL       // Reserved value meaning original frequency
-                                                                    
-//
-// Stream volume range
-//
-
-#define DSSTREAMVOLUME_MIN          DSBVOLUME_MIN               // Minimum valid volume value
-#define DSSTREAMVOLUME_MAX          DSBVOLUME_MAX               // Maximum valid volume value
-#define DSSTREAMVOLUME_HW_MIN       DSBVOLUME_HW_MIN            // Minimum volume supported by Xbox hardware
-
-//
-// Stream headroom range 
-//
-
-#define DSSTREAMHEADROOM_MIN        DSBHEADROOM_MIN             // Minimum valid headroom value
-#define DSSTREAMHEADROOM_MAX        DSBHEADROOM_MAX             // Maximum valid headroom value
-#define DSSTREAMHEADROOM_DEFAULT_2D DSBHEADROOM_DEFAULT_2D      // Default headroom value for 2D voices
-#define DSSTREAMHEADROOM_DEFAULT_3D DSBHEADROOM_DEFAULT_3D      // Default headroom value for 3D voices
-
-//
-// Buffer pitch range
-//
-
-#define DSSTREAMPITCH_MIN           DSBPITCH_MIN                // Minimum valid pitch value
-#define DSSTREAMPITCH_MAX           DSBPITCH_MAX                // Maximum valid pitch value
-                                                                        
-//
-// Buffer pause state
-//
-
-#define DSBPAUSE_RESUME             0x00000000                  // Resume a paused buffer
-#define DSBPAUSE_PAUSE              0x00000001                  // Pause the buffer
-#define DSBPAUSE_SYNCHPLAYBACK      0x00000002                  // Synchronize playback of multiple buffers and streams
-
-//
-// Stream pause state
-//
-
-#define DSSTREAMPAUSE_RESUME            0x00000000              // Resume a paused stream
-#define DSSTREAMPAUSE_PAUSE             0x00000001              // Pause the stream
-#define DSSTREAMPAUSE_SYNCHPLAYBACK     0x00000002              // Synchronize playback of multiple buffers and streams
-#define DSSTREAMPAUSE_PAUSENOACTIVATE   0x00000003              // Pause the stream without activating the voice
-
-//
-// IDirectSoundStream::Stop flags
-//
-
-#define DSSTREAMFLUSHEX_IMMEDIATE   0x00000000      // The stream should flush immediately (same as calling Flush)
-#define DSSTREAMFLUSHEX_ASYNC       0x00000001      // The stream should begin a flush operation and complete it during DoWork
-#define DSSTREAMFLUSHEX_ENVELOPE    0x00000002      // The stream should begin a flush operation using a release envelope
-#define DSSTREAMFLUSHEX_ENVELOPE2   0x00000004      // The stream should enter its release segment and accept no more packets once completed
-
-//
-// Stream status flags
-//
-
-#define DSSTREAMSTATUS_READY            XMO_STATUSF_ACCEPT_INPUT_DATA   // The object is ready to accept input data
-#define DSSTREAMSTATUS_PLAYING          0x00010000                      // The stream is playing
-#define DSSTREAMSTATUS_PAUSED           0x00020000                      // The stream is paused
-#define DSSTREAMSTATUS_STARVED          0x00040000                      // The stream is starved
-#define DSSTREAMSTATUS_ENVELOPECOMPLETE 0x00080000                      // The release envelope segment is complete
-                                                                        
-//
-// 3D modes
-//
-
-#define DS3DMODE_NORMAL             0x00000000      // Normal 3D mode
-#define DS3DMODE_HEADRELATIVE       0x00000001      // Head-relative 3D mode
-#define DS3DMODE_DISABLE            0x00000002      // Disable 3D processing
-
-//
-// 3D parameter flags
-//
-
-#define DS3D_IMMEDIATE              0x00000000      // Apply the values immediately
-#define DS3D_DEFERRED               0x00000001      // Defer the values until CommitDeferredSettings is called
-
-//
-// 3D bounds and defaults
-//
-
-#define DS3D_MINDISTANCEFACTOR          FLT_MIN         // Minimum valid distance factor value
-#define DS3D_MAXDISTANCEFACTOR          FLT_MAX         // Maximum valid distance factor value
-#define DS3D_DEFAULTDISTANCEFACTOR      1.0f            // Default distance factor value
-                                        
-#define DS3D_MINROLLOFFFACTOR           0.0f            // Minimum valid rolloff factor value
-#define DS3D_MAXROLLOFFFACTOR           1000.0f         // Maximum valid rolloff factor value
-#define DS3D_DEFAULTROLLOFFFACTOR       1.0f            // Default rolloff factor value
-                                        
-#define DS3D_MINDOPPLERFACTOR           0.0f            // Minimum valid Doppler factor value
-#define DS3D_MAXDOPPLERFACTOR           10.0f           // Maximum valid Doppler factor value
-#define DS3D_DEFAULTDOPPLERFACTOR       1.0f            // Default Doppler factor value
-                                        
-#define DS3D_MINMINDISTANCE             1.17549e-37f    // Minimum minimum distance value
-#define DS3D_MAXMINDISTANCE             FLT_MAX         // Maximum minimum distance value
-#define DS3D_DEFAULTMINDISTANCE         1.0f            // Default minimum distance value
-
-#define DS3D_MINMAXDISTANCE             1.17549e-37f    // Minimum maximum distance value
-#define DS3D_MAXMAXDISTANCE             FLT_MAX         // Maximum maximum distance value
-#define DS3D_DEFAULTMAXDISTANCE         1000000000.0f   // Default maximum distance value
-                                        
-#define DS3D_MINCONEANGLE               0               // Minimum valid cone angle value
-#define DS3D_MAXCONEANGLE               360             // Maximum valid cone angle value
-#define DS3D_DEFAULTCONEANGLE           360             // Default cone angle value
-                                        
-#define DS3D_DEFAULTORIENTFRONT_X       0.0f            // Default front orientation (x)
-#define DS3D_DEFAULTORIENTFRONT_Y       0.0f            // Default front orientation (y)
-#define DS3D_DEFAULTORIENTFRONT_Z       1.0f            // Default front orientation (z)
-                                        
-#define DS3D_DEFAULTORIENTTOP_X         0.0f            // Default top orientation (x)
-#define DS3D_DEFAULTORIENTTOP_Y         1.0f            // Default top orientation (y)
-#define DS3D_DEFAULTORIENTTOP_Z         0.0f            // Default top orientation (z)
-                                        
-#define DS3D_DEFAULTCONEORIENT_X        0.0f            // Default cone orientation (x)
-#define DS3D_DEFAULTCONEORIENT_Y        0.0f            // Default cone orientation (y)
-#define DS3D_DEFAULTCONEORIENT_Z        1.0f            // Default cone orientation (z)
-                                        
-#define DS3D_DEFAULTPOSITION_X          0.0f            // Default position (x)
-#define DS3D_DEFAULTPOSITION_Y          0.0f            // Default position (y)
-#define DS3D_DEFAULTPOSITION_Z          0.0f            // Default position (z)
-                                        
-#define DS3D_DEFAULTVELOCITY_X          0.0f            // Default velocity (x)
-#define DS3D_DEFAULTVELOCITY_Y          0.0f            // Default velocity (y)
-#define DS3D_DEFAULTVELOCITY_Z          0.0f            // Default velocity (z)
-
-#define DS3D_DEFAULTCONEOUTSIDEVOLUME   DSBVOLUME_MAX   // Default cone outside volume
-
-//
-// I3DL2 bounds and defaults
-//
-
-#define DSI3DL2LISTENER_MINROOM                     -10000
-#define DSI3DL2LISTENER_MAXROOM                     0
-#define DSI3DL2LISTENER_DEFAULTROOM                 -10000
-#define DSI3DL2LISTENER_MINROOMHF                   -10000
-#define DSI3DL2LISTENER_MAXROOMHF                   0
-#define DSI3DL2LISTENER_DEFAULTROOMHF               0
-#define DSI3DL2LISTENER_MINROOMROLLOFFFACTOR        0.0f
-#define DSI3DL2LISTENER_MAXROOMROLLOFFFACTOR        10.0f
-#define DSI3DL2LISTENER_DEFAULTROOMROLLOFFFACTOR    0.0f
-#define DSI3DL2LISTENER_MINDECAYTIME                0.1f
-#define DSI3DL2LISTENER_MAXDECAYTIME                20.0f
-#define DSI3DL2LISTENER_DEFAULTDECAYTIME            1.0f
-#define DSI3DL2LISTENER_MINDECAYHFRATIO             0.1f
-#define DSI3DL2LISTENER_MAXDECAYHFRATIO             2.0f
-#define DSI3DL2LISTENER_DEFAULTDECAYHFRATIO         0.5f
-#define DSI3DL2LISTENER_MINREFLECTIONS              -10000
-#define DSI3DL2LISTENER_MAXREFLECTIONS              1000
-#define DSI3DL2LISTENER_DEFAULTREFLECTIONS          -10000
-#define DSI3DL2LISTENER_MINREFLECTIONSDELAY         0.0f
-#define DSI3DL2LISTENER_MAXREFLECTIONSDELAY         0.3f
-#define DSI3DL2LISTENER_DEFAULTREFLECTIONSDELAY     0.02f
-#define DSI3DL2LISTENER_MINREVERB                   -10000
-#define DSI3DL2LISTENER_MAXREVERB                   2000
-#define DSI3DL2LISTENER_DEFAULTREVERB               -10000
-#define DSI3DL2LISTENER_MINREVERBDELAY              0.0f
-#define DSI3DL2LISTENER_MAXREVERBDELAY              0.1f
-#define DSI3DL2LISTENER_DEFAULTREVERBDELAY          0.04f
-#define DSI3DL2LISTENER_MINDIFFUSION                0.0f
-#define DSI3DL2LISTENER_MAXDIFFUSION                100.0f
-#define DSI3DL2LISTENER_DEFAULTDIFFUSION            100.0f
-#define DSI3DL2LISTENER_MINDENSITY                  0.0f
-#define DSI3DL2LISTENER_MAXDENSITY                  100.0f
-#define DSI3DL2LISTENER_DEFAULTDENSITY              100.0f
-#define DSI3DL2LISTENER_MINHFREFERENCE              20.0f
-#define DSI3DL2LISTENER_MAXHFREFERENCE              20000.0f
-#define DSI3DL2LISTENER_DEFAULTHFREFERENCE          5000.0f
-
-#define DSI3DL2BUFFER_MINDIRECT                     -10000
-#define DSI3DL2BUFFER_MAXDIRECT                     1000
-#define DSI3DL2BUFFER_DEFAULTDIRECT                 0
-#define DSI3DL2BUFFER_MINDIRECTHF                   -10000
-#define DSI3DL2BUFFER_MAXDIRECTHF                   0
-#define DSI3DL2BUFFER_DEFAULTDIRECTHF               0
-#define DSI3DL2BUFFER_MINROOM                       -10000
-#define DSI3DL2BUFFER_MAXROOM                       1000
-#define DSI3DL2BUFFER_DEFAULTROOM                   0
-#define DSI3DL2BUFFER_MINROOMHF                     -10000
-#define DSI3DL2BUFFER_MAXROOMHF                     0
-#define DSI3DL2BUFFER_DEFAULTROOMHF                 0
-#define DSI3DL2BUFFER_MINROOMROLLOFFFACTOR          0.0f
-#define DSI3DL2BUFFER_MAXROOMROLLOFFFACTOR          10.f
-#define DSI3DL2BUFFER_DEFAULTROOMROLLOFFFACTOR      0.0f
-#define DSI3DL2BUFFER_MINOBSTRUCTION                -10000
-#define DSI3DL2BUFFER_MAXOBSTRUCTION                0
-#define DSI3DL2BUFFER_DEFAULTOBSTRUCTION            0
-#define DSI3DL2BUFFER_MINOBSTRUCTIONLFRATIO         0.0f
-#define DSI3DL2BUFFER_MAXOBSTRUCTIONLFRATIO         1.0f
-#define DSI3DL2BUFFER_DEFAULTOBSTRUCTIONLFRATIO     0.0f
-#define DSI3DL2BUFFER_MINOCCLUSION                  -10000
-#define DSI3DL2BUFFER_MAXOCCLUSION                  0
-#define DSI3DL2BUFFER_DEFAULTOCCLUSION              0
-#define DSI3DL2BUFFER_MINOCCLUSIONLFRATIO           0.0f
-#define DSI3DL2BUFFER_MAXOCCLUSIONLFRATIO           1.0f
-#define DSI3DL2BUFFER_DEFAULTOCCLUSIONLFRATIO       0.25f
-
-//
-// I3DL2 listener environmental presets
-//
-
-#define DSI3DL2_ENVIRONMENT_PRESET_DEFAULT           -1000,   -100, 0.0f, 1.49f, 0.83f,  -2602, 0.007f,    200, 0.011f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_DEFAULT2         -10000,      0, 0.0f, 1.00f, 0.50f, -10000, 0.020f, -10000, 0.040f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_GENERIC           -1000,   -100, 0.0f, 1.49f, 0.83f,  -2602, 0.007f,    200, 0.011f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_PADDEDCELL        -1000,  -6000, 0.0f, 0.17f, 0.10f,  -1204, 0.001f,    207, 0.002f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_ROOM              -1000,   -454, 0.0f, 0.40f, 0.83f,  -1646, 0.002f,     53, 0.003f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_BATHROOM          -1000,  -1200, 0.0f, 1.49f, 0.54f,   -370, 0.007f,   1030, 0.011f, 100.0f,  60.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_LIVINGROOM        -1000,  -6000, 0.0f, 0.50f, 0.10f,  -1376, 0.003f,  -1104, 0.004f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_STONEROOM         -1000,   -300, 0.0f, 2.31f, 0.64f,   -711, 0.012f,     83, 0.017f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_AUDITORIUM        -1000,   -476, 0.0f, 4.32f, 0.59f,   -789, 0.020f,   -289, 0.030f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_CONCERTHALL       -1000,   -500, 0.0f, 3.92f, 0.70f,  -1230, 0.020f,     -2, 0.029f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_CAVE              -1000,      0, 0.0f, 2.91f, 1.30f,   -602, 0.015f,   -302, 0.022f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_ARENA             -1000,   -698, 0.0f, 7.24f, 0.33f,  -1166, 0.020f,     16, 0.030f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_HANGAR            -1000,  -1000, 0.0f,10.05f, 0.23f,   -602, 0.020f,    198, 0.030f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_CARPETEDHALLWAY   -1000,  -4000, 0.0f, 0.30f, 0.10f,  -1831, 0.002f,  -1630, 0.030f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_HALLWAY           -1000,   -300, 0.0f, 1.49f, 0.59f,  -1219, 0.007f,    441, 0.011f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_STONECORRIDOR     -1000,   -237, 0.0f, 2.70f, 0.79f,  -1214, 0.013f,    395, 0.020f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_ALLEY             -1000,   -270, 0.0f, 1.49f, 0.86f,  -1204, 0.007f,     -4, 0.011f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_FOREST            -1000,  -3300, 0.0f, 1.49f, 0.54f,  -2560, 0.162f,   -613, 0.088f,  79.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_CITY              -1000,   -800, 0.0f, 1.49f, 0.67f,  -2273, 0.007f,  -2217, 0.011f,  50.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_MOUNTAINS         -1000,  -2500, 0.0f, 1.49f, 0.21f,  -2780, 0.300f,  -2014, 0.100f,  27.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_QUARRY            -1000,  -1000, 0.0f, 1.49f, 0.83f, -10000, 0.061f,    500, 0.025f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_PLAIN             -1000,  -2000, 0.0f, 1.49f, 0.50f,  -2466, 0.179f,  -2514, 0.100f,  21.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_PARKINGLOT        -1000,      0, 0.0f, 1.65f, 1.50f,  -1363, 0.008f,  -1153, 0.012f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_SEWERPIPE         -1000,  -1000, 0.0f, 2.81f, 0.14f,    429, 0.014f,    648, 0.021f,  80.0f,  60.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_UNDERWATER        -1000,  -4000, 0.0f, 1.49f, 0.10f,   -449, 0.007f,   1700, 0.011f, 100.0f, 100.0f, 5000.0f
-#define DSI3DL2_ENVIRONMENT_PRESET_NOREVERB         -10000, -10000, 0.0f, 1.00f, 1.00f, -10000, 0.000f, -10000, 0.000f,   0.0f,   0.0f, 5000.0f
-
-//
-// I3DL2 source material presets
-//
-
-#define DSI3DL2_MATERIAL_PRESET_SINGLEWINDOW        -2800, 0.71f
-#define DSI3DL2_MATERIAL_PRESET_DOUBLEWINDOW        -5000, 0.40f
-#define DSI3DL2_MATERIAL_PRESET_THINDOOR            -1800, 0.66f
-#define DSI3DL2_MATERIAL_PRESET_THICKDOOR           -4400, 0.64f
-#define DSI3DL2_MATERIAL_PRESET_WOODWALL            -4000, 0.50f
-#define DSI3DL2_MATERIAL_PRESET_BRICKWALL           -5000, 0.60f
-#define DSI3DL2_MATERIAL_PRESET_STONEWALL           -6000, 0.68f
-#define DSI3DL2_MATERIAL_PRESET_CURTAIN             -1200, 0.15f
-
-//
-// MixBin identifiers
-//
-
-#define DSMIXBIN_FRONT_LEFT         0
-#define DSMIXBIN_FRONT_RIGHT        1
-#define DSMIXBIN_FRONT_CENTER       2
-#define DSMIXBIN_LOW_FREQUENCY      3
-#define DSMIXBIN_BACK_LEFT          4
-#define DSMIXBIN_BACK_RIGHT         5
-#define DSMIXBIN_SPEAKERS_FIRST     DSMIXBIN_FRONT_LEFT
-#define DSMIXBIN_SPEAKERS_LAST      DSMIXBIN_BACK_RIGHT
-#define DSMIXBIN_SPEAKERS_COUNT     (DSMIXBIN_SPEAKERS_LAST - DSMIXBIN_SPEAKERS_FIRST + 1)
-                                    
-#define DSMIXBIN_XTLK_FRONT_LEFT    6
-#define DSMIXBIN_XTLK_FRONT_RIGHT   7
-#define DSMIXBIN_XTLK_BACK_LEFT     8
-#define DSMIXBIN_XTLK_BACK_RIGHT    9
-#define DSMIXBIN_XTLK_FIRST         DSMIXBIN_XTLK_FRONT_LEFT
-#define DSMIXBIN_XTLK_LAST          DSMIXBIN_XTLK_BACK_RIGHT
-#define DSMIXBIN_XTLK_COUNT         (DSMIXBIN_XTLK_LAST - DSMIXBIN_XTLK_FIRST + 1)
-                                    
-#define DSMIXBIN_I3DL2              10
-                                    
-#define DSMIXBIN_FXSEND_0           11
-#define DSMIXBIN_FXSEND_1           12
-#define DSMIXBIN_FXSEND_2           13
-#define DSMIXBIN_FXSEND_3           14
-#define DSMIXBIN_FXSEND_4           15
-#define DSMIXBIN_FXSEND_5           16
-#define DSMIXBIN_FXSEND_6           17
-#define DSMIXBIN_FXSEND_7           18
-#define DSMIXBIN_FXSEND_8           19
-#define DSMIXBIN_FXSEND_9           20
-#define DSMIXBIN_FXSEND_10          21
-#define DSMIXBIN_FXSEND_11          22
-#define DSMIXBIN_FXSEND_12          23
-#define DSMIXBIN_FXSEND_13          24
-#define DSMIXBIN_FXSEND_14          25
-#define DSMIXBIN_FXSEND_15          26
-#define DSMIXBIN_FXSEND_16          27
-#define DSMIXBIN_FXSEND_17          28
-#define DSMIXBIN_FXSEND_18          29
-#define DSMIXBIN_FXSEND_19          30
-#define DSMIXBIN_FXSEND_FIRST       DSMIXBIN_FXSEND_0
-#define DSMIXBIN_FXSEND_LAST        DSMIXBIN_FXSEND_19
-#define DSMIXBIN_FXSEND_COUNT       (DSMIXBIN_FXSEND_LAST - DSMIXBIN_FXSEND_FIRST + 1)
-                                    
-#define DSMIXBIN_SUBMIX             31
-
-#define DSMIXBIN_FIRST              DSMIXBIN_FRONT_LEFT
-#define DSMIXBIN_LAST               DSMIXBIN_SUBMIX
-#define DSMIXBIN_COUNT              (DSMIXBIN_LAST - DSMIXBIN_FIRST + 1)
-                                    
-#define DSMIXBIN_3D_FRONT_LEFT      DSMIXBIN_XTLK_FRONT_LEFT
-#define DSMIXBIN_3D_FRONT_RIGHT     DSMIXBIN_XTLK_FRONT_RIGHT
-#define DSMIXBIN_3D_BACK_LEFT       DSMIXBIN_XTLK_BACK_LEFT
-#define DSMIXBIN_3D_BACK_RIGHT      DSMIXBIN_XTLK_BACK_RIGHT
-#define DSMIXBIN_3D_FIRST           DSMIXBIN_XTLK_FIRST
-#define DSMIXBIN_3D_LAST            DSMIXBIN_XTLK_LAST
-#define DSMIXBIN_3D_COUNT           DSMIXBIN_XTLK_COUNT
-
-#define DSMIXBIN_VOICE_0            DSMIXBIN_FXSEND_16
-#define DSMIXBIN_VOICE_1            DSMIXBIN_FXSEND_17
-#define DSMIXBIN_VOICE_2            DSMIXBIN_FXSEND_18
-#define DSMIXBIN_VOICE_3            DSMIXBIN_FXSEND_19
-#define DSMIXBIN_VOICE_FIRST        DSMIXBIN_VOICE_0
-#define DSMIXBIN_VOICE_LAST         DSMIXBIN_VOICE_3
-#define DSMIXBIN_VOICE_COUNT        DSMIXBIN_VOICE_LAST - DSMIXBIN_VOICE_FIRST + 1)
-
-//
-// Maximum mixbin assignment count
-//
-
-#define DSMIXBIN_ASSIGNMENT_MAX     8
-
-//
-// Default and required mixbin assignments
-//
-
-#define DSMIXBINVOLUMEPAIRS_DEFAULT_MONO \
-    { DSMIXBIN_FRONT_LEFT, 0 }, \
-    { DSMIXBIN_FRONT_RIGHT, 0 }
-
-#define DSMIXBINVOLUMEPAIRS_DEFAULT_STEREO \
-    { DSMIXBIN_FRONT_LEFT, 0 }, \
-    { DSMIXBIN_FRONT_RIGHT, 0 }
-
-#define DSMIXBINVOLUMEPAIRS_DEFAULT_4CHANNEL \
-    { DSMIXBIN_FRONT_LEFT, 0 }, \
-    { DSMIXBIN_FRONT_RIGHT, 0 }, \
-    { DSMIXBIN_BACK_LEFT, 0 }, \
-    { DSMIXBIN_BACK_RIGHT, 0 }
-
-#define DSMIXBINVOLUMEPAIRS_DEFAULT_6CHANNEL \
-    { DSMIXBIN_FRONT_LEFT, 0 }, \
-    { DSMIXBIN_FRONT_RIGHT, 0 }, \
-    { DSMIXBIN_FRONT_CENTER, 0 }, \
-    { DSMIXBIN_LOW_FREQUENCY, 0 }, \
-    { DSMIXBIN_BACK_LEFT, 0 }, \
-    { DSMIXBIN_BACK_RIGHT, 0 }
-
-#define DSMIXBINVOLUMEPAIRS_REQUIRED_3D \
-    { DSMIXBIN_3D_FRONT_LEFT, 0 }, \
-    { DSMIXBIN_3D_BACK_LEFT, 0 }, \
-    { DSMIXBIN_3D_FRONT_RIGHT, 0 }, \
-    { DSMIXBIN_3D_BACK_RIGHT, 0 }
-        
-#define DSMIXBINVOLUMEPAIRS_DEFAULT_3D \
-    DSMIXBINVOLUMEPAIRS_REQUIRED_3D, \
-    { DSMIXBIN_I3DL2, 0 }
-
-#define DSMIXBINVOLUMEPAIRS_REQUIRED_5CHANNEL_3D \
-    DSMIXBINVOLUMEPAIRS_REQUIRED_3D, \
-    { DSMIXBIN_FRONT_CENTER, 0 }
-        
-#define DSMIXBINVOLUMEPAIRS_DEFAULT_5CHANNEL_3D \
-    DSMIXBINVOLUMEPAIRS_REQUIRED_5CHANNEL_3D, \
-    { DSMIXBIN_I3DL2, 0 }
-
-#define DSMIXBINVOLUMEPAIRS_DEFAULT_5CHANNEL_3D_PLUS_LFE \
-    DSMIXBINVOLUMEPAIRS_DEFAULT_5CHANNEL_3D, \
-    { DSMIXBIN_LOW_FREQUENCY, 0 }
-
-#ifdef _XBOX
-
-//
-// WAVEFORMATEXTENSIBLE speaker identifiers
-//
-
-#define SPEAKER_FRONT_LEFT          0x00000001
-#define SPEAKER_FRONT_RIGHT         0x00000002
-#define SPEAKER_FRONT_CENTER        0x00000004
-#define SPEAKER_LOW_FREQUENCY       0x00000008
-#define SPEAKER_BACK_LEFT           0x00000010
-#define SPEAKER_BACK_RIGHT          0x00000020
-#define SPEAKER_MASK                0x0000003F
-
-#endif //_XBOX
-
-//
-// Low-frequency occilator identifiers
-//
-
-#define DSLFO_MULTI                 0x00000000      // Multi-function LFO
-#define DSLFO_PITCH                 0x00000001      // Pitch-only LFO
-
-//
-// Low-frequency occilator parameter boundaries and defaults
-//
-
-#define DSLFO_DELAY_MIN             0
-#define DSLFO_DELAY_MAX             65535
-#define DSLFO_DELAY_DEFAULT         0
-
-#define DSLFO_DELTA_MIN             0
-#define DSLFO_DELTA_MAX             1023
-#define DSLFO_DELTA_DEFAULT         0
-
-#define DSLFO_PITCHMOD_MIN          -128
-#define DSLFO_PITCHMOD_MAX          127
-#define DSLFO_PITCHMOD_DEFAULT      0
-
-#define DSLFO_FCRANGE_MIN           -128
-#define DSLFO_FCRANGE_MAX           127
-#define DSLFO_FCRANGE_DEFAULT       0
-
-#define DSLFO_AMPMOD_MIN            -128
-#define DSLFO_AMPMOD_MAX            128
-#define DSLFO_AMPMOD_DEFAULT        0
-
-//
-// Envelope generator identifiers
-//
-
-#define DSEG_MULTI                  0x00000000      // Multi-function EG
-#define DSEG_AMPLITUDE              0x00000001      // Amplitude-only EG
-
-//
-// Envelope generator modes
-//
-
-#define DSEG_MODE_DISABLE           0x00000000      // The envelope is disabled and the envelope value is always full-scale
-#define DSEG_MODE_DELAY             0x00000001      // Starts with the envelope at zero amplitude with an initial delay
-#define DSEG_MODE_ATTACK            0x00000002      // Bypasses the initial delay and goes directly to the attack envelope
-#define DSEG_MODE_HOLD              0x00000003      // Bypasses the attack segment and immediately goes full scale
-
-//
-// Envelope generator parameter boundaries and defaults
-//
-
-#define DSEG_DELAY_MIN              0
-#define DSEG_DELAY_MAX              4095
-#define DSEG_DELAY_DEFAULT          0
-
-#define DSEG_ATTACK_MIN             0
-#define DSEG_ATTACK_MAX             4095
-#define DSEG_ATTACK_DEFAULT         0
-
-#define DSEG_HOLD_MIN               0
-#define DSEG_HOLD_MAX               4095
-#define DSEG_HOLD_DEFAULT           0
-
-#define DSEG_DECAY_MIN              0
-#define DSEG_DECAY_MAX              4095
-#define DSEG_DECAY_DEFAULT          0
-
-#define DSEG_RELEASE_MIN            0
-#define DSEG_RELEASE_MAX            4095
-#define DSEG_RELEASE_DEFAULT        0
-
-#define DSEG_SUSTAIN_MIN            0
-#define DSEG_SUSTAIN_MAX            255
-#define DSEG_SUSTAIN_DEFAULT        255
-
-#define DSEG_PITCHSCALE_MIN         -128
-#define DSEG_PITCHSCALE_MAX         127
-#define DSEG_PITCHSCALE_DEFAULT     0
-
-#define DSEG_FILTERCUTOFF_MIN       -128
-#define DSEG_FILTERCUTOFF_MAX       127
-#define DSEG_FILTERCUTOFF_DEFAULT   0
-
-//
-// Filter modes
-//
-
-#define DSFILTER_MODE_BYPASS        0x00000000      // The filter is bypassed
-#define DSFILTER_MODE_DLS2          0x00000001      // DLS2 mode
-#define DSFILTER_MODE_PARAMEQ       0x00000002      // Parametric equalizer mode
-#define DSFILTER_MODE_MULTI         0x00000003      // Multifunction mode
-
-//
-// Effects parameter flags
-//
-
-#define DSFX_IMMEDIATE              0x00000000      // Apply the values immediately
-#define DSFX_DEFERRED               0x00000001      // Defer the values until CommitEffectsData is called
-
-//
-// Effect index identifiers (for DSEFFECTIMAGELOC)
-//
-
-#define DSFX_IMAGELOC_UNUSED        0xFFFFFFFF      // The effect does not appear in the image
-
-//
-// AC'97 channel types
-//
-
-#define DSAC97_CHANNEL_ANALOG       0x00000000
-#define DSAC97_CHANNEL_DIGITAL      0x00000001
-
-//
-// AC'97 digital channel modes
-//
-
-#define DSAC97_MODE_PCM             0x02000000
-#define DSAC97_MODE_ENCODED         0x02000002
-
-//
-// AC'97 packet counts
-//
-
-#define DSAC97_MAX_ATTACHED_PACKETS 31
-
-//
-// WMA in-memory decoder data callback
-//
-
-typedef DWORD (CALLBACK *LPFNWMAXMODATACALLBACK)(LPVOID pvContext, DWORD dwOffset, DWORD dwByteCount, LPVOID *ppvData);
-
-//
-// XAudioDownloadEffectsImage flags
-//
-
-#define XAUDIO_DOWNLOADFX_EXTERNFILE        0x00000000
-#define XAUDIO_DOWNLOADFX_XBESECTION        0x00000001
 
 //
 // Structures and types
@@ -921,8 +166,6 @@ typedef struct _DSOUTPUTLEVELS
     DWORD   dwDigitalLowFrequencyRMS;
 } DSOUTPUTLEVELS, *PDSOUTPUTLEVELS, *LPDSOUTPUTLEVELS;
 
-typedef const DSOUTPUTLEVELS *LPCDSOUTPUTLEVELS;
-
 typedef struct _DSCAPS                                  
 {                                                       
     DWORD           dwFree2DBuffers;        // Number of available 2D sound buffers
@@ -968,6 +211,7 @@ typedef struct _DSBPOSITIONNOTIFY
 } DSBPOSITIONNOTIFY, *LPDSBPOSITIONNOTIFY;
 
 typedef const DSBPOSITIONNOTIFY *LPCDSBPOSITIONNOTIFY;
+
 typedef VOID (CALLBACK *LPFNXMEDIAOBJECTCALLBACK)(LPVOID pStreamContext, LPVOID pPacketContext, DWORD dwStatus);
 typedef LPFNXMEDIAOBJECTCALLBACK PFNXMEDIAOBJECTCALLBACK;
 
@@ -1131,131 +375,7 @@ typedef struct _DSEFFECTIMAGELOC
 
 typedef const DSEFFECTIMAGELOC *LPCDSEFFECTIMAGELOC;
 
-typedef enum _DSFX_EFFECT_TYPE
-{
-    DSFX_EFFECT_TYPE_AMPMOD_MONO,
-    DSFX_EFFECT_TYPE_AMPMOD_STEREO,
-    DSFX_EFFECT_TYPE_CHORUS_MONO,
-    DSFX_EFFECT_TYPE_CHORUS_STEREO,
-    DSFX_EFFECT_TYPE_DISTORTION,
-    DSFX_EFFECT_TYPE_ECHO_MONO,
-    DSFX_EFFECT_TYPE_ECHO_STEREO,
-    DSFX_EFFECT_TYPE_FLANGE_MONO,
-    DSFX_EFFECT_TYPE_FLANGE_STEREO,
-    DSFX_EFFECT_TYPE_IIR,
-    DSFX_EFFECT_TYPE_IIR2,
-    DSFX_EFFECT_TYPE_OSCILLATOR,
-    DSFX_EFFECT_TYPE_I3DL2REVERB,
-    DSFX_EFFECT_TYPE_MINIREVERB,
-    DSFX_EFFECT_TYPE_RMS,
-    DSFX_EFFECT_TYPE_SPLITTER,
-    DSFX_EFFECT_TYPE_MIXER_2x1,
-    DSFX_EFFECT_TYPE_SAMPLE_RATE_CONVERTER
-} DSFX_EFFECT_TYPE;
-
-typedef struct _DSFX_HIGH_LEVEL_EFFECT_DESCRIPTION
-{
-    DSFX_EFFECT_TYPE   effectType;
-    union
-    {
-        struct
-        {
-            FLOAT   flFrequency;    // [0.0, 20000.0] (Hertz)
-            FLOAT   flGain;         // [-30.0, 30.0] (DB)
-            FLOAT   flQ;            // (0.0, 30.0] Cannot be 0.0
-        } IIR2;
-        
-        struct 
-        {
-            FLOAT   flGain;                 // [-30.0, 30.0] (DB)
-            FLOAT   flPreFilterFrequency;   // [0.0, 20000.0] (Hertz)
-            FLOAT   flPreFilterGain;        // [-30.0, 30.0] (DB)
-            FLOAT   flPreFilterQ;           // (0.0, 30.0] Cannot be 0.0
-            FLOAT   flPostFilterFrequency;  // [0.0, 20000.0] (Hertz)
-            FLOAT   flPostFilterGain;       // [-30.0, 30.0] (DB)
-            FLOAT   flPostFilterQ;          // (0.0, 30.0] Cannot be 0.0
-        } Distortion;
-        
-        DSI3DL2LISTENER I3DL2Reverb;
-    };
-} DSFX_HIGH_LEVEL_EFFECT_DESCRIPTION, *LPDSFX_HIGH_LEVEL_EFFECT_DESCRIPTION, *PDSFX_HIGH_LEVEL_EFFECT_DESCRIPTION;
-
-typedef const DSFX_HIGH_LEVEL_EFFECT_DESCRIPTION* LPCDSFX_HIGH_LEVEL_EFFECT_DESCRIPTION;
-
-typedef struct _DSFX_RAW_EFFECT_DESCRIPTION
-{
-    DSFX_EFFECT_TYPE   effectType;
-    union
-    {
-        struct
-        {
-            DWORD dwB0;
-            DWORD dwB1;
-            DWORD dwB2;
-            DWORD dwA1;
-            DWORD dwA2;
-        } IIR2;
-        
-        struct
-        {
-            DWORD dwPreFilterB0;
-            DWORD dwPreFilterB1;
-            DWORD dwPreFilterB2;
-            DWORD dwPreFilterA1;
-            DWORD dwPreFilterA2;
-            DWORD dwPostFilterB0;
-            DWORD dwPostFilterB1;
-            DWORD dwPostFilterB2;
-            DWORD dwPostFilterA1;
-            DWORD dwPostFilterA2;
-        } Distortion;
-        
-        struct
-        {
-            DWORD                dwReflectionsInputDelay[5];
-            DWORD                dwShortReverbInputDelay;
-            DWORD                dwLongReverbInputDelay[8];
-            DWORD                dwReflectionsFeedbackDelay[4];
-            DWORD                dwLongReverbFeedbackDelay;
-            DWORD                dwShortReverbInputGain[8];
-            DWORD                dwLongReverbInputGain;
-            DWORD                dwLongReverbCrossfeedGain;
-            DWORD                dwReflectionsOutputGain[4];
-            DWORD                dwShortReverbOutputGain;
-            DWORD                dwLongReverbOutputGain;
-            DWORD                dwChannelCount;
-            DSFX_I3DL2REVERB_IIR IIR[10];
-        } I3DL2Reverb;
-    };
-} DSFX_RAW_EFFECT_DESCRIPTION, *LPDSFX_RAW_EFFECT_DESCRIPTION, *PDSFX_RAW_EFFECT_DESCRIPTION;
-
-typedef const DSFX_RAW_EFFECT_DESCRIPTION* LPCDSFX_RAW_EFFECT_DESCRIPTION;
-
-typedef struct _DSVOICEPROPS
-{
-    DWORD               dwMixBinCount;                              // Active mixbin count
-    DSMIXBINVOLUMEPAIR  MixBinVolumePairs[DSMIXBIN_ASSIGNMENT_MAX]; // Mixbin/volume pairs
-    LONG                lPitch;                                     // Voice pitch
-    LONG                l3DDistanceVolume;                          // 3D distance attenuation
-    LONG                l3DConeVolume;                              // 3D cone volume
-    LONG                l3DDopplerPitch;                            // 3D Doppler pitch
-    LONG                lI3DL2DirectVolume;                         // I3DL2 direct path volume
-    LONG                lI3DL2RoomVolume;                           // I3DL2 reflected path volume
-} DSVOICEPROPS, *LPDSVOICEPROPS;
-
-typedef const DSVOICEPROPS *LPCDSVOICEPROPS;
-
 #include <pshpack1.h>
-
-typedef struct _WMAXMODECODERPARAMETERS
-{
-    LPCSTR  pszFileName;
-    HANDLE  hFile;
-    DWORD   dwFileOffset;
-    DWORD   dwLookaheadBufferSize;
-} WMAXMODECODERPARAMETERS, *LPWMAXMODECODERPARAMETERS;
-
-typedef const WMAXMODECODERPARAMETERS *LPCWMAXMODECODERPARAMETERS;
 
 typedef struct _WMAXMOFileContDesc
 {
@@ -1285,6 +405,703 @@ typedef struct _WMAXMOFileHeader
 typedef DWORD FOURCC, *PFOURCC, *LPFOURCC;
 
 //
+// Return Codes
+//
+
+#define _FACDS 0x878
+#define MAKE_DSHRESULT(code) MAKE_HRESULT(1, _FACDS, code)
+
+// The function completed successfully
+#define DS_OK                   S_OK                    
+
+// The control (vol, pan, etc.) requested by the caller is not available
+#define DSERR_CONTROLUNAVAIL    MAKE_DSHRESULT(30)      
+
+// This call is not valid for the current state of this object
+#define DSERR_INVALIDCALL       MAKE_DSHRESULT(50)      
+
+// An undetermined error occurred inside the DirectSound subsystem
+#define DSERR_GENERIC           E_FAIL                  
+
+// Not enough free memory is available to complete the operation
+#define DSERR_OUTOFMEMORY       E_OUTOFMEMORY           
+
+// The function called is not supported at this time
+#define DSERR_UNSUPPORTED       E_NOTIMPL               
+
+// No sound driver is available for use
+#define DSERR_NODRIVER          MAKE_DSHRESULT(120)     
+
+// This object does not support aggregation
+#define DSERR_NOAGGREGATION     CLASS_E_NOAGGREGATION   
+
+//
+// Format tags
+//
+
+#define WAVE_FORMAT_PCM                     1
+#define WAVE_FORMAT_XBOX_ADPCM              0x0069
+#define WAVE_FORMAT_VOXWARE_VR12            0x0077
+#define WAVE_FORMAT_VOXWARE_SC03            0x007A
+#define WAVE_FORMAT_VOXWARE_SC06            0x007B
+#define WAVE_FORMAT_EXTENSIBLE              0xFFFE
+
+//
+// WAVEFORMATEXTENSIBLE sub-format identifiers
+//
+
+EXTERN_C const GUID KSDATAFORMAT_SUBTYPE_PCM;
+EXTERN_C const GUID KSDATAFORMAT_SUBTYPE_XBOX_ADPCM;
+
+//
+// FOURCC codes
+//
+
+#ifndef MAKEFOURCC
+
+#define MAKEFOURCC(ch0, ch1, ch2, ch3) \
+    ((FOURCC)(BYTE)(ch0) | ((FOURCC)(BYTE)(ch1) << 8) | \
+    ((FOURCC)(BYTE)(ch2) << 16) | ((FOURCC)(BYTE)(ch3) << 24 ))
+
+#endif // MAKEFOURCC
+
+//
+// XMediaObject constants
+//
+
+#define XMO_STATUSF_ACCEPT_INPUT_DATA           0x00000001      // The object is ready to accept input data
+#define XMO_STATUSF_ACCEPT_OUTPUT_DATA          0x00000002      // The object is ready to provide output data
+#define XMO_STATUSF_MASK                        0x00000003
+                                                
+#define XMO_STREAMF_FIXED_SAMPLE_SIZE           0x00000001      // The object supports only a fixed sample size
+#define XMO_STREAMF_FIXED_PACKET_ALIGNMENT      0x00000002      // The object supports only a fixed packet alignment
+#define XMO_STREAMF_INPUT_ASYNC                 0x00000004      // The object supports receiving input data asynchronously
+#define XMO_STREAMF_OUTPUT_ASYNC                0x00000008      // The object supports providing output data asynchronously
+#define XMO_STREAMF_IN_PLACE                    0x00000010      // The object supports in-place modification of data
+#define XMO_STREAMF_MASK                        0x0000001F
+
+#define XMEDIAPACKET_STATUS_SUCCESS             S_OK            // The packet completed successfully
+#define XMEDIAPACKET_STATUS_PENDING             E_PENDING       // The packet is waiting to be processed
+#define XMEDIAPACKET_STATUS_FLUSHED             E_ABORT         // The packet was completed as a result of a Flush operation
+#define XMEDIAPACKET_STATUS_FAILURE             E_FAIL          // The packet was completed as a result of a failure
+
+//
+// Cooperative levels (not used on Xbox)
+//
+
+#define DSSCL_NORMAL                0x00000001
+#define DSSCL_PRIORITY              0x00000002
+#define DSSCL_EXCLUSIVE             0x00000003
+#define DSSCL_WRITEPRIMARY          0x00000004
+
+//
+// Speaker configuration
+//
+
+#define DSSPEAKER_SURROUND          XC_AUDIO_FLAGS_SURROUND     // Dolby Surround
+#define DSSPEAKER_STEREO            XC_AUDIO_FLAGS_STEREO       // Stereo
+#define DSSPEAKER_MONO              XC_AUDIO_FLAGS_MONO         // Mono
+#define DSSPEAKER_ENABLE_AC3        XC_AUDIO_FLAGS_ENABLE_AC3   // Enable Dolby Digital output
+#define DSSPEAKER_ENABLE_DTS        XC_AUDIO_FLAGS_ENABLE_DTS   // Enable DTS output
+#define DSSPEAKER_USE_DEFAULT       0xFFFFFFFF                  // Use the speaker config set in the Dashboard
+
+#define DSSPEAKER_BASIC(c)          XC_AUDIO_FLAGS_BASIC(c)
+#define DSSPEAKER_ENCODED(c)        XC_AUDIO_FLAGS_ENCODED(c)
+#define DSSPEAKER_COMBINED(b,e)     XC_AUDIO_FLAGS_COMBINED(b,e)
+
+#define XAudioGetSpeakerConfig      XGetAudioFlags
+                                        
+//
+// DirectSound global headroom ranges
+//
+
+#define DSHEADROOM_MIN              0               // Minimum valid headroom value
+#define DSHEADROOM_MAX              7               // Maximum valid headroom value
+#define DSHEADROOM_DEFAULT          1               // Default headroom value
+                                                                        
+//
+// DirectSound Buffer creation flags
+//
+
+#define DSBCAPS_CTRL3D              0x00000010      // The buffer supports 3D
+#define DSBCAPS_CTRLFREQUENCY       0x00000020      // The buffer supports frequency changes
+#define DSBCAPS_CTRLVOLUME          0x00000080      // The buffer supports volume changes
+#define DSBCAPS_CTRLPOSITIONNOTIFY  0x00000100      // The buffer supports position notifications
+#define DSBCAPS_MIXIN               0x00002000      // The buffer is to be used as the destination of a submix operation
+#define DSBCAPS_LOCDEFER            0x00040000      // The buffer does not acquire resources at creation
+#define DSBCAPS_FXIN                0x00080000      // The buffer is to be used as the destination of a post-effects submix operation
+                                                                        
+//
+// IDirectSoundBuffer::Play(Ex) flags
+//
+
+#define DSBPLAY_LOOPING             0x00000001      // The buffer should play in a loop
+#define DSBPLAY_FROMSTART           0x00000002      // Play the buffer from the beginning, regardless of current position
+
+//
+// IDirectSoundBuffer::StopEx flags
+//
+
+#define DSBSTOPEX_IMMEDIATE         0x00000000      // The buffer should stop immediately
+#define DSBSTOPEX_ENVELOPE          0x00000001      // The buffer should enter it's release phase
+#define DSBSTOPEX_RELEASEWAVEFORM   0x00000002      // The buffer should break out of the loop region and enter it's release phase
+                                                                        
+//
+// Buffer status flags
+//
+
+#define DSBSTATUS_PLAYING           0x00000001      // The buffer is playing
+#define DSBSTATUS_LOOPING           0x00000004      // The buffer is playing in a loop
+                                                                            
+//
+// IDirectSoundBuffer::Lock flags
+//
+
+#define DSBLOCK_FROMWRITECURSOR     0x00000001      // Lock the buffer from the current write cursor position
+#define DSBLOCK_ENTIREBUFFER        0x00000002      // Lock the entire buffer
+                                                                            
+//
+// Buffer frequency range
+//
+
+#define DSBFREQUENCY_MIN            188             // Minimum valid frequency value
+#define DSBFREQUENCY_MAX            191983          // Maximum valid frequency value
+#define DSBFREQUENCY_ORIGINAL       0               // Reserved value meaning original frequency
+                                                                        
+//
+// Buffer volume range
+//
+
+#define DSBVOLUME_MIN               -10000          // Maximum valid attenuation value
+#define DSBVOLUME_MAX               0               // Minimum valid attenuation value
+
+//
+// Buffer headroom range 
+//
+
+#define DSBHEADROOM_MIN             0               // Minimum valid headroom value
+#define DSBHEADROOM_MAX             10000           // Maximum valid headroom value
+#define DSBHEADROOM_DEFAULT_2D      600             // Default headroom value for 2D voices
+#define DSBHEADROOM_DEFAULT_3D      0               // Default headroom value for 3D voices
+#define DSBHEADROOM_DEFAULT_SUBMIX  0               // Default headroom value for submix destinations
+
+//
+// Buffer pitch range
+//
+
+#define DSBPITCH_MIN                -32767          // Minimum valid pitch value
+#define DSBPITCH_MAX                8191            // Maximum valid pitch value
+                                                                        
+//
+// Buffer size range
+//
+
+#define DSBSIZE_MIN                 4               // Minimum valid buffer size, in bytes
+#define DSBSIZE_MAX                 0x0FFFFFFF      // Maximum valid buffer size, in bytes
+                                                                        
+//
+// Reserved notification offset values
+//
+
+#define DSBPN_OFFSETSTOP            0xFFFFFFFF      // Offset value representing "stop" to IDirectSoundNotify
+
+//
+// DirectSound Stream creation flags
+//
+
+#define DSSTREAMCAPS_CTRL3D         DSBCAPS_CTRL3D              // The stream supports 3D
+#define DSSTREAMCAPS_CTRLFREQUENCY  DSBCAPS_CTRLFREQUENCY       // The stream supports frequency changes
+#define DSSTREAMCAPS_CTRLVOLUME     DSBCAPS_CTRLVOLUME          // The stream supports volume changes
+#define DSSTREAMCAPS_LOCDEFER       DSBCAPS_LOCDEFER            // The stream does not acquire resources at creation
+#define DSSTREAMCAPS_ACCURATENOTIFY 0x40000000                  // The stream should provide more accurate packet completion notifications
+                                                                    
+//
+// Stream frequency range
+//
+
+#define DSSTREAMFREQUENCY_MIN       DSBFREQUENCY_MIN            // Minimum valid frequency value
+#define DSSTREAMFREQUENCY_MAX       DSBFREQUENCY_MAX            // Maximum valid frequency value
+#define DSSTREAMFREQUENCY_ORIGINAL  DSBFREQUENCY_ORIGINAL       // Reserved value meaning original frequency
+                                                                    
+//
+// Stream volume range
+//
+
+#define DSSTREAMVOLUME_MIN          DSBVOLUME_MIN               // Minimum valid volume value
+#define DSSTREAMVOLUME_MAX          DSBVOLUME_MAX               // Maximum valid volume value
+
+//
+// Stream headroom range 
+//
+
+#define DSSTREAMHEADROOM_MIN        DSBHEADROOM_MIN             // Minimum valid headroom value
+#define DSSTREAMHEADROOM_MAX        DSBHEADROOM_MAX             // Maximum valid headroom value
+#define DSSTREAMHEADROOM_DEFAULT_2D DSBHEADROOM_DEFAULT_2D      // Default headroom value for 2D voices
+#define DSSTREAMHEADROOM_DEFAULT_3D DSBHEADROOM_DEFAULT_3D      // Default headroom value for 3D voices
+
+//
+// Buffer pitch range
+//
+
+#define DSSTREAMPITCH_MIN           DSBPITCH_MIN                // Minimum valid pitch value
+#define DSSTREAMPITCH_MAX           DSBPITCH_MAX                // Maximum valid pitch value
+                                                                        
+//
+// Stream pause state
+//
+
+#define DSSTREAMPAUSE_RESUME        0x00000000                  // Resume a paused stream
+#define DSSTREAMPAUSE_PAUSE         0x00000001                  // Pause the stream
+
+//
+// IDirectSoundStream::Stop flags
+//
+
+#define DSSTREAMFLUSHEX_IMMEDIATE   0x00000000      // The stream should flush immediately (same as calling Flush)
+#define DSSTREAMFLUSHEX_ASYNC       0x00000001      // The stream should begin a flush operation and complete it during DoWork
+#define DSSTREAMFLUSHEX_ENVELOPE    0x00000002      // The stream should begin a flush operation using a release envelope
+
+//
+// Stream status flags
+//
+
+#define DSSTREAMSTATUS_READY        XMO_STATUSF_ACCEPT_INPUT_DATA   // The object is ready to accept input data
+#define DSSTREAMSTATUS_PLAYING      0x00010000                      // The stream is playing
+#define DSSTREAMSTATUS_PAUSED       0x00020000                      // The stream is paused
+#define DSSTREAMSTATUS_STARVED      0x00040000                      // The stream is starved
+                                                                        
+//
+// 3D modes
+//
+
+#define DS3DMODE_NORMAL             0x00000000      // Normal 3D mode
+#define DS3DMODE_HEADRELATIVE       0x00000001      // Head-relative 3D mode
+#define DS3DMODE_DISABLE            0x00000002      // Disable 3D processing
+
+//
+// 3D parameter flags
+//
+
+#define DS3D_IMMEDIATE              0x00000000      // Apply the values immediately
+#define DS3D_DEFERRED               0x00000001      // Defer the values until CommitDeferredSettings is called
+
+//
+// 3D bounds and defaults
+//
+
+#define DS3D_MINDISTANCEFACTOR          FLT_MIN         // Minimum valid distance factor value
+#define DS3D_MAXDISTANCEFACTOR          FLT_MAX         // Maximum valid distance factor value
+#define DS3D_DEFAULTDISTANCEFACTOR      1.0f            // Default distance factor value
+                                        
+#define DS3D_MINROLLOFFFACTOR           0.0f            // Minimum valid rolloff factor value
+#define DS3D_MAXROLLOFFFACTOR           10.0f           // Maximum valid rolloff factor value
+#define DS3D_DEFAULTROLLOFFFACTOR       1.0f            // Default rolloff factor value
+                                        
+#define DS3D_MINDOPPLERFACTOR           0.0f            // Minimum valid Doppler factor value
+#define DS3D_MAXDOPPLERFACTOR           10.0f           // Maximum valid Doppler factor value
+#define DS3D_DEFAULTDOPPLERFACTOR       1.0f            // Default Doppler factor value
+                                        
+#define DS3D_MINMINDISTANCE             1.17549e-37f    // Minimum minimum distance value
+#define DS3D_MAXMINDISTANCE             FLT_MAX         // Maximum minimum distance value
+#define DS3D_DEFAULTMINDISTANCE         1.0f            // Default minimum distance value
+
+#define DS3D_MINMAXDISTANCE             1.17549e-37f    // Minimum maximum distance value
+#define DS3D_MAXMAXDISTANCE             FLT_MAX         // Maximum maximum distance value
+#define DS3D_DEFAULTMAXDISTANCE         1000000000.0f   // Default maximum distance value
+                                        
+#define DS3D_MINCONEANGLE               0               // Minimum valid cone angle value
+#define DS3D_MAXCONEANGLE               360             // Maximum valid cone angle value
+#define DS3D_DEFAULTCONEANGLE           360             // Default cone angle value
+                                        
+#define DS3D_DEFAULTORIENTFRONT_X       0.0f            // Default front orientation (x)
+#define DS3D_DEFAULTORIENTFRONT_Y       0.0f            // Default front orientation (y)
+#define DS3D_DEFAULTORIENTFRONT_Z       1.0f            // Default front orientation (z)
+                                        
+#define DS3D_DEFAULTORIENTTOP_X         0.0f            // Default top orientation (x)
+#define DS3D_DEFAULTORIENTTOP_Y         1.0f            // Default top orientation (y)
+#define DS3D_DEFAULTORIENTTOP_Z         0.0f            // Default top orientation (z)
+                                        
+#define DS3D_DEFAULTCONEORIENT_X        0.0f            // Default cone orientation (x)
+#define DS3D_DEFAULTCONEORIENT_Y        0.0f            // Default cone orientation (y)
+#define DS3D_DEFAULTCONEORIENT_Z        1.0f            // Default cone orientation (z)
+                                        
+#define DS3D_DEFAULTPOSITION_X          0.0f            // Default position (x)
+#define DS3D_DEFAULTPOSITION_Y          0.0f            // Default position (y)
+#define DS3D_DEFAULTPOSITION_Z          0.0f            // Default position (z)
+                                        
+#define DS3D_DEFAULTVELOCITY_X          0.0f            // Default velocity (x)
+#define DS3D_DEFAULTVELOCITY_Y          0.0f            // Default velocity (y)
+#define DS3D_DEFAULTVELOCITY_Z          0.0f            // Default velocity (z)
+
+#define DS3D_DEFAULTCONEOUTSIDEVOLUME   DSBVOLUME_MAX   // Default cone outside volume
+
+//
+// I3DL2 bounds and defaults
+//
+
+#define DSI3DL2LISTENER_MINROOM                     -10000
+#define DSI3DL2LISTENER_MAXROOM                     0
+#define DSI3DL2LISTENER_DEFAULTROOM                 -10000
+#define DSI3DL2LISTENER_MINROOMHF                   -10000
+#define DSI3DL2LISTENER_MAXROOMHF                   0
+#define DSI3DL2LISTENER_DEFAULTROOMHF               0
+#define DSI3DL2LISTENER_MINROOMROLLOFFFACTOR        0.0f
+#define DSI3DL2LISTENER_MAXROOMROLLOFFFACTOR        10.0f
+#define DSI3DL2LISTENER_DEFAULTROOMROLLOFFFACTOR    0.0f
+#define DSI3DL2LISTENER_MINDECAYTIME                0.1f
+#define DSI3DL2LISTENER_MAXDECAYTIME                20.0f
+#define DSI3DL2LISTENER_DEFAULTDECAYTIME            1.0f
+#define DSI3DL2LISTENER_MINDECAYHFRATIO             0.1f
+#define DSI3DL2LISTENER_MAXDECAYHFRATIO             2.0f
+#define DSI3DL2LISTENER_DEFAULTDECAYHFRATIO         0.5f
+#define DSI3DL2LISTENER_MINREFLECTIONS              -10000
+#define DSI3DL2LISTENER_MAXREFLECTIONS              1000
+#define DSI3DL2LISTENER_DEFAULTREFLECTIONS          -10000
+#define DSI3DL2LISTENER_MINREFLECTIONSDELAY         0.0f
+#define DSI3DL2LISTENER_MAXREFLECTIONSDELAY         0.3f
+#define DSI3DL2LISTENER_DEFAULTREFLECTIONSDELAY     0.02f
+#define DSI3DL2LISTENER_MINREVERB                   -10000
+#define DSI3DL2LISTENER_MAXREVERB                   2000
+#define DSI3DL2LISTENER_DEFAULTREVERB               -10000
+#define DSI3DL2LISTENER_MINREVERBDELAY              0.0f
+#define DSI3DL2LISTENER_MAXREVERBDELAY              0.1f
+#define DSI3DL2LISTENER_DEFAULTREVERBDELAY          0.04f
+#define DSI3DL2LISTENER_MINDIFFUSION                0.0f
+#define DSI3DL2LISTENER_MAXDIFFUSION                100.0f
+#define DSI3DL2LISTENER_DEFAULTDIFFUSION            100.0f
+#define DSI3DL2LISTENER_MINDENSITY                  0.0f
+#define DSI3DL2LISTENER_MAXDENSITY                  100.0f
+#define DSI3DL2LISTENER_DEFAULTDENSITY              100.0f
+#define DSI3DL2LISTENER_MINHFREFERENCE              20.0f
+#define DSI3DL2LISTENER_MAXHFREFERENCE              20000.0f
+#define DSI3DL2LISTENER_DEFAULTHFREFERENCE          5000.0f
+
+#define DSI3DL2BUFFER_MINDIRECT                     -10000
+#define DSI3DL2BUFFER_MAXDIRECT                     1000
+#define DSI3DL2BUFFER_DEFAULTDIRECT                 0
+#define DSI3DL2BUFFER_MINDIRECTHF                   -10000
+#define DSI3DL2BUFFER_MAXDIRECTHF                   0
+#define DSI3DL2BUFFER_DEFAULTDIRECTHF               0
+#define DSI3DL2BUFFER_MINROOM                       -10000
+#define DSI3DL2BUFFER_MAXROOM                       1000
+#define DSI3DL2BUFFER_DEFAULTROOM                   0
+#define DSI3DL2BUFFER_MINROOMHF                     -10000
+#define DSI3DL2BUFFER_MAXROOMHF                     0
+#define DSI3DL2BUFFER_DEFAULTROOMHF                 0
+#define DSI3DL2BUFFER_MINROOMROLLOFFFACTOR          0.0f
+#define DSI3DL2BUFFER_MAXROOMROLLOFFFACTOR          10.f
+#define DSI3DL2BUFFER_DEFAULTROOMROLLOFFFACTOR      0.0f
+#define DSI3DL2BUFFER_MINOBSTRUCTION                -10000
+#define DSI3DL2BUFFER_MAXOBSTRUCTION                0
+#define DSI3DL2BUFFER_DEFAULTOBSTRUCTION            0
+#define DSI3DL2BUFFER_MINOBSTRUCTIONLFRATIO         0.0f
+#define DSI3DL2BUFFER_MAXOBSTRUCTIONLFRATIO         1.0f
+#define DSI3DL2BUFFER_DEFAULTOBSTRUCTIONLFRATIO     0.0f
+#define DSI3DL2BUFFER_MINOCCLUSION                  -10000
+#define DSI3DL2BUFFER_MAXOCCLUSION                  0
+#define DSI3DL2BUFFER_DEFAULTOCCLUSION              0
+#define DSI3DL2BUFFER_MINOCCLUSIONLFRATIO           0.0f
+#define DSI3DL2BUFFER_MAXOCCLUSIONLFRATIO           1.0f
+#define DSI3DL2BUFFER_DEFAULTOCCLUSIONLFRATIO       0.25f
+
+//
+// I3DL2 listener environmental presets
+//
+
+#define DSI3DL2_ENVIRONMENT_PRESET_DEFAULT           -1000,   -100, 0.0f, 1.49f, 0.83f,  -2602, 0.007f,    200, 0.011f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_GENERIC           -1000,   -100, 0.0f, 1.49f, 0.83f,  -2602, 0.007f,    200, 0.011f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_PADDEDCELL        -1000,  -6000, 0.0f, 0.17f, 0.10f,  -1204, 0.001f,    207, 0.002f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_ROOM              -1000,   -454, 0.0f, 0.40f, 0.83f,  -1646, 0.002f,     53, 0.003f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_BATHROOM          -1000,  -1200, 0.0f, 1.49f, 0.54f,   -370, 0.007f,   1030, 0.011f, 100.0f,  60.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_LIVINGROOM        -1000,  -6000, 0.0f, 0.50f, 0.10f,  -1376, 0.003f,  -1104, 0.004f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_STONEROOM         -1000,   -300, 0.0f, 2.31f, 0.64f,   -711, 0.012f,     83, 0.017f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_AUDITORIUM        -1000,   -476, 0.0f, 4.32f, 0.59f,   -789, 0.020f,   -289, 0.030f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_CONCERTHALL       -1000,   -500, 0.0f, 3.92f, 0.70f,  -1230, 0.020f,     -2, 0.029f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_CAVE              -1000,      0, 0.0f, 2.91f, 1.30f,   -602, 0.015f,   -302, 0.022f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_ARENA             -1000,   -698, 0.0f, 7.24f, 0.33f,  -1166, 0.020f,     16, 0.030f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_HANGAR            -1000,  -1000, 0.0f,10.05f, 0.23f,   -602, 0.020f,    198, 0.030f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_CARPETEDHALLWAY   -1000,  -4000, 0.0f, 0.30f, 0.10f,  -1831, 0.002f,  -1630, 0.030f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_HALLWAY           -1000,   -300, 0.0f, 1.49f, 0.59f,  -1219, 0.007f,    441, 0.011f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_STONECORRIDOR     -1000,   -237, 0.0f, 2.70f, 0.79f,  -1214, 0.013f,    395, 0.020f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_ALLEY             -1000,   -270, 0.0f, 1.49f, 0.86f,  -1204, 0.007f,     -4, 0.011f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_FOREST            -1000,  -3300, 0.0f, 1.49f, 0.54f,  -2560, 0.162f,   -613, 0.088f,  79.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_CITY              -1000,   -800, 0.0f, 1.49f, 0.67f,  -2273, 0.007f,  -2217, 0.011f,  50.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_MOUNTAINS         -1000,  -2500, 0.0f, 1.49f, 0.21f,  -2780, 0.300f,  -2014, 0.100f,  27.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_QUARRY            -1000,  -1000, 0.0f, 1.49f, 0.83f, -10000, 0.061f,    500, 0.025f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_PLAIN             -1000,  -2000, 0.0f, 1.49f, 0.50f,  -2466, 0.179f,  -2514, 0.100f,  21.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_PARKINGLOT        -1000,      0, 0.0f, 1.65f, 1.50f,  -1363, 0.008f,  -1153, 0.012f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_SEWERPIPE         -1000,  -1000, 0.0f, 2.81f, 0.14f,    429, 0.014f,    648, 0.021f,  80.0f,  60.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_UNDERWATER        -1000,  -4000, 0.0f, 1.49f, 0.10f,   -449, 0.007f,   1700, 0.011f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_NOREVERB         -10000, -10000, 0.0f, 1.00f, 1.00f, -10000, 0.000f, -10000, 0.000f,   0.0f,   0.0f, 5000.0f
+
+//
+// I3DL2 source material presets
+//
+
+#define DSI3DL2_MATERIAL_PRESET_SINGLEWINDOW    -2800, 0.71f
+#define DSI3DL2_MATERIAL_PRESET_DOUBLEWINDOW    -5000, 0.40f
+#define DSI3DL2_MATERIAL_PRESET_THINDOOR        -1800, 0.66f
+#define DSI3DL2_MATERIAL_PRESET_THICKDOOR       -4400, 0.64f
+#define DSI3DL2_MATERIAL_PRESET_WOODWALL        -4000, 0.50f
+#define DSI3DL2_MATERIAL_PRESET_BRICKWALL       -5000, 0.60f
+#define DSI3DL2_MATERIAL_PRESET_STONEWALL       -6000, 0.68f
+#define DSI3DL2_MATERIAL_PRESET_CURTAIN         -1200, 0.15f
+
+//
+// MixBin identifiers
+//
+
+#define DSMIXBIN_FRONT_LEFT         0
+#define DSMIXBIN_FRONT_RIGHT        1
+#define DSMIXBIN_FRONT_CENTER       2
+#define DSMIXBIN_LOW_FREQUENCY      3
+#define DSMIXBIN_BACK_LEFT          4
+#define DSMIXBIN_BACK_RIGHT         5
+#define DSMIXBIN_SPEAKERS_FIRST     DSMIXBIN_FRONT_LEFT
+#define DSMIXBIN_SPEAKERS_LAST      DSMIXBIN_BACK_RIGHT
+#define DSMIXBIN_SPEAKERS_COUNT     (DSMIXBIN_SPEAKERS_LAST - DSMIXBIN_SPEAKERS_FIRST + 1)
+                                    
+#define DSMIXBIN_XTLK_FRONT_LEFT    6
+#define DSMIXBIN_XTLK_FRONT_RIGHT   7
+#define DSMIXBIN_XTLK_BACK_LEFT     8
+#define DSMIXBIN_XTLK_BACK_RIGHT    9
+#define DSMIXBIN_XTLK_FIRST         DSMIXBIN_XTLK_FRONT_LEFT
+#define DSMIXBIN_XTLK_LAST          DSMIXBIN_XTLK_BACK_RIGHT
+#define DSMIXBIN_XTLK_COUNT         (DSMIXBIN_XTLK_LAST - DSMIXBIN_XTLK_FIRST + 1)
+                                    
+#define DSMIXBIN_I3DL2              10
+                                    
+#define DSMIXBIN_FXSEND_0           11
+#define DSMIXBIN_FXSEND_1           12
+#define DSMIXBIN_FXSEND_2           13
+#define DSMIXBIN_FXSEND_3           14
+#define DSMIXBIN_FXSEND_4           15
+#define DSMIXBIN_FXSEND_5           16
+#define DSMIXBIN_FXSEND_6           17
+#define DSMIXBIN_FXSEND_7           18
+#define DSMIXBIN_FXSEND_8           19
+#define DSMIXBIN_FXSEND_9           20
+#define DSMIXBIN_FXSEND_10          21
+#define DSMIXBIN_FXSEND_11          22
+#define DSMIXBIN_FXSEND_12          23
+#define DSMIXBIN_FXSEND_13          24
+#define DSMIXBIN_FXSEND_14          25
+#define DSMIXBIN_FXSEND_15          26
+#define DSMIXBIN_FXSEND_16          27
+#define DSMIXBIN_FXSEND_17          28
+#define DSMIXBIN_FXSEND_18          29
+#define DSMIXBIN_FXSEND_19          30
+#define DSMIXBIN_FXSEND_FIRST       DSMIXBIN_FXSEND_0
+#define DSMIXBIN_FXSEND_LAST        DSMIXBIN_FXSEND_19
+#define DSMIXBIN_FXSEND_COUNT       (DSMIXBIN_FXSEND_LAST - DSMIXBIN_FXSEND_FIRST + 1)
+                                    
+#define DSMIXBIN_SUBMIX             31
+
+#define DSMIXBIN_FIRST              DSMIXBIN_FRONT_LEFT
+#define DSMIXBIN_LAST               DSMIXBIN_SUBMIX
+#define DSMIXBIN_COUNT              (DSMIXBIN_LAST - DSMIXBIN_FIRST + 1)
+                                    
+#define DSMIXBIN_3D_FRONT_LEFT      DSMIXBIN_XTLK_FRONT_LEFT
+#define DSMIXBIN_3D_FRONT_RIGHT     DSMIXBIN_XTLK_FRONT_RIGHT
+#define DSMIXBIN_3D_BACK_LEFT       DSMIXBIN_XTLK_BACK_LEFT
+#define DSMIXBIN_3D_BACK_RIGHT      DSMIXBIN_XTLK_BACK_RIGHT
+#define DSMIXBIN_3D_FIRST           DSMIXBIN_XTLK_FIRST
+#define DSMIXBIN_3D_LAST            DSMIXBIN_XTLK_LAST
+#define DSMIXBIN_3D_COUNT           DSMIXBIN_XTLK_COUNT
+
+//
+// Maximum mixbin assignment count
+//
+
+#define DSMIXBIN_ASSIGNMENT_MAX     8
+
+//
+// Default and required mixbin assignments
+//
+
+#define DSMIXBINVOLUMEPAIRS_DEFAULT_MONO \
+    { DSMIXBIN_FRONT_LEFT, 0 }, \
+    { DSMIXBIN_FRONT_RIGHT, 0 }
+
+#define DSMIXBINVOLUMEPAIRS_DEFAULT_STEREO \
+    { DSMIXBIN_FRONT_LEFT, 0 }, \
+    { DSMIXBIN_FRONT_RIGHT, 0 }
+
+#define DSMIXBINVOLUMEPAIRS_DEFAULT_4CHANNEL \
+    { DSMIXBIN_FRONT_LEFT, 0 }, \
+    { DSMIXBIN_FRONT_RIGHT, 0 }, \
+    { DSMIXBIN_BACK_LEFT, 0 }, \
+    { DSMIXBIN_BACK_RIGHT, 0 }
+
+#define DSMIXBINVOLUMEPAIRS_DEFAULT_6CHANNEL \
+    { DSMIXBIN_FRONT_LEFT, 0 }, \
+    { DSMIXBIN_FRONT_RIGHT, 0 }, \
+    { DSMIXBIN_FRONT_CENTER, 0 }, \
+    { DSMIXBIN_LOW_FREQUENCY, 0 }, \
+    { DSMIXBIN_BACK_LEFT, 0 }, \
+    { DSMIXBIN_BACK_RIGHT, 0 }
+
+#define DSMIXBINVOLUMEPAIRS_REQUIRED_3D \
+    { DSMIXBIN_3D_FRONT_LEFT, 0 }, \
+    { DSMIXBIN_3D_BACK_LEFT, 0 }, \
+    { DSMIXBIN_3D_FRONT_RIGHT, 0 }, \
+    { DSMIXBIN_3D_BACK_RIGHT, 0 }
+        
+#define DSMIXBINVOLUMEPAIRS_DEFAULT_3D \
+    DSMIXBINVOLUMEPAIRS_REQUIRED_3D, \
+    { DSMIXBIN_I3DL2, 0 }
+
+//
+// WAVEFORMATEXTENSIBLE speaker identifiers
+//
+
+#define SPEAKER_FRONT_LEFT          0x00000001
+#define SPEAKER_FRONT_RIGHT         0x00000002
+#define SPEAKER_FRONT_CENTER        0x00000004
+#define SPEAKER_LOW_FREQUENCY       0x00000008
+#define SPEAKER_BACK_LEFT           0x00000010
+#define SPEAKER_BACK_RIGHT          0x00000020
+#define SPEAKER_MASK                0x0000003F
+
+//
+// Low-frequency occilator identifiers
+//
+
+#define DSLFO_MULTI                 0x00000000      // Multi-function LFO
+#define DSLFO_PITCH                 0x00000001      // Pitch-only LFO
+
+//
+// Low-frequency occilator parameter boundaries and defaults
+//
+
+#define DSLFO_DELAY_MIN             0
+#define DSLFO_DELAY_MAX             65535
+#define DSLFO_DELAY_DEFAULT         0
+
+#define DSLFO_DELTA_MIN             0
+#define DSLFO_DELTA_MAX             1023
+#define DSLFO_DELTA_DEFAULT         0
+
+#define DSLFO_PITCHMOD_MIN          -128
+#define DSLFO_PITCHMOD_MAX          127
+#define DSLFO_PITCHMOD_DEFAULT      0
+
+#define DSLFO_FCRANGE_MIN           -128
+#define DSLFO_FCRANGE_MAX           127
+#define DSLFO_FCRANGE_DEFAULT       0
+
+#define DSLFO_AMPMOD_MIN            -128
+#define DSLFO_AMPMOD_MAX            128
+#define DSLFO_AMPMOD_DEFAULT        0
+
+//
+// Envelope generator identifiers
+//
+
+#define DSEG_MULTI                  0x00000000      // Multi-function EG
+#define DSEG_AMPLITUDE              0x00000001      // Amplitude-only EG
+
+//
+// Envelope generator modes
+//
+
+#define DSEG_MODE_DISABLE           0x00000000      // The envelope is disabled and the envelope value is always full-scale
+#define DSEG_MODE_DELAY             0x00000001      // Starts with the envelope at zero amplitude with an initial delay
+#define DSEG_MODE_ATTACK            0x00000002      // Bypasses the initial delay and goes directly to the attack envelope
+#define DSEG_MODE_HOLD              0x00000003      // Bypasses the attack segment and immediately goes full scale
+
+//
+// Envelope generator parameter boundaries and defaults
+//
+
+#define DSEG_DELAY_MIN              0
+#define DSEG_DELAY_MAX              8191
+#define DSEG_DELAY_DEFAULT          0
+
+#define DSEG_ATTACK_MIN             0
+#define DSEG_ATTACK_MAX             8191
+#define DSEG_ATTACK_DEFAULT         0
+
+#define DSEG_HOLD_MIN               0
+#define DSEG_HOLD_MAX               8191
+#define DSEG_HOLD_DEFAULT           0
+
+#define DSEG_DECAY_MIN              0
+#define DSEG_DECAY_MAX              8191
+#define DSEG_DECAY_DEFAULT          0
+
+#define DSEG_RELEASE_MIN            0
+#define DSEG_RELEASE_MAX            8191
+#define DSEG_RELEASE_DEFAULT        0
+
+#define DSEG_SUSTAIN_MIN            0
+#define DSEG_SUSTAIN_MAX            255
+#define DSEG_SUSTAIN_DEFAULT        255
+
+#define DSEG_PITCHSCALE_MIN         -128
+#define DSEG_PITCHSCALE_MAX         127
+#define DSEG_PITCHSCALE_DEFAULT     0
+
+#define DSEG_FILTERCUTOFF_MIN       -128
+#define DSEG_FILTERCUTOFF_MAX       127
+#define DSEG_FILTERCUTOFF_DEFAULT   0
+
+//
+// Filter modes
+//
+
+#define DSFILTER_MODE_BYPASS        0x00000000      // The filter is bypassed
+#define DSFILTER_MODE_DLS2          0x00000001      // DLS2 mode
+#define DSFILTER_MODE_PARAMEQ       0x00000002      // Parametric equalizer mode
+#define DSFILTER_MODE_MULTI         0x00000003      // Multifunction mode
+
+//
+// Effects parameter flags
+//
+
+#define DSFX_IMMEDIATE              0x00000000      // Apply the values immediately
+#define DSFX_DEFERRED               0x00000001      // Defer the values until CommitEffectsData is called
+
+//
+// Effect index identifiers (for DSEFFECTIMAGELOC)
+//
+
+#define DSFX_IMAGELOC_UNUSED        0xFFFFFFFF      // The effect does not appear in the image
+
+//
+// AC'97 channel types
+//
+
+#define DSAC97_CHANNEL_ANALOG       0x00000000
+#define DSAC97_CHANNEL_DIGITAL      0x00000001
+
+//
+// AC'97 digital channel modes
+//
+
+#define DSAC97_MODE_PCM             0x02000000
+#define DSAC97_MODE_ENCODED         0x02000002
+
+//
+// AC'97 packet counts
+//
+
+#define DSAC97_MAX_ATTACHED_PACKETS 31
+
+//
+// WMA in-memory decoder data callback
+//
+
+typedef DWORD (CALLBACK *LPFNWMAXMODATACALLBACK)(LPVOID pvContext, DWORD dwOffset, DWORD dwByteCount, LPVOID *ppvData);
+
+//
+// XAudioDownloadEffectsImage flags
+//
+
+#define XAUDIO_DOWNLOADFX_EXTERNFILE        0x00000000
+#define XAUDIO_DOWNLOADFX_XBESECTION        0x00000001
+
+//
 // Globals
 //
 
@@ -1295,9 +1112,6 @@ EXTERN_C const DSMIXBINS DirectSoundDefaultMixBins_6Channel;
 
 EXTERN_C const DSMIXBINS DirectSoundRequiredMixBins_3D;
 EXTERN_C const DSMIXBINS DirectSoundDefaultMixBins_3D;
-EXTERN_C const DSMIXBINS DirectSoundRequiredMixBins_5Channel3D;
-EXTERN_C const DSMIXBINS DirectSoundDefaultMixBins_5Channel3D;
-EXTERN_C const DSMIXBINS DirectSoundDefaulMixBins_5Channel3D_PlusLFE;
 
 EXTERN_C const DS3DBUFFER DirectSoundDefault3DBuffer;
 EXTERN_C const DSI3DL2BUFFER DirectSoundDefaultI3DL2Buffer;
@@ -1305,7 +1119,6 @@ EXTERN_C const DSI3DL2BUFFER DirectSoundDefaultI3DL2Buffer;
 EXTERN_C const DS3DLISTENER DirectSoundDefault3DListener;
 
 EXTERN_C const DSI3DL2LISTENER DirectSoundI3DL2ListenerPreset_Default;
-EXTERN_C const DSI3DL2LISTENER DirectSoundI3DL2ListenerPreset_Default2;
 EXTERN_C const DSI3DL2LISTENER DirectSoundI3DL2ListenerPreset_Generic;
 EXTERN_C const DSI3DL2LISTENER DirectSoundI3DL2ListenerPreset_PaddedCell;
 EXTERN_C const DSI3DL2LISTENER DirectSoundI3DL2ListenerPreset_Room;
@@ -1331,12 +1144,6 @@ EXTERN_C const DSI3DL2LISTENER DirectSoundI3DL2ListenerPreset_SewerPipe;
 EXTERN_C const DSI3DL2LISTENER DirectSoundI3DL2ListenerPreset_Underwater;
 EXTERN_C const DSI3DL2LISTENER DirectSoundI3DL2ListenerPreset_NoReverb;
 
-EXTERN_C DWORD g_dwDirectSoundDebugLevel;
-EXTERN_C DWORD g_dwDirectSoundDebugBreakLevel;
-
-typedef BOOL (CALLBACK *LPFNDSDPFCALLBACK)(DWORD dwLevel, LPCSTR pszString);
-EXTERN_C LPFNDSDPFCALLBACK g_pfnDirectSoundDebugCallback;
-
 //
 // API
 //
@@ -1347,8 +1154,6 @@ STDAPI DirectSoundCreateStream(LPCDSSTREAMDESC pdssd, LPDIRECTSOUNDSTREAM *ppStr
 STDAPI_(void) DirectSoundDoWork(void);
 STDAPI_(void) DirectSoundUseFullHRTF(void);
 STDAPI_(void) DirectSoundUseLightHRTF(void);
-STDAPI_(void) DirectSoundUseFullHRTF4Channel(void);
-STDAPI_(void) DirectSoundUseLightHRTF4Channel(void);
 STDAPI_(void) DirectSoundOverrideSpeakerConfig(DWORD dwSpeakerConfig);
 STDAPI_(DWORD) DirectSoundGetSampleTime(void);
 STDAPI_(VOID) DirectSoundDumpMemoryUsage(BOOL fAssertNone);
@@ -1358,7 +1163,6 @@ STDAPI_(void) XAudioCreateAdpcmFormat(WORD nChannels, DWORD nSamplesPerSec, LPXB
 
 STDAPI_(LONG) XAudioCalculatePitch(DWORD dwFrequency);
 
-STDAPI XWmaDecoderCreateMediaObject(LPCWMAXMODECODERPARAMETERS pParameters, XWmaFileMediaObject **ppMediaObject);
 STDAPI WmaCreateDecoder(LPCSTR pszFileName, HANDLE hFile, BOOL fAsyncMode, DWORD dwLookaheadBufferSize, DWORD dwMaxPackets, DWORD dwYieldRate, LPWAVEFORMATEX pwfxCompressed, XFileMediaObject **ppMediaObject);
 STDAPI WmaCreateInMemoryDecoder(LPFNWMAXMODATACALLBACK pfnCallback, LPVOID pvContext, DWORD dwYieldRate, LPWAVEFORMATEX pwfxCompressed, LPXMEDIAOBJECT *ppMediaObject);
 
@@ -1369,14 +1173,10 @@ STDAPI Ac97CreateMediaObject(DWORD dwChannel, LPFNXMEDIAOBJECTCALLBACK pfnCallba
 
 STDAPI XFileCreateMediaObject(LPCSTR pszFileName, DWORD dwDesiredAccess, DWORD dwShareMode, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, XFileMediaObject **ppMediaObject);
 STDAPI XFileCreateMediaObjectEx(HANDLE hFile, XFileMediaObject **ppMediaObject);
-STDAPI XFileCreateMediaObjectAsync(HANDLE hFile, DWORD dwMaxPackets, XFileMediaObject **ppMediaObject);
-
 STDAPI XWaveFileCreateMediaObject(LPCSTR pszFileName, LPCWAVEFORMATEX *ppwfxFormat, XFileMediaObject **ppMediaObject);
 STDAPI XWaveFileCreateMediaObjectEx(LPCSTR pszFileName, HANDLE hFile, XWaveFileMediaObject **ppMediaObject);
 
 STDAPI XAudioDownloadEffectsImage(LPCSTR pszImageName, LPCDSEFFECTIMAGELOC pImageLoc, DWORD dwFlags, LPDSEFFECTIMAGEDESC *ppImageDesc);
-
-STDAPI XAudioSetEffectData(DWORD dwEffectIndex, LPCDSFX_HIGH_LEVEL_EFFECT_DESCRIPTION pDesc, LPDSFX_RAW_EFFECT_DESCRIPTION pRawDesc);
 
 //
 // IUnknown
@@ -1463,8 +1263,6 @@ DECLARE_INTERFACE_(XFileMediaObject, XMediaObject)
     // XFileMediaObject methods
     STDMETHOD(Seek)(THIS_ LONG lOffset, DWORD dwOrigin, LPDWORD pdwAbsolute) PURE;
     STDMETHOD(GetLength)(THIS_ LPDWORD pdwLength) PURE;
-    STDMETHOD_(VOID,DoWork)(THIS) PURE;
-
 };
 
 #define XFileMediaObject_AddRef             IUnknown_AddRef
@@ -1480,14 +1278,11 @@ DECLARE_INTERFACE_(XFileMediaObject, XMediaObject)
 
 #define XFileMediaObject_Seek(p, a, b, c)   p->Seek(a, b, c)
 #define XFileMediaObject_GetLength(p, a)    p->GetLength(a)
-#define XFileMediaObject_DoWork(p)          p->DoWork()
 
 #else // defined(__cplusplus) && !defined(CINTERFACE)
 
 #define XFileMediaObject_Seek(p, a, b, c)   p->lpVtbl->Seek(p, a, b, c)
 #define XFileMediaObject_GetLength(p, a)    p->lpVtbl->GetLength(p, a)
-#define XFileMediaObject_DoWork(p)          p->lpVtbl->DoWork(p)
-
 
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
@@ -1514,7 +1309,6 @@ DECLARE_INTERFACE_(XWaveFileMediaObject, XFileMediaObject)
     // XFileMediaObject methods
     STDMETHOD(Seek)(THIS_ LONG lOffset, DWORD dwOrigin, LPDWORD pdwAbsolute) PURE;
     STDMETHOD(GetLength)(THIS_ LPDWORD pdwLength) PURE;
-    STDMETHOD_(VOID,DoWork)(THIS) PURE;
 
     // XWaveFileMediaObject methods
     STDMETHOD(GetFormat)(THIS_ LPCWAVEFORMATEX *ppwfxFormat) PURE;
@@ -1531,7 +1325,6 @@ DECLARE_INTERFACE_(XWaveFileMediaObject, XFileMediaObject)
 #define XWaveFileMediaObject_Flush          XFileMediaObject_Flush
 #define XWaveFileMediaObject_Seek           XFileMediaObject_Seek
 #define XWaveFileMediaObject_GetLength      XFileMediaObject_GetLength
-#define XWaveFileMediaObject_DoWork         XFileMediaObject_DoWork
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
@@ -1568,14 +1361,11 @@ DECLARE_INTERFACE_(XWmaFileMediaObject, XFileMediaObject)
     // XFileMediaObject methods
     STDMETHOD(Seek)(THIS_ LONG lOffset, DWORD dwOrigin, LPDWORD pdwAbsolute) PURE;
     STDMETHOD(GetLength)(THIS_ LPDWORD pdwLength) PURE;
-    STDMETHOD_(VOID,DoWork)(THIS) PURE;
 
     // XWmaFileMediaObject methods
     STDMETHOD(GetFileHeader)(THIS_ WMAXMOFileHeader* pFileHeader) PURE;
     STDMETHOD(GetFileContentDescription)(THIS_ WMAXMOFileContDesc* pContentDesc) PURE;
-    STDMETHOD(SeekToTime)(THIS_ DWORD dwSeek, LPDWORD pdwAcutalSeek) PURE;
-
-
+    
 };
 
 #define XWmaFileMediaObject_AddRef          IUnknown_AddRef
@@ -1588,8 +1378,7 @@ DECLARE_INTERFACE_(XWmaFileMediaObject, XFileMediaObject)
 #define XWmaFileMediaObject_Flush           XMediaObject_Flush
 
 #define XWmaFileMediaObject_Seek            XFileMediaObject_Seek
-#define XWmaFileMediaObject_GetLength       XFileMediaObject_GetLength
-#define XWmaFileMediaObject_DoWork          XFileMediaObject_DoWork
+#define XWmaFileMediaObject_GetLength       XFileMediaOjbect_GetLength
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
@@ -1600,8 +1389,6 @@ DECLARE_INTERFACE_(XWmaFileMediaObject, XFileMediaObject)
 
 #define XWmaFileMediaObject_GetFileHeader(p, a)             p->lpVtbl->GetFileHeader(p, a)
 #define XWmaFileMediaObject_GetFileContentDescription(p, a) p->lpVtbl->GetFileContentDescription(p,a)
-#define XWmaFileMediaObject_SeekToTime(p, a, b)             p->lpVtbl->SeekToTime(p,a,b)
-
 
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
@@ -1644,8 +1431,7 @@ STDAPI IDirectSound_SetRolloffFactor(LPDIRECTSOUND pDirectSound, FLOAT flRolloff
 STDAPI IDirectSound_SetI3DL2Listener(LPDIRECTSOUND pDirectSound, LPCDSI3DL2LISTENER pds3dl, DWORD dwApply);
 STDAPI IDirectSound_CommitDeferredSettings(LPDIRECTSOUND pDirectSound);
 STDAPI IDirectSound_GetTime(LPDIRECTSOUND pDirectSound, REFERENCE_TIME *prtCurrent);
-STDAPI IDirectSound_GetOutputLevels(LPDIRECTSOUND pDirectSound, LPDSOUTPUTLEVELS pOutputLevels, BOOL fResetPeakValues);
-STDAPI IDirectSound_SynchPlayback(LPDIRECTSOUND pDirectSound);
+STDAPI IDirectSound_GetOutputLevels(LPDIRECTSOUND pDirectSound, DSOUTPUTLEVELS *pOutputLevels, BOOL bResetPeakValues);
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
@@ -1776,15 +1562,11 @@ struct IDirectSound
         return IDirectSound_GetTime(this, prtCurrent);
     }
 
-    __inline HRESULT STDMETHODCALLTYPE GetOutputLevels(LPDSOUTPUTLEVELS pOutputLevels, BOOL fResetPeakValues)
+    __inline HRESULT STDMETHODCALLTYPE GetOutputLevels(DSOUTPUTLEVELS *pOutputLevels, BOOL bResetPeakValues)
     {
-        return IDirectSound_GetOutputLevels(this, pOutputLevels, fResetPeakValues);
+        return IDirectSound_GetOutputLevels(this, pOutputLevels, bResetPeakValues);
     }
 
-    __inline HRESULT STDMETHODCALLTYPE SynchPlayback(void)
-    {
-        return IDirectSound_SynchPlayback(this);
-    }
 };
 
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
@@ -1861,8 +1643,6 @@ STDAPI IDirectSoundBuffer_Play(LPDIRECTSOUNDBUFFER pBuffer, DWORD dwReserved1, D
 STDAPI IDirectSoundBuffer_PlayEx(LPDIRECTSOUNDBUFFER pBuffer, REFERENCE_TIME rtTimeStamp, DWORD dwFlags);
 STDAPI IDirectSoundBuffer_Stop(LPDIRECTSOUNDBUFFER pBuffer);
 STDAPI IDirectSoundBuffer_StopEx(LPDIRECTSOUNDBUFFER pBuffer, REFERENCE_TIME rtTimeStamp, DWORD dwFlags);
-STDAPI IDirectSoundBuffer_Pause(LPDIRECTSOUNDBUFFER pBuffer, DWORD dwPause);
-STDAPI IDirectSoundBuffer_PauseEx(LPDIRECTSOUNDBUFFER pBuffer, REFERENCE_TIME rtTimestamp, DWORD dwPause);
 STDAPI IDirectSoundBuffer_SetPlayRegion(LPDIRECTSOUNDBUFFER pBuffer, DWORD dwPlayStart, DWORD dwPlayLength);
 STDAPI IDirectSoundBuffer_SetLoopRegion(LPDIRECTSOUNDBUFFER pBuffer, DWORD dwLoopStart, DWORD dwLoopLength);
 STDAPI IDirectSoundBuffer_GetStatus(LPDIRECTSOUNDBUFFER pBuffer, LPDWORD pdwStatus);
@@ -1873,7 +1653,6 @@ STDAPI IDirectSoundBuffer_Lock(LPDIRECTSOUNDBUFFER pBuffer, DWORD dwOffset, DWOR
 STDAPI IDirectSoundBuffer_Unlock(LPDIRECTSOUNDBUFFER pBuffer, LPVOID pvLock1, DWORD dwLockSize1, LPVOID pvLock2, DWORD dwLockSize2);
 STDAPI IDirectSoundBuffer_Restore(LPDIRECTSOUNDBUFFER pBuffer);
 STDAPI IDirectSoundBuffer_SetNotificationPositions(LPDIRECTSOUNDBUFFER pBuffer, DWORD dwNotifyCount, LPCDSBPOSITIONNOTIFY paNotifies);
-STDAPI IDirectSoundBuffer_GetVoiceProperties(LPDIRECTSOUNDBUFFER pBuffer, LPDSVOICEPROPS pVoiceProps);
 
 #if defined(__cplusplus) && !defined(CINTERFACE)                
 
@@ -2039,16 +1818,6 @@ struct IDirectSoundBuffer
         return IDirectSoundBuffer_StopEx(this, rtTimeStamp, dwFlags);
     }
 
-    __inline HRESULT STDMETHODCALLTYPE Pause(DWORD dwPause)
-    {
-        return IDirectSoundBuffer_Pause(this, dwPause);
-    }
-
-    __inline HRESULT STDMETHODCALLTYPE PauseEx(REFERENCE_TIME rtTimestamp, DWORD dwPause)
-    {
-        return IDirectSoundBuffer_PauseEx(this, rtTimestamp, dwPause);
-    }
-
     __inline HRESULT STDMETHODCALLTYPE SetPlayRegion(DWORD dwPlayStart, DWORD dwPlayLength)
     {
         return IDirectSoundBuffer_SetPlayRegion(this, dwPlayStart, dwPlayLength);
@@ -2097,11 +1866,6 @@ struct IDirectSoundBuffer
     __inline HRESULT STDMETHODCALLTYPE SetNotificationPositions(DWORD dwNotifyCount, LPCDSBPOSITIONNOTIFY paNotifies)
     {
         return IDirectSoundBuffer_SetNotificationPositions(this, dwNotifyCount, paNotifies);
-    }
-
-    __inline HRESULT STDMETHODCALLTYPE GetVoiceProperties(LPDSVOICEPROPS pVoiceProps)
-    {
-        return IDirectSoundBuffer_GetVoiceProperties(this, pVoiceProps);
     }
 };
 
@@ -2181,7 +1945,6 @@ STDAPI IDirectSoundStream_SetI3DL2Source(LPDIRECTSOUNDSTREAM pStream, LPCDSI3DL2
 STDAPI IDirectSoundStream_Pause(LPDIRECTSOUNDSTREAM pStream, DWORD dwPause);
 STDAPI IDirectSoundStream_PauseEx(LPDIRECTSOUNDSTREAM pStream, REFERENCE_TIME rtTimestamp, DWORD dwPause);
 STDAPI IDirectSoundStream_FlushEx(LPDIRECTSOUNDSTREAM pStream, REFERENCE_TIME rtTimeStamp, DWORD dwFlags);
-STDAPI IDirectSoundStream_GetVoiceProperties(LPDIRECTSOUNDSTREAM pStream, LPDSVOICEPROPS pVoiceProps);
 
 #define IDirectSoundStream_AddRef           IUnknown_AddRef
 #define IDirectSoundStream_Release          IUnknown_Release
@@ -2355,11 +2118,6 @@ DECLARE_INTERFACE_(IDirectSoundStream, XMediaObject)
         return IDirectSoundStream_FlushEx(this, rtTimeStamp, dwFlags);
     }
 
-    __inline HRESULT STDMETHODCALLTYPE GetVoiceProperties(LPDSVOICEPROPS pVoiceProps)
-    {
-        return IDirectSoundStream_GetVoiceProperties(this, pVoiceProps);
-    }
-    
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 };
@@ -2440,8 +2198,6 @@ typedef void (CALLBACK TIMECALLBACK)(UINT uTimerID, UINT uMsg, DWORD_PTR dwUser,
 
 typedef TIMECALLBACK *LPTIMECALLBACK;
 
-#ifdef _XBOX
-
 typedef struct mmtime_tag
 {
     UINT            wType;                  // Indicates the contents of the union
@@ -2479,8 +2235,6 @@ EXTERN_C MMRESULT WINAPI timeSetEvent(UINT uDelay, UINT uResolution, LPTIMECALLB
 EXTERN_C MMRESULT WINAPI timeKillEvent(UINT uTimerID);
 
 #define timeGetTime GetTickCount
-
-#endif //_XBOX
 
 #pragma warning(default:4201)
 

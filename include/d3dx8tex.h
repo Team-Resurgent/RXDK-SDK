@@ -931,12 +931,4 @@ HRESULT WINAPI
 }
 #endif //__cplusplus
 
-#if defined(_XBOX) && !defined(D3DX8TEX_NO_LIBS)
-#if defined(_DEBUG)
-#pragma comment(lib, "xgraphicsd.lib")
-#else
-#pragma comment(lib, "xgraphics.lib")
-#endif
-#endif
-
 #endif //__D3DX8TEX_H__
