@@ -115,3 +115,64 @@ typedef unsigned int   DWORD32;
 #ifndef _MAX_PATH
 #define _MAX_PATH 260
 #endif
+
+// MSVC CRT case-insensitive string compares. picolibc provides the POSIX names
+// (strcasecmp / strncasecmp, in <strings.h>); a lot of legacy Windows/Xbox code uses the
+// MSVC spellings without the leading underscore. Map the common ones so ported titles build.
+#include <strings.h>
+#ifndef stricmp
+#define stricmp   strcasecmp
+#endif
+#ifndef strnicmp
+#define strnicmp  strncasecmp
+#endif
+#ifndef strcmpi
+#define strcmpi   strcasecmp
+#endif
+#ifndef _stricmp
+#define _stricmp strcasecmp
+#endif
+#ifndef _strnicmp
+#define _strnicmp strncasecmp
+#endif
+#include <stdarg.h> // va_list, for the _vsnprintf/_vscprintf declarations below
+#include <stddef.h> // size_t
+// MSVC printf-family spellings. These are real functions (libs/libxapi/port/
+// compat.c), NOT aliases for snprintf/vsnprintf: the size argument means
+// something different. C99 treats it as the buffer size including the NUL and
+// always terminates; MSVC treats it as the maximum number of characters to
+// write and only terminates when the result fits in fewer. Aliasing them made
+// the common Xbox idiom
+//     len = _vsnprintf(NULL, 0, fmt, ap);
+//     _vsnprintf(buf, len, fmt, ap); buf[len] = 0;
+// drop its last character.
+//
+// The extern "C" matters: these are defined in a C translation unit, so a C++
+// title that saw them with C++ linkage would fail to link against the mangled
+// name.
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifndef _snprintf
+int _snprintf(char *buffer, size_t count, const char *format, ...);
+#endif
+#ifndef _vsnprintf
+int _vsnprintf(char *buffer, size_t count, const char *format, va_list ap);
+#endif
+// MSVC's portable way to ask how long a formatted string would be.
+#ifndef _scprintf
+int _scprintf(const char *format, ...);
+#endif
+#ifndef _vscprintf
+int _vscprintf(const char *format, va_list ap);
+#endif
+#ifdef __cplusplus
+}
+#endif
+// MSVC aligned allocation -> C11 aligned_alloc (note the swapped argument order) + free.
+#ifndef _aligned_malloc
+#define _aligned_malloc(size, alignment) aligned_alloc((alignment), (size))
+#endif
+#ifndef _aligned_free
+#define _aligned_free free
+#endif

@@ -31,6 +31,7 @@ typedef wchar_t        WCHAR;
 typedef unsigned short WCHAR;
 #endif
 typedef WCHAR *PWSTR;
+typedef WCHAR *PWCHAR;
 typedef unsigned int UINT, *PUINT, *LPUINT;
 typedef unsigned long DWORD, *PDWORD, *LPDWORD;
 typedef unsigned long ULONG, *PULONG;
@@ -215,6 +216,39 @@ typedef struct _RTL_CRITICAL_SECTION {
 #endif
 
 //
+// Standard access rights (the type-independent upper bits of an access mask).
+//
+#ifndef DELETE
+#define DELETE                   0x00010000L
+#define READ_CONTROL             0x00020000L
+#define WRITE_DAC                0x00040000L
+#define WRITE_OWNER              0x00080000L
+#define SYNCHRONIZE              0x00100000L
+#define STANDARD_RIGHTS_REQUIRED 0x000F0000L
+#define STANDARD_RIGHTS_READ     READ_CONTROL
+#define STANDARD_RIGHTS_WRITE    READ_CONTROL
+#define STANDARD_RIGHTS_EXECUTE  READ_CONTROL
+#define STANDARD_RIGHTS_ALL      0x001F0000L
+#endif
+
+//
+// Memory-protection constants (flProtect).
+//
+#ifndef PAGE_NOACCESS
+#define PAGE_NOACCESS          0x01
+#define PAGE_READONLY          0x02
+#define PAGE_READWRITE         0x04
+#define PAGE_WRITECOPY         0x08
+#define PAGE_EXECUTE           0x10
+#define PAGE_EXECUTE_READ      0x20
+#define PAGE_EXECUTE_READWRITE 0x40
+#define PAGE_EXECUTE_WRITECOPY 0x80
+#define PAGE_GUARD             0x100
+#define PAGE_NOCACHE           0x200
+#define PAGE_WRITECOMBINE      0x400
+#endif
+
+//
 // File share modes (dwShareMode for CreateFile).
 //
 #ifndef FILE_SHARE_READ
@@ -225,6 +259,30 @@ typedef struct _RTL_CRITICAL_SECTION {
 #endif
 #ifndef FILE_SHARE_DELETE
 #define FILE_SHARE_DELETE 0x00000004
+#endif
+
+//
+// File-specific access rights (the low 9 bits of a file access mask).
+//
+#ifndef FILE_READ_DATA
+#define FILE_READ_DATA            0x0001  // file & pipe
+#define FILE_LIST_DIRECTORY       0x0001  // directory
+#define FILE_WRITE_DATA           0x0002  // file & pipe
+#define FILE_ADD_FILE             0x0002  // directory
+#define FILE_APPEND_DATA          0x0004  // file
+#define FILE_ADD_SUBDIRECTORY     0x0004  // directory
+#define FILE_CREATE_PIPE_INSTANCE 0x0004  // named pipe
+#define FILE_READ_EA              0x0008  // file & directory
+#define FILE_WRITE_EA             0x0010  // file & directory
+#define FILE_EXECUTE              0x0020  // file
+#define FILE_TRAVERSE             0x0020  // directory
+#define FILE_DELETE_CHILD         0x0040  // directory
+#define FILE_READ_ATTRIBUTES      0x0080  // all
+#define FILE_WRITE_ATTRIBUTES     0x0100  // all
+#define FILE_ALL_ACCESS      (STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0x1FF)
+#define FILE_GENERIC_READ    (STANDARD_RIGHTS_READ | FILE_READ_DATA | FILE_READ_ATTRIBUTES | FILE_READ_EA | SYNCHRONIZE)
+#define FILE_GENERIC_WRITE   (STANDARD_RIGHTS_WRITE | FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA | FILE_APPEND_DATA | SYNCHRONIZE)
+#define FILE_GENERIC_EXECUTE (STANDARD_RIGHTS_EXECUTE | FILE_READ_ATTRIBUTES | FILE_EXECUTE | SYNCHRONIZE)
 #endif
 
 typedef struct _XBE_SECTION_HEADER {
