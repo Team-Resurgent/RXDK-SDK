@@ -135,6 +135,17 @@ typedef unsigned int   DWORD32;
 #ifndef _strnicmp
 #define _strnicmp strncasecmp
 #endif
+// Wide equivalents (picolibc supplies wcscasecmp / wcsncasecmp in <wchar.h>).
+#include <wchar.h>
+#ifndef _wcsicmp
+#define _wcsicmp  wcscasecmp
+#endif
+#ifndef wcsicmp
+#define wcsicmp   wcscasecmp
+#endif
+#ifndef wcsnicmp
+#define wcsnicmp  wcsncasecmp   /* _wcsnicmp is defined further down */
+#endif
 #include <stdarg.h> // va_list, for the _vsnprintf/_vscprintf declarations below
 #include <stddef.h> // size_t
 // MSVC printf-family spellings. These are real functions (libs/libxapi/port/
@@ -169,10 +180,125 @@ int _vscprintf(const char *format, va_list ap);
 #ifdef __cplusplus
 }
 #endif
+
+// NT RtlXxxMemory intrinsics -- XDK samples use these; the picolibc/xtl umbrella doesn't supply them.
+#ifndef RtlCopyMemory
+#define RtlCopyMemory(Destination, Source, Length) memcpy((Destination), (Source), (Length))
+#endif
+#ifndef RtlMoveMemory
+#define RtlMoveMemory(Destination, Source, Length) memmove((Destination), (Source), (Length))
+#endif
+#ifndef RtlFillMemory
+#define RtlFillMemory(Destination, Length, Fill) memset((Destination), (Fill), (Length))
+#endif
+#ifndef RtlZeroMemory
+#define RtlZeroMemory(Destination, Length) memset((Destination), 0, (Length))
+#endif
+
+// MSVC CRT spellings that alias directly onto the picolibc/POSIX equivalents.
+#ifndef _fcvt
+#define _fcvt fcvt
+#endif
+#ifndef _itoa
+#define _itoa itoa
+#endif
+#ifndef _wcsnicmp
+#define _wcsnicmp wcsncasecmp
+#endif
+
+// MSVC wide CRT helpers the samples call. _snwprintf/_vsnwprintf map to C99 vswprintf (same arg
+// shape); _itow/_i64tow are small base-radix conversions (picolibc has no _itow/_i64tow).
+#ifdef __cplusplus
+#include <wchar.h>  // vswprintf
+#ifndef _vsnwprintf
+static inline int _vsnwprintf(wchar_t *buffer, size_t count, const wchar_t *format, va_list ap)
+{
+    return vswprintf(buffer, count, format, ap);
+}
+#endif
+#ifndef _i64tow
+static inline wchar_t *_i64tow(long long value, wchar_t *str, int radix)
+{
+    wchar_t *p = str, *lo, *hi;
+    unsigned long long uv = (radix == 10 && value < 0) ? (*p++ = L'-', (unsigned long long)(-value)) : (unsigned long long)value;
+    lo = p;
+    do { unsigned d = (unsigned)(uv % (unsigned)radix); *p++ = (wchar_t)(d < 10 ? L'0' + d : L'a' + d - 10); uv /= (unsigned)radix; } while (uv);
+    *p = 0;
+    for (hi = p - 1; lo < hi; ++lo, --hi) { wchar_t t = *lo; *lo = *hi; *hi = t; }
+    return str;
+}
+#endif
+#ifndef _snwprintf
+static inline int _snwprintf(wchar_t *buffer, size_t count, const wchar_t *format, ...)
+{
+    va_list ap; int r;
+    va_start(ap, format);
+    r = vswprintf(buffer, count, format, ap);
+    va_end(ap);
+    return r;
+}
+#endif
+#ifndef _wtol
+static inline long _wtol(const wchar_t *str)
+{
+    return wcstol(str, (wchar_t **)0, 10);
+}
+#endif
+#ifndef _itow
+static inline wchar_t *_itow(int value, wchar_t *str, int radix)
+{
+    wchar_t *p = str, *lo, *hi;
+    unsigned int uv = (radix == 10 && value < 0) ? (*p++ = L'-', (unsigned)(-value)) : (unsigned)value;
+    lo = p;
+    do { unsigned d = uv % (unsigned)radix; *p++ = (wchar_t)(d < 10 ? L'0' + d : L'a' + d - 10); uv /= (unsigned)radix; } while (uv);
+    *p = 0;
+    for (hi = p - 1; lo < hi; ++lo, --hi) { wchar_t t = *lo; *lo = *hi; *hi = t; }
+    return str;
+}
+#endif
+#endif // __cplusplus
+
 // MSVC aligned allocation -> C11 aligned_alloc (note the swapped argument order) + free.
 #ifndef _aligned_malloc
 #define _aligned_malloc(size, alignment) aligned_alloc((alignment), (size))
 #endif
 #ifndef _aligned_free
 #define _aligned_free free
+#endif
+
+// Legacy MSVC/XDK 2-argument swprintf(dst, fmt, ...) -- the pre-C99 form with no
+// size argument. Picolibc declares only the C99 swprintf(dst, n, fmt, ...), so
+// XDK title code that calls the 2-arg form (e.g. the sample framework's
+// on-screen text: swprintf(buf, L"%.2f", v)) fails to compile. Provide a C++
+// overload forwarding to vswprintf with an unbounded size. Overload resolution
+// selects this only when the 2nd argument is a wide string (not a size_t), so
+// the C99 3-arg form still binds to the real picolibc swprintf. C++ only: the
+// C99 swprintf keeps C linkage, this overload has C++ linkage (a name may have
+// at most one C-linkage function, which is satisfied).
+#ifdef __cplusplus
+#include <wchar.h>
+#include <stdarg.h>
+inline int swprintf(wchar_t *_Dst, const wchar_t *_Fmt, ...)
+{
+    va_list _Args;
+    va_start(_Args, _Fmt);
+    int _Ret = vswprintf(_Dst, (size_t)-1, _Fmt, _Args);
+    va_end(_Args);
+    return _Ret;
+}
+#endif
+
+// D3D performance-instrumentation hook (XDK D3D8Perf.h, pulled implicitly by the
+// XDK's d3d8.h). RXDK has no PIX-style perf capture, so QueryRepeatFrame always
+// reports "don't repeat this frame" (FALSE). The XDK sample framework
+// (Common/XBApp.cpp) calls it once per frame.
+#if defined(__cplusplus) && !defined(_D3D8PERF_H_) && !defined(_RXDK_D3DPERF_SHIM)
+#define _RXDK_D3DPERF_SHIM
+inline BOOL WINAPI D3DPERF_QueryRepeatFrame(void) { return FALSE; }
+#endif
+
+// MAXULONG_PTR (basetsd.h) — largest ULONG_PTR value, used as a sentinel by a few
+// XDK samples. ULONG_PTR is 32-bit on the Xbox target.
+#ifndef MAXULONG_PTR
+#define MAXULONG_PTR (~(ULONG_PTR)0)
 #endif
