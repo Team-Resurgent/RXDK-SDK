@@ -392,6 +392,113 @@ typedef struct _DSEFFECTIMAGELOC
 
 typedef const DSEFFECTIMAGELOC *LPCDSEFFECTIMAGELOC;
 
+// RXDK 5849 uplift: high-level effect parameter support (XAudioSetEffectData).
+// Adopted verbatim from the 5849 public dsound.h.
+
+typedef enum _DSFX_EFFECT_TYPE
+{
+    DSFX_EFFECT_TYPE_AMPMOD_MONO,
+    DSFX_EFFECT_TYPE_AMPMOD_STEREO,
+    DSFX_EFFECT_TYPE_CHORUS_MONO,
+    DSFX_EFFECT_TYPE_CHORUS_STEREO,
+    DSFX_EFFECT_TYPE_DISTORTION,
+    DSFX_EFFECT_TYPE_ECHO_MONO,
+    DSFX_EFFECT_TYPE_ECHO_STEREO,
+    DSFX_EFFECT_TYPE_FLANGE_MONO,
+    DSFX_EFFECT_TYPE_FLANGE_STEREO,
+    DSFX_EFFECT_TYPE_IIR,
+    DSFX_EFFECT_TYPE_IIR2,
+    DSFX_EFFECT_TYPE_OSCILLATOR,
+    DSFX_EFFECT_TYPE_I3DL2REVERB,
+    DSFX_EFFECT_TYPE_MINIREVERB,
+    DSFX_EFFECT_TYPE_RMS,
+    DSFX_EFFECT_TYPE_SPLITTER,
+    DSFX_EFFECT_TYPE_MIXER_2x1,
+    DSFX_EFFECT_TYPE_SAMPLE_RATE_CONVERTER
+} DSFX_EFFECT_TYPE;
+
+typedef struct _DSFX_HIGH_LEVEL_EFFECT_DESCRIPTION
+{
+    DSFX_EFFECT_TYPE   effectType;
+    union
+    {
+        struct
+        {
+            FLOAT   flFrequency;    // [0.0, 20000.0] (Hertz)
+            FLOAT   flGain;         // [-30.0, 30.0] (DB)
+            FLOAT   flQ;            // (0.0, 30.0] Cannot be 0.0
+        } IIR2;
+
+        struct
+        {
+            FLOAT   flGain;                 // [-30.0, 30.0] (DB)
+            FLOAT   flPreFilterFrequency;   // [0.0, 20000.0] (Hertz)
+            FLOAT   flPreFilterGain;        // [-30.0, 30.0] (DB)
+            FLOAT   flPreFilterQ;           // (0.0, 30.0] Cannot be 0.0
+            FLOAT   flPostFilterFrequency;  // [0.0, 20000.0] (Hertz)
+            FLOAT   flPostFilterGain;       // [-30.0, 30.0] (DB)
+            FLOAT   flPostFilterQ;          // (0.0, 30.0] Cannot be 0.0
+        } Distortion;
+
+        DSI3DL2LISTENER I3DL2Reverb;
+    };
+} DSFX_HIGH_LEVEL_EFFECT_DESCRIPTION, *LPDSFX_HIGH_LEVEL_EFFECT_DESCRIPTION, *PDSFX_HIGH_LEVEL_EFFECT_DESCRIPTION;
+
+typedef const DSFX_HIGH_LEVEL_EFFECT_DESCRIPTION* LPCDSFX_HIGH_LEVEL_EFFECT_DESCRIPTION;
+
+typedef struct _DSFX_RAW_EFFECT_DESCRIPTION
+{
+    DSFX_EFFECT_TYPE   effectType;
+    union
+    {
+        struct
+        {
+            DWORD dwB0;
+            DWORD dwB1;
+            DWORD dwB2;
+            DWORD dwA1;
+            DWORD dwA2;
+        } IIR2;
+
+        // NOTE (5849 header quirk, kept verbatim): XAudioSetEffectData writes
+        // ELEVEN dwords for a distortion effect -- the 24-bit gain first, then
+        // the ten filter coefficients -- so everything here is really shifted
+        // one dword: dwPreFilterB0 receives the gain, dwPreFilterB1 receives
+        // B0, and the last coefficient lands past dwPostFilterA2 (still inside
+        // the union, whose I3DL2Reverb view is larger).
+        struct
+        {
+            DWORD dwPreFilterB0;
+            DWORD dwPreFilterB1;
+            DWORD dwPreFilterB2;
+            DWORD dwPreFilterA1;
+            DWORD dwPreFilterA2;
+            DWORD dwPostFilterB0;
+            DWORD dwPostFilterB1;
+            DWORD dwPostFilterB2;
+            DWORD dwPostFilterA1;
+            DWORD dwPostFilterA2;
+        } Distortion;
+
+        struct
+        {
+            DWORD                dwReflectionsInputDelay[5];
+            DWORD                dwShortReverbInputDelay;
+            DWORD                dwLongReverbInputDelay[8];
+            DWORD                dwReflectionsFeedbackDelay[4];
+            DWORD                dwLongReverbFeedbackDelay;
+            DWORD                dwShortReverbInputGain[8];
+            DWORD                dwLongReverbInputGain;
+            DWORD                dwLongReverbCrossfeedGain;
+            DWORD                dwReflectionsOutputGain[4];
+            DWORD                dwShortReverbOutputGain;
+            DWORD                dwLongReverbOutputGain;
+            DWORD                dwChannelCount;
+            DSFX_I3DL2REVERB_IIR IIR[10];
+        } I3DL2Reverb;
+    };
+} DSFX_RAW_EFFECT_DESCRIPTION, *LPDSFX_RAW_EFFECT_DESCRIPTION, *PDSFX_RAW_EFFECT_DESCRIPTION;
+
 #include <pshpack1.h>
 
 // Parameter block for the 5849 WMA XMO decoder factories (XWmaDecoderCreateMediaObject).
@@ -582,7 +689,18 @@ EXTERN_C const GUID KSDATAFORMAT_SUBTYPE_XBOX_ADPCM;
 //
 
 #define DSBSTATUS_PLAYING           0x00000001      // The buffer is playing
+#define DSBSTATUS_PAUSED            0x00000002      // The buffer is paused
 #define DSBSTATUS_LOOPING           0x00000004      // The buffer is playing in a loop
+
+// Buffer pause states. 5849 gives a BUFFER its own Pause -- the leak-era header
+// had these only for streams, which is why code written against it stops the
+// buffer and restores the play cursor instead.
+#define DSBPAUSE_RESUME             0x00000000      // Resume a paused buffer
+#define DSBPAUSE_PAUSE              0x00000001      // Pause the buffer
+#define DSBPAUSE_SYNCHPLAYBACK      0x00000002      // Pause pending a SynchPlayback
+
+#define DSBPAUSE_FIRST              DSBPAUSE_RESUME
+#define DSBPAUSE_LAST               DSBPAUSE_SYNCHPLAYBACK
                                                                             
 //
 // IDirectSoundBuffer::Lock flags
@@ -605,7 +723,7 @@ EXTERN_C const GUID KSDATAFORMAT_SUBTYPE_XBOX_ADPCM;
 
 #define DSBVOLUME_MIN               -10000          // Maximum valid attenuation value
 #define DSBVOLUME_MAX               0               // Minimum valid attenuation value
-#define DSBVOLUME_HW_MIN            -10000          // Minimum hardware-mix attenuation (full)
+#define DSBVOLUME_HW_MIN            -6400           // Minimum volume supported by Xbox hardware (5849; distinct from the software DSBVOLUME_MIN of -10000)
 #define DSBVOLUME_HW_MAX            0               // Maximum hardware-mix attenuation (none)
 
 //
@@ -647,6 +765,8 @@ EXTERN_C const GUID KSDATAFORMAT_SUBTYPE_XBOX_ADPCM;
 #define DSSTREAMCAPS_CTRLVOLUME     DSBCAPS_CTRLVOLUME          // The stream supports volume changes
 #define DSSTREAMCAPS_LOCDEFER       DSBCAPS_LOCDEFER            // The stream does not acquire resources at creation
 #define DSSTREAMCAPS_ACCURATENOTIFY 0x40000000                  // The stream should provide more accurate packet completion notifications
+#define DSSTREAMCAPS_MUTE3DATMAXDISTANCE    DSBCAPS_MUTE3DATMAXDISTANCE // The 3D stream is muted at max distance and beyond
+#define DSSTREAMCAPS_NOCOALESCE             0x20000000                  // Do not coalesce packets when writing to hardware
                                                                     
 //
 // Stream frequency range
@@ -662,6 +782,7 @@ EXTERN_C const GUID KSDATAFORMAT_SUBTYPE_XBOX_ADPCM;
 
 #define DSSTREAMVOLUME_MIN          DSBVOLUME_MIN               // Minimum valid volume value
 #define DSSTREAMVOLUME_MAX          DSBVOLUME_MAX               // Maximum valid volume value
+#define DSSTREAMVOLUME_HW_MIN       DSBVOLUME_HW_MIN            // Minimum volume supported by Xbox hardware
 
 //
 // Stream headroom range 
@@ -685,6 +806,8 @@ EXTERN_C const GUID KSDATAFORMAT_SUBTYPE_XBOX_ADPCM;
 
 #define DSSTREAMPAUSE_RESUME        0x00000000                  // Resume a paused stream
 #define DSSTREAMPAUSE_PAUSE         0x00000001                  // Pause the stream
+#define DSSTREAMPAUSE_SYNCHPLAYBACK     0x00000002              // Synchronize playback of multiple buffers and streams
+#define DSSTREAMPAUSE_PAUSENOACTIVATE   0x00000003              // Pause the stream without activating the voice
 
 //
 // IDirectSoundStream::Stop flags
@@ -693,6 +816,7 @@ EXTERN_C const GUID KSDATAFORMAT_SUBTYPE_XBOX_ADPCM;
 #define DSSTREAMFLUSHEX_IMMEDIATE   0x00000000      // The stream should flush immediately (same as calling Flush)
 #define DSSTREAMFLUSHEX_ASYNC       0x00000001      // The stream should begin a flush operation and complete it during DoWork
 #define DSSTREAMFLUSHEX_ENVELOPE    0x00000002      // The stream should begin a flush operation using a release envelope
+#define DSSTREAMFLUSHEX_ENVELOPE2   0x00000004      // The stream should enter its release segment and accept no more packets once completed
 
 //
 // Stream status flags
@@ -702,6 +826,7 @@ EXTERN_C const GUID KSDATAFORMAT_SUBTYPE_XBOX_ADPCM;
 #define DSSTREAMSTATUS_PLAYING      0x00010000                      // The stream is playing
 #define DSSTREAMSTATUS_PAUSED       0x00020000                      // The stream is paused
 #define DSSTREAMSTATUS_STARVED      0x00040000                      // The stream is starved
+#define DSSTREAMSTATUS_ENVELOPECOMPLETE 0x00080000                      // The release envelope segment is complete
                                                                         
 //
 // 3D modes
@@ -842,6 +967,7 @@ EXTERN_C const GUID KSDATAFORMAT_SUBTYPE_XBOX_ADPCM;
 //
 
 #define DSI3DL2_ENVIRONMENT_PRESET_DEFAULT           -1000,   -100, 0.0f, 1.49f, 0.83f,  -2602, 0.007f,    200, 0.011f, 100.0f, 100.0f, 5000.0f
+#define DSI3DL2_ENVIRONMENT_PRESET_DEFAULT2          -10000,      0, 0.0f, 1.00f, 0.50f, -10000, 0.020f, -10000, 0.040f, 100.0f, 100.0f, 5000.0f
 #define DSI3DL2_ENVIRONMENT_PRESET_GENERIC           -1000,   -100, 0.0f, 1.49f, 0.83f,  -2602, 0.007f,    200, 0.011f, 100.0f, 100.0f, 5000.0f
 #define DSI3DL2_ENVIRONMENT_PRESET_PADDEDCELL        -1000,  -6000, 0.0f, 0.17f, 0.10f,  -1204, 0.001f,    207, 0.002f, 100.0f, 100.0f, 5000.0f
 #define DSI3DL2_ENVIRONMENT_PRESET_ROOM              -1000,   -454, 0.0f, 0.40f, 0.83f,  -1646, 0.002f,     53, 0.003f, 100.0f, 100.0f, 5000.0f
@@ -1068,23 +1194,23 @@ EXTERN_C const GUID KSDATAFORMAT_SUBTYPE_XBOX_ADPCM;
 //
 
 #define DSEG_DELAY_MIN              0
-#define DSEG_DELAY_MAX              8191
+#define DSEG_DELAY_MAX              4095
 #define DSEG_DELAY_DEFAULT          0
 
 #define DSEG_ATTACK_MIN             0
-#define DSEG_ATTACK_MAX             8191
+#define DSEG_ATTACK_MAX             4095
 #define DSEG_ATTACK_DEFAULT         0
 
 #define DSEG_HOLD_MIN               0
-#define DSEG_HOLD_MAX               8191
+#define DSEG_HOLD_MAX               4095
 #define DSEG_HOLD_DEFAULT           0
 
 #define DSEG_DECAY_MIN              0
-#define DSEG_DECAY_MAX              8191
+#define DSEG_DECAY_MAX              4095
 #define DSEG_DECAY_DEFAULT          0
 
 #define DSEG_RELEASE_MIN            0
-#define DSEG_RELEASE_MAX            8191
+#define DSEG_RELEASE_MAX            4095
 #define DSEG_RELEASE_DEFAULT        0
 
 #define DSEG_SUSTAIN_MIN            0
@@ -1232,6 +1358,8 @@ STDAPI XWaveFileCreateMediaObject(LPCSTR pszFileName, LPCWAVEFORMATEX *ppwfxForm
 STDAPI XWaveFileCreateMediaObjectEx(LPCSTR pszFileName, HANDLE hFile, XWaveFileMediaObject **ppMediaObject);
 
 STDAPI XAudioDownloadEffectsImage(LPCSTR pszImageName, LPCDSEFFECTIMAGELOC pImageLoc, DWORD dwFlags, LPDSEFFECTIMAGEDESC *ppImageDesc);
+
+STDAPI XAudioSetEffectData(DWORD dwEffectIndex, LPCDSFX_HIGH_LEVEL_EFFECT_DESCRIPTION pDesc, LPDSFX_RAW_EFFECT_DESCRIPTION pRawDesc);
 
 //
 // IUnknown
@@ -1710,6 +1838,8 @@ STDAPI IDirectSoundBuffer_SetI3DL2Source(LPDIRECTSOUNDBUFFER pBuffer, LPCDSI3DL2
 STDAPI IDirectSoundBuffer_Play(LPDIRECTSOUNDBUFFER pBuffer, DWORD dwReserved1, DWORD dwReserved2, DWORD dwFlags);
 STDAPI IDirectSoundBuffer_PlayEx(LPDIRECTSOUNDBUFFER pBuffer, REFERENCE_TIME rtTimeStamp, DWORD dwFlags);
 STDAPI IDirectSoundBuffer_Stop(LPDIRECTSOUNDBUFFER pBuffer);
+STDAPI IDirectSoundBuffer_Pause(LPDIRECTSOUNDBUFFER pBuffer, DWORD dwPause);
+STDAPI IDirectSoundBuffer_PauseEx(LPDIRECTSOUNDBUFFER pBuffer, REFERENCE_TIME rtTimestamp, DWORD dwPause);
 STDAPI IDirectSoundBuffer_StopEx(LPDIRECTSOUNDBUFFER pBuffer, REFERENCE_TIME rtTimeStamp, DWORD dwFlags);
 STDAPI IDirectSoundBuffer_SetPlayRegion(LPDIRECTSOUNDBUFFER pBuffer, DWORD dwPlayStart, DWORD dwPlayLength);
 STDAPI IDirectSoundBuffer_SetLoopRegion(LPDIRECTSOUNDBUFFER pBuffer, DWORD dwLoopStart, DWORD dwLoopLength);
@@ -1721,8 +1851,9 @@ STDAPI IDirectSoundBuffer_Lock(LPDIRECTSOUNDBUFFER pBuffer, DWORD dwOffset, DWOR
 STDAPI IDirectSoundBuffer_Unlock(LPDIRECTSOUNDBUFFER pBuffer, LPVOID pvLock1, DWORD dwLockSize1, LPVOID pvLock2, DWORD dwLockSize2);
 STDAPI IDirectSoundBuffer_Restore(LPDIRECTSOUNDBUFFER pBuffer);
 STDAPI IDirectSoundBuffer_SetNotificationPositions(LPDIRECTSOUNDBUFFER pBuffer, DWORD dwNotifyCount, LPCDSBPOSITIONNOTIFY paNotifies);
+STDAPI IDirectSoundBuffer_GetVoiceProperties(LPDIRECTSOUNDBUFFER pBuffer, LPDSVOICEPROPS pVoiceProps);
 
-#if defined(__cplusplus) && !defined(CINTERFACE)                
+#if defined(__cplusplus) && !defined(CINTERFACE)
 
 struct IDirectSoundBuffer
 {
@@ -1881,6 +2012,16 @@ struct IDirectSoundBuffer
         return IDirectSoundBuffer_Stop(this);
     }
 
+    __inline HRESULT STDMETHODCALLTYPE Pause(DWORD dwPause)
+    {
+        return IDirectSoundBuffer_Pause(this, dwPause);
+    }
+
+    __inline HRESULT STDMETHODCALLTYPE PauseEx(REFERENCE_TIME rtTimestamp, DWORD dwPause)
+    {
+        return IDirectSoundBuffer_PauseEx(this, rtTimestamp, dwPause);
+    }
+
     __inline HRESULT STDMETHODCALLTYPE StopEx(REFERENCE_TIME rtTimeStamp, DWORD dwFlags)
     {
         return IDirectSoundBuffer_StopEx(this, rtTimeStamp, dwFlags);
@@ -1935,6 +2076,11 @@ struct IDirectSoundBuffer
     {
         return IDirectSoundBuffer_SetNotificationPositions(this, dwNotifyCount, paNotifies);
     }
+
+    __inline HRESULT STDMETHODCALLTYPE GetVoiceProperties(LPDSVOICEPROPS pVoiceProps)
+    {
+        return IDirectSoundBuffer_GetVoiceProperties(this, pVoiceProps);
+    }
 };
 
 #endif // defined(__cplusplus) && !defined(CINTERFACE)                
@@ -1945,6 +2091,8 @@ struct IDirectSoundBuffer
 #define IDirectSoundBuffer8_SetFormat               IDirectSoundBuffer_SetFormat
 #define IDirectSoundBuffer8_Play                    IDirectSoundBuffer_Play              
 #define IDirectSoundBuffer8_Stop                    IDirectSoundBuffer_Stop              
+#define IDirectSoundBuffer8_Pause                   IDirectSoundBuffer_Pause
+#define IDirectSoundBuffer8_PauseEx                 IDirectSoundBuffer_PauseEx
 #define IDirectSoundBuffer8_GetStatus               IDirectSoundBuffer_GetStatus         
 #define IDirectSoundBuffer8_GetCurrentPosition      IDirectSoundBuffer_GetCurrentPosition
 #define IDirectSoundBuffer8_SetCurrentPosition      IDirectSoundBuffer_SetCurrentPosition
@@ -2013,6 +2161,7 @@ STDAPI IDirectSoundStream_SetI3DL2Source(LPDIRECTSOUNDSTREAM pStream, LPCDSI3DL2
 STDAPI IDirectSoundStream_Pause(LPDIRECTSOUNDSTREAM pStream, DWORD dwPause);
 STDAPI IDirectSoundStream_PauseEx(LPDIRECTSOUNDSTREAM pStream, REFERENCE_TIME rtTimestamp, DWORD dwPause);
 STDAPI IDirectSoundStream_FlushEx(LPDIRECTSOUNDSTREAM pStream, REFERENCE_TIME rtTimeStamp, DWORD dwFlags);
+STDAPI IDirectSoundStream_GetVoiceProperties(LPDIRECTSOUNDSTREAM pStream, LPDSVOICEPROPS pVoiceProps);
 
 #define IDirectSoundStream_AddRef           IUnknown_AddRef
 #define IDirectSoundStream_Release          IUnknown_Release
@@ -2184,6 +2333,11 @@ DECLARE_INTERFACE_(IDirectSoundStream, XMediaObject)
     __inline HRESULT STDMETHODCALLTYPE FlushEx(REFERENCE_TIME rtTimeStamp, DWORD dwFlags)
     {
         return IDirectSoundStream_FlushEx(this, rtTimeStamp, dwFlags);
+    }
+
+    __inline HRESULT STDMETHODCALLTYPE GetVoiceProperties(LPDSVOICEPROPS pVoiceProps)
+    {
+        return IDirectSoundStream_GetVoiceProperties(this, pVoiceProps);
     }
 
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
