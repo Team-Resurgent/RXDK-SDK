@@ -880,7 +880,7 @@ struct D3DPERF_BlockTimer
 };
 
 #define PERFEVENT_BLOCKTIMER(x,y)    D3DPERF_BlockTimer _PerfEventTimer(x,y)
-#endif __cplusplus
+#endif // __cplusplus
 
 /*
  * RXDK: PIX-style event markers. Retail d3d8.lib exports all three
@@ -898,12 +898,16 @@ struct D3DPERF_BlockTimer
  */
 BOOL WINAPI D3DPERF_QueryRepeatFrame(void);
 
-INT  WINAPI D3DPERF_BeginEvent(D3DCOLOR Color, const char *szName, ...);
-INT  WINAPI D3DPERF_EndEvent(void);
-void WINAPI D3DPERF_SetMarker(D3DCOLOR Color, const char *szName, ...);
+/* The varargs pair is __cdecl: a variadic __stdcall is impossible (the callee
+ * cannot balance an unknown-size stack), so WINAPI on these is silently treated
+ * as __cdecl anyway and retail exports them undecorated (_D3DPERF_BeginEvent).
+ * Spelling __cdecl makes that explicit and avoids -Wignored-attributes. */
+INT  __cdecl D3DPERF_BeginEvent(D3DCOLOR Color, const char *szName, ...);
+INT  WINAPI  D3DPERF_EndEvent(void);
+void __cdecl D3DPERF_SetMarker(D3DCOLOR Color, const char *szName, ...);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif _D3D8PERF_H_
+#endif // _D3D8PERF_H_
