@@ -1,5 +1,17 @@
 # RXDK-SDK
 
+<p align="center"><b>The consumer SDK for original Xbox homebrew — static libraries and public headers for building Xbox titles with the LLVM/clang toolchain</b></p>
+
+<p align="center">
+  <a href="https://github.com/Team-Resurgent/RXDK-SDK/blob/main/LICENSE.md"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
+  <a href="https://discord.gg/VcdSfajQGK"><img src="https://img.shields.io/badge/chat-on%20discord-7289da.svg?logo=discord" alt="Discord"></a>
+</p>
+
+<p align="center">
+  <a href="https://ko-fi.com/J3J7L5UMN"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="ko-fi"></a>
+  <a href="https://www.patreon.com/teamresurgent"><img src="https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Patreon"></a>
+</p>
+
 Consumer SDK for original Xbox homebrew development — static libraries and public
 headers for building Xbox titles (`.xbe`) with the LLVM/clang toolchain.
 
