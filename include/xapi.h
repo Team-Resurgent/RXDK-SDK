@@ -1,3 +1,9 @@
+/*
+ * 2026 - Team Resurgent
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * Part of RXDK - see LICENSE.md for the full GNU GPL v3.
+ */
+
 #pragma once
 #define RXDK_XAPI_H
 
@@ -97,7 +103,7 @@ PVOID __stdcall RtlCreateHeap(
     SIZE_T ReserveSize,
     SIZE_T CommitSize,
     PVOID Lock,
-    struct _RTL_HEAP_PARAMETERS *Parameters);
+    struct _RTL_HEAP_PARAMETERS* Parameters);
 PVOID __stdcall RtlDestroyHeap(PVOID HeapHandle);
 PVOID __stdcall RtlAllocateHeap(PVOID HeapHandle, ULONG Flags, SIZE_T Size);
 PVOID __stdcall RtlReAllocateHeap(PVOID HeapHandle, ULONG Flags, PVOID BaseAddress, SIZE_T Size);
@@ -120,4 +126,3 @@ SIZE_T __stdcall RtlSizeHeap(PVOID HeapHandle, ULONG Flags, PVOID BaseAddress);
 #ifdef __cplusplus
 }
 #endif
-

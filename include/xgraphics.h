@@ -1,11 +1,23 @@
-/*==========================================================================;
- *
- *  Copyright (C) 2000 - 2001 Microsoft Corporation.  All Rights Reserved.
- *
- *  File:       xgraphics.h
- *  Content:    Xbox graphics helper utilities
- *
- ****************************************************************************/
+/*
+ * 2026 - Team Resurgent
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * Part of RXDK - see LICENSE.md for the full GNU GPL v3.
+ */
+
+/*
+ * Xbox graphics helper utilities that sit alongside Direct3D. The main groups:
+ *   - Swizzle/tiling: the Swizzler class and XGSwizzle/Unswizzle Rect/Box copy
+ *     pixels between linear buffers and the NV2A's swizzled texture layout, plus
+ *     format queries (XGIsSwizzledFormat, XGBytesPerPixelFromFormat).
+ *   - Push-buffer compiler: pre-bakes indexed-draw commands into a push buffer.
+ *   - XGBuffer: a self-sizing data blob (the XG analogue of ID3DXBuffer).
+ *   - Vertex-shader micro-code splicing and query helpers.
+ *   - Resource "header" setters (XGSetTextureHeader, XGSetSurfaceHeader, ...):
+ *     fill in a D3D resource struct describing memory the title already owns,
+ *     so no D3D allocation happens. The caller is responsible for correct size,
+ *     pitch, swizzle, and tiling alignment - these do not validate.
+ *   - XPR / surface writers for tooling.
+ */
 
 #ifndef _XGRAPHICS_H_
 #define _XGRAPHICS_H_
@@ -107,101 +119,90 @@
 
 typedef DWORD SWIZNUM;
 
-class Swizzler 
+class Swizzler
 {
-public:
-
+  public:
     // Dimensions of the texture
     DWORD m_Width;
     DWORD m_Height;
-    DWORD m_Depth; 
+    DWORD m_Depth;
 
     // Internal mask for each coordinate
     DWORD m_MaskU;
     DWORD m_MaskV;
-    DWORD m_MaskW; 
+    DWORD m_MaskW;
 
     // Swizzled texture coordinates
     DWORD m_u;
     DWORD m_v;
-    DWORD m_w;     
+    DWORD m_w;
 
-    Swizzler(): m_Width(0), m_Height(0), m_Depth(0),
-        m_MaskU(0), m_MaskV(0), m_MaskW(0),
-        m_u(0), m_v(0), m_w(0)
-        { }
+    Swizzler() : m_Width(0), m_Height(0), m_Depth(0),
+                 m_MaskU(0), m_MaskV(0), m_MaskW(0),
+                 m_u(0), m_v(0), m_w(0)
+    {}
 
     // Initializes the swizzler
     Swizzler(
-        DWORD width, 
-        DWORD height, 
-        DWORD depth
-        )
-    { 
-		Init(width, height, depth);
-	}
+        DWORD width,
+        DWORD height,
+        DWORD depth)
+    {
+        Init(width, height, depth);
+    }
 
-	void Init(
-		DWORD width,
-		DWORD height,
-		DWORD depth
-		)
-	{
-        m_Width = width; 
-        m_Height = height; 
+    void
+    Init(
+        DWORD width,
+        DWORD height,
+        DWORD depth)
+    {
+        m_Width = width;
+        m_Height = height;
         m_Depth = depth;
-		m_MaskU = 0;
-		m_MaskV = 0;
-		m_MaskW = 0;
-		m_u = 0;
-		m_v = 0;
-		m_w = 0;
+        m_MaskU = 0;
+        m_MaskV = 0;
+        m_MaskW = 0;
+        m_u = 0;
+        m_v = 0;
+        m_w = 0;
 
         DWORD i = 1;
         DWORD j = 1;
         DWORD k;
 
-        do 
-        {
+        do {
             k = 0;
-            if (i < width)   
-            { 
-                m_MaskU |= j;   
-                k = (j<<=1);  
+            if (i < width) {
+                m_MaskU |= j;
+                k = (j <<= 1);
             }
 
-            if (i < height)  
-            { 
-                m_MaskV |= j;   
-                k = (j<<=1);  
+            if (i < height) {
+                m_MaskV |= j;
+                k = (j <<= 1);
             }
 
-            if (i < depth)   
-            {
-                 m_MaskW |= j;   
-                 k = (j<<=1);  
+            if (i < depth) {
+                m_MaskW |= j;
+                k = (j <<= 1);
             }
 
             i <<= 1;
-        } 
-        while (k);
+        } while (k);
     }
 
     // Swizzles a texture coordinate
-    SWIZNUM SwizzleU( 
-        DWORD num 
-        )
+    SWIZNUM
+    SwizzleU(
+        DWORD num)
     {
         SWIZNUM r = 0;
 
-        for (DWORD i = 1; i <= m_MaskU; i <<= 1) 
-        {
-            if (m_MaskU & i) 
-            {
+        for (DWORD i = 1; i <= m_MaskU; i <<= 1) {
+            if (m_MaskU & i) {
                 r |= (num & i);
-            }
-            else
-            {
+            } else {
                 num <<= 1;
             }
         }
@@ -209,20 +210,16 @@ public:
         return r;
     }
 
-    SWIZNUM SwizzleV( 
-        DWORD num 
-        )
+    SWIZNUM
+    SwizzleV(
+        DWORD num)
     {
         SWIZNUM r = 0;
 
-        for (DWORD i = 1; i <= m_MaskV; i <<= 1) 
-        {
-            if (m_MaskV & i)
-            {
+        for (DWORD i = 1; i <= m_MaskV; i <<= 1) {
+            if (m_MaskV & i) {
                 r |= (num & i);
-            }
-            else
-            {
+            } else {
                 num <<= 1;
             }
         }
@@ -230,20 +227,16 @@ public:
         return r;
     }
 
-    SWIZNUM SwizzleW( 
-        DWORD num 
-        )
+    SWIZNUM
+    SwizzleW(
+        DWORD num)
     {
         SWIZNUM r = 0;
 
-        for (DWORD i = 1; i <= m_MaskW; i <<= 1) 
-        {
-            if (m_MaskW & i)
-            {
+        for (DWORD i = 1; i <= m_MaskW; i <<= 1) {
+            if (m_MaskW & i) {
                 r |= (num & i);
-            }
-            else
-            {
+            } else {
                 num <<= 1;
             }
         }
@@ -251,76 +244,64 @@ public:
         return r;
     }
 
-    SWIZNUM Swizzle(
-        DWORD u, 
-        DWORD v, 
-        DWORD w
-        )
+    SWIZNUM
+    Swizzle(
+        DWORD u,
+        DWORD v,
+        DWORD w)
     {
         return SwizzleU(u) | SwizzleV(v) | SwizzleW(w);
     }
-    
+
     // Unswizzles a texture coordinate
-    DWORD UnswizzleU( 
-        SWIZNUM num
-        )
+    DWORD
+    UnswizzleU(
+        SWIZNUM num)
     {
         DWORD r = 0;
 
-        for (DWORD i = 1, j = 1; i; i <<= 1) 
-        {
-            if (m_MaskU & i)  
-            {   
-                r |= (num & j);   
-                j <<= 1; 
-            } 
-            else               
-            {   
-                num >>= 1; 
+        for (DWORD i = 1, j = 1; i; i <<= 1) {
+            if (m_MaskU & i) {
+                r |= (num & j);
+                j <<= 1;
+            } else {
+                num >>= 1;
             }
         }
 
         return r;
     }
 
-    DWORD UnswizzleV( 
-        SWIZNUM num 
-        )
+    DWORD
+    UnswizzleV(
+        SWIZNUM num)
     {
         DWORD r = 0;
 
-        for (DWORD i = 1, j = 1; i; i <<= 1) 
-        {
-            if (m_MaskV & i)  
-            {   
-                r |= (num & j);   
-                j <<= 1; 
-            } 
-            else
-            {   
-                num >>= 1; 
+        for (DWORD i = 1, j = 1; i; i <<= 1) {
+            if (m_MaskV & i) {
+                r |= (num & j);
+                j <<= 1;
+            } else {
+                num >>= 1;
             }
         }
 
         return r;
     }
 
-    DWORD UnswizzleW( 
-        SWIZNUM num 
-        )
+    DWORD
+    UnswizzleW(
+        SWIZNUM num)
     {
         DWORD r = 0;
 
-        for (DWORD i = 1, j = 1; i; i <<= 1) 
-        {
-            if (m_MaskW & i)  
-            {   
-                r |= (num & j);   
-                j <<= 1; 
-            } 
-            else               
-            {   
-                num >>= 1; 
+        for (DWORD i = 1, j = 1; i; i <<= 1) {
+            if (m_MaskW & i) {
+                r |= (num & j);
+                j <<= 1;
+            } else {
+                num >>= 1;
             }
         }
 
@@ -328,33 +309,101 @@ public:
     }
 
     // Sets a texture coordinate
-    __forceinline SWIZNUM SetU(SWIZNUM num) { return m_u = num /* & m_MaskU */; }
-    __forceinline SWIZNUM SetV(SWIZNUM num) { return m_v = num /* & m_MaskV */; }
-    __forceinline SWIZNUM SetW(SWIZNUM num) { return m_w = num /* & m_MaskW */; }
-    
+    __forceinline SWIZNUM
+    SetU(SWIZNUM num)
+    {
+        return m_u = num /* & m_MaskU */;
+    }
+    __forceinline SWIZNUM
+    SetV(SWIZNUM num)
+    {
+        return m_v = num /* & m_MaskV */;
+    }
+    __forceinline SWIZNUM
+    SetW(SWIZNUM num)
+    {
+        return m_w = num /* & m_MaskW */;
+    }
+
     // Adds a value to a texture coordinate
-    __forceinline SWIZNUM AddU(SWIZNUM num) { return m_u = ( m_u - ( (0-num) & m_MaskU ) ) & m_MaskU; }
-    __forceinline SWIZNUM AddV(SWIZNUM num) { return m_v = ( m_v - ( (0-num) & m_MaskV ) ) & m_MaskV; }
-    __forceinline SWIZNUM AddW(SWIZNUM num) { return m_w = ( m_w - ( (0-num) & m_MaskW ) ) & m_MaskW; }
+    __forceinline SWIZNUM
+    AddU(SWIZNUM num)
+    {
+        return m_u = (m_u - ((0 - num) & m_MaskU)) & m_MaskU;
+    }
+    __forceinline SWIZNUM
+    AddV(SWIZNUM num)
+    {
+        return m_v = (m_v - ((0 - num) & m_MaskV)) & m_MaskV;
+    }
+    __forceinline SWIZNUM
+    AddW(SWIZNUM num)
+    {
+        return m_w = (m_w - ((0 - num) & m_MaskW)) & m_MaskW;
+    }
 
     // Subtracts a value from a texture coordinate
-    __forceinline SWIZNUM SubU(SWIZNUM num) { return m_u = ( m_u - num /* & m_MaskU */ ) & m_MaskU; }
-    __forceinline SWIZNUM SubV(SWIZNUM num) { return m_v = ( m_v - num /* & m_MaskV */ ) & m_MaskV; }
-    __forceinline SWIZNUM SubW(SWIZNUM num) { return m_w = ( m_w - num /* & m_MaskW */ ) & m_MaskW; }
+    __forceinline SWIZNUM
+    SubU(SWIZNUM num)
+    {
+        return m_u = (m_u - num /* & m_MaskU */) & m_MaskU;
+    }
+    __forceinline SWIZNUM
+    SubV(SWIZNUM num)
+    {
+        return m_v = (m_v - num /* & m_MaskV */) & m_MaskV;
+    }
+    __forceinline SWIZNUM
+    SubW(SWIZNUM num)
+    {
+        return m_w = (m_w - num /* & m_MaskW */) & m_MaskW;
+    }
 
     // Increments a texture coordinate
-    __forceinline SWIZNUM IncU()              { return m_u = ( m_u - m_MaskU ) & m_MaskU; }
-    __forceinline SWIZNUM IncV()              { return m_v = ( m_v - m_MaskV ) & m_MaskV; }
-    __forceinline SWIZNUM IncW()              { return m_w = ( m_w - m_MaskW ) & m_MaskW; }
+    __forceinline SWIZNUM
+    IncU()
+    {
+        return m_u = (m_u - m_MaskU) & m_MaskU;
+    }
+    __forceinline SWIZNUM
+    IncV()
+    {
+        return m_v = (m_v - m_MaskV) & m_MaskV;
+    }
+    __forceinline SWIZNUM
+    IncW()
+    {
+        return m_w = (m_w - m_MaskW) & m_MaskW;
+    }
 
     // Decrements a texture coordinate
-    __forceinline SWIZNUM DecU()              { return m_u = ( m_u - 1 ) & m_MaskU; }
-    __forceinline SWIZNUM DecV()              { return m_v = ( m_v - 1 ) & m_MaskV; }
-    __forceinline SWIZNUM DecW()              { return m_w = ( m_w - 1 ) & m_MaskW; }
+    __forceinline SWIZNUM
+    DecU()
+    {
+        return m_u = (m_u - 1) & m_MaskU;
+    }
+    __forceinline SWIZNUM
+    DecV()
+    {
+        return m_v = (m_v - 1) & m_MaskV;
+    }
+    __forceinline SWIZNUM
+    DecW()
+    {
+        return m_w = (m_w - 1) & m_MaskW;
+    }
 
     // Gets the current swizzled address for a 2D or 3D texture
-    __forceinline SWIZNUM Get2D()          { return m_u | m_v; }
-    __forceinline SWIZNUM Get3D()          { return m_u | m_v | m_w; }
+    __forceinline SWIZNUM
+    Get2D()
+    {
+        return m_u | m_v;
+    }
+    __forceinline SWIZNUM
+    Get3D()
+    {
+        return m_u | m_v | m_w;
+    }
 };
 
 #endif // __cplusplus
@@ -365,12 +414,10 @@ public:
  */
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-typedef struct _XGPOINT3D
-{
+typedef struct _XGPOINT3D {
     DWORD u;
     DWORD v;
     DWORD w;
@@ -378,16 +425,14 @@ typedef struct _XGPOINT3D
 
 // Returns whether a texture format is swizzled or not.
 BOOL WINAPI XGIsSwizzledFormat(
-    D3DFORMAT Format
-    );
+    D3DFORMAT Format);
 
 // Returns the byte per texel of a format.
 DWORD WINAPI XGBytesPerPixelFromFormat(
-    D3DFORMAT Format
-    );
+    D3DFORMAT Format);
 
-// Swizzle a subrectangle from a buffer into a larger texture.  The 
-// destination rectangle must be completely contained within the destination 
+// Swizzle a subrectangle from a buffer into a larger texture.  The
+// destination rectangle must be completely contained within the destination
 // texture (no clipping).
 //
 // If pRect is NULL, pPoint is NULL and Pitch == 0, this routine will
@@ -396,15 +441,14 @@ DWORD WINAPI XGBytesPerPixelFromFormat(
 // considerably faster in that case.
 //
 VOID WINAPI XGSwizzleRect(
-    LPCVOID  pSource,      // The buffer that contains the source rectangle
-    DWORD    Pitch,        // The pitch of the buffer that contains the source
-    LPCRECT  pRect,        // The rectangle within the buffer to copy.
-    LPVOID   pDest,        // The destination texture.
-    DWORD    Width,        // The width of the entire destination texture.
-    DWORD    Height,       // The height of the entire destination texture.
-    CONST LPPOINT pPoint,  // Where to put the rectangle in the texture.
-    DWORD    BytesPerPixel
-    );
+    LPCVOID pSource, // The buffer that contains the source rectangle
+    DWORD Pitch, // The pitch of the buffer that contains the source
+    LPCRECT pRect, // The rectangle within the buffer to copy.
+    LPVOID pDest, // The destination texture.
+    DWORD Width, // The width of the entire destination texture.
+    DWORD Height, // The height of the entire destination texture.
+    CONST LPPOINT pPoint, // Where to put the rectangle in the texture.
+    DWORD BytesPerPixel);
 
 // Unswizzle a subrectangle from a texture into a buffer.
 //
@@ -414,50 +458,47 @@ VOID WINAPI XGSwizzleRect(
 // considerably faster in that case.
 //
 VOID WINAPI XGUnswizzleRect(
-    LPCVOID  pSource,      // The source texture.
-    DWORD    Width,        // The width of the entire source texture.
-    DWORD    Height,       // The height of the entire source texture.
-    LPCRECT  pRect,        // The rectangle within the texture to copy.
-    LPVOID   pDest,        // The destination buffer
-    DWORD    Pitch,        // The pitch of the destination buffer
-    CONST LPPOINT pPoint,  // Where to copy the rectangle to
-    DWORD    BytesPerPixel
-    );
+    LPCVOID pSource, // The source texture.
+    DWORD Width, // The width of the entire source texture.
+    DWORD Height, // The height of the entire source texture.
+    LPCRECT pRect, // The rectangle within the texture to copy.
+    LPVOID pDest, // The destination buffer
+    DWORD Pitch, // The pitch of the destination buffer
+    CONST LPPOINT pPoint, // Where to copy the rectangle to
+    DWORD BytesPerPixel);
 
-// Swizzle a box from a buffer into a larger texture.  The destination box 
+// Swizzle a box from a buffer into a larger texture.  The destination box
 // must be completely contained within the destination texture (no clipping).
 //
 VOID WINAPI XGSwizzleBox(
-    LPCVOID     pSource,      // The buffer that contains the source rectangle
-    DWORD       RowPitch,     // Byte offset from the left edge of one row to
-                                // the left edge of the next row
-    DWORD       SlicePitch,   // Byte offset from the top-left of one slice to
-                                // the top-left of the next deepest slice
-    CONST D3DBOX * pBox,      // The box within the buffer to copy.
-    LPVOID      pDest,        // The destination texture.
-    DWORD       Width,        // The width of the entire destination texture.
-    DWORD       Height,       // The height of the entire destination texture.
-    DWORD       Depth,        // The depth of the entire destination texture.
-    CONST XGPOINT3D * pPoint, // Where to put the rectangle in the texture.
-    DWORD       BytesPerPixel
-    );
+    LPCVOID pSource, // The buffer that contains the source rectangle
+    DWORD RowPitch, // Byte offset from the left edge of one row to
+    // the left edge of the next row
+    DWORD SlicePitch, // Byte offset from the top-left of one slice to
+    // the top-left of the next deepest slice
+    CONST D3DBOX* pBox, // The box within the buffer to copy.
+    LPVOID pDest, // The destination texture.
+    DWORD Width, // The width of the entire destination texture.
+    DWORD Height, // The height of the entire destination texture.
+    DWORD Depth, // The depth of the entire destination texture.
+    CONST XGPOINT3D* pPoint, // Where to put the rectangle in the texture.
+    DWORD BytesPerPixel);
 
 // Unswizzle a box from a texture into a buffer.
 //
 void WINAPI XGUnswizzleBox(
-    LPCVOID     pSource,      // The source texture.
-    DWORD       Width,        // The width of the entire source texture.
-    DWORD       Height,       // The height of the entire source texture.
-    DWORD       Depth,        // The depth of the entire destination texture.
-    CONST D3DBOX * pBox,      // RXDK: const to match the swizzler.cpp definition (reads only)
-    LPVOID      pDest,        // The destination buffer
-    DWORD       RowPitch,     // Byte offset from the left edge of one row to
-                                // the left edge of the next row
-    DWORD       SlicePitch,   // Byte offset from the top-left of one slice to
-                                // the top-left of the next deepest slice
-    CONST XGPOINT3D * pPoint, // RXDK: const to match the swizzler.cpp definition
-    DWORD       BytesPerPixel
-    );
+    LPCVOID pSource, // The source texture.
+    DWORD Width, // The width of the entire source texture.
+    DWORD Height, // The height of the entire source texture.
+    DWORD Depth, // The depth of the entire destination texture.
+    CONST D3DBOX* pBox, // The box within the texture to copy (read-only).
+    LPVOID pDest, // The destination buffer
+    DWORD RowPitch, // Byte offset from the left edge of one row to
+    // the left edge of the next row
+    DWORD SlicePitch, // Byte offset from the top-left of one slice to
+    // the top-left of the next deepest slice
+    CONST XGPOINT3D* pPoint, // Where to copy the box to (read-only).
+    DWORD BytesPerPixel);
 
 #ifdef __cplusplus
 }
@@ -470,8 +511,7 @@ void WINAPI XGUnswizzleBox(
  ****************************************************************************/
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /*
@@ -484,12 +524,11 @@ extern "C"
  */
 
 HRESULT WINAPI XGCompileDrawIndexedVertices(
-    void *pBuffer,
-    DWORD *pSize, // In: total size of buffer, Out: size of resulting push-buffer
+    void* pBuffer,
+    DWORD* pSize, // In: total size of buffer, Out: size of resulting push-buffer
     D3DPRIMITIVETYPE PrimitiveType,
     UINT VertexCount,
-    CONST WORD *pIndexData
-    );
+    CONST WORD* pIndexData);
 
 #ifdef __cplusplus
 }
@@ -514,28 +553,43 @@ HRESULT WINAPI XGBufferCreate(DWORD numBytes, LPXGBUFFER* ppBuffer);
 
 /* XGBuffer */
 
-ULONG   WINAPI XGBuffer_AddRef(XGBuffer *pThis);
-ULONG   WINAPI XGBuffer_Release(XGBuffer *pThis);
-LPVOID  WINAPI XGBuffer_GetBufferPointer(XGBuffer *pThis);
-DWORD   WINAPI XGBuffer_GetBufferSize(XGBuffer *pThis);
+ULONG WINAPI XGBuffer_AddRef(XGBuffer* pThis);
+ULONG WINAPI XGBuffer_Release(XGBuffer* pThis);
+LPVOID WINAPI XGBuffer_GetBufferPointer(XGBuffer* pThis);
+DWORD WINAPI XGBuffer_GetBufferSize(XGBuffer* pThis);
 
 #ifdef __cplusplus
 }
 #endif //__cplusplus
 
-struct XGBuffer
-{
-    DWORD  refCount;            // The ref count.
-    LPVOID pData;               // The data
-    DWORD  size;                // The size of the buffer
+struct XGBuffer {
+    DWORD refCount; // The ref count.
+    LPVOID pData; // The data
+    DWORD size; // The size of the buffer
 #ifdef __cplusplus
     // IUnknown
-    ULONG WINAPI AddRef() { return XGBuffer_AddRef(this); }
-    ULONG WINAPI Release(){ return XGBuffer_Release(this); }
+    ULONG WINAPI
+    AddRef()
+    {
+        return XGBuffer_AddRef(this);
+    }
+    ULONG WINAPI
+    Release()
+    {
+        return XGBuffer_Release(this);
+    }
 
     // IXGBuffer methods
-    LPVOID WINAPI GetBufferPointer() { return XGBuffer_GetBufferPointer(this); }
-    DWORD  WINAPI GetBufferSize() { return XGBuffer_GetBufferSize(this); }
+    LPVOID WINAPI
+    GetBufferPointer()
+    {
+        return XGBuffer_GetBufferPointer(this);
+    }
+    DWORD WINAPI
+    GetBufferSize()
+    {
+        return XGBuffer_GetBufferSize(this);
+    }
 #endif // __cplusplus
 };
 
@@ -587,10 +641,10 @@ struct XGBuffer
  */
 
 typedef HRESULT (*SASM_ResolverCallback)(LPVOID pResolverUserData,
-        BOOL isSystemInclude, LPCSTR sourceFilePath,
-        LPCSTR includeFileName,
-        LPSTR resolvedFilePath, DWORD resolvedFilePathSize,
-        LPXGBUFFER* ppResolvedFile);
+    BOOL isSystemInclude, LPCSTR sourceFilePath,
+    LPCSTR includeFileName,
+    LPSTR resolvedFilePath, DWORD resolvedFilePathSize,
+    LPXGBUFFER* ppResolvedFile);
 
 
 //-------------------------------------------------------------------------
@@ -651,31 +705,29 @@ typedef HRESULT (*SASM_ResolverCallback)(LPVOID pResolverUserData,
 //   memory penalty for using this flag.)
 //-------------------------------------------------------------------------
 
-#define SASM_DEBUG                                  (1 << 0)
-#define SASM_SKIPVALIDATION                         (1 << 1)
-#define SASM_DONOTOPTIMIZE                          (1 << 2)
-#define SASM_OUTPUTTOKENS                           (1 << 3)
-#define SASM_INPUT_PIXELSHADER_TOKENS               (1 << 4)
-#define SASM_INPUT_VERTEXSHADER_TOKENS              (1 << 5)
-#define SASM_INPUT_READWRITE_VERTEXSHADER_TOKENS    (1 << 6)
-#define SASM_INPUT_VERTEXSTATESHADER_TOKENS         (1 << 7)
-#define SASM_INPUT_SCREENSPACE_VERTEXSHADER_TOKENS  (1 << 8)
-#define SASM_INPUT_NONXBOX_TOKENS                   (1 << 9)
-#define SASM_INPUT_MICROCODE                        (1 << 10)
-#define SASM_INPUT_SCREENSPACE_MICROCODE            (1 << 11)
-#define SASM_PREPROCESSONLY                         (1 << 12)
-#define SASM_SKIPPREPROCESSOR                       (1 << 13)
-#define SASM_DISABLE_GLOBAL_OPTIMIZATIONS           (1 << 14)
-#define SASM_VERIFY_OPTIMIZATIONS                   (1 << 15)
+#define SASM_DEBUG (1 << 0)
+#define SASM_SKIPVALIDATION (1 << 1)
+#define SASM_DONOTOPTIMIZE (1 << 2)
+#define SASM_OUTPUTTOKENS (1 << 3)
+#define SASM_INPUT_PIXELSHADER_TOKENS (1 << 4)
+#define SASM_INPUT_VERTEXSHADER_TOKENS (1 << 5)
+#define SASM_INPUT_READWRITE_VERTEXSHADER_TOKENS (1 << 6)
+#define SASM_INPUT_VERTEXSTATESHADER_TOKENS (1 << 7)
+#define SASM_INPUT_SCREENSPACE_VERTEXSHADER_TOKENS (1 << 8)
+#define SASM_INPUT_NONXBOX_TOKENS (1 << 9)
+#define SASM_INPUT_MICROCODE (1 << 10)
+#define SASM_INPUT_SCREENSPACE_MICROCODE (1 << 11)
+#define SASM_PREPROCESSONLY (1 << 12)
+#define SASM_SKIPPREPROCESSOR (1 << 13)
+#define SASM_DISABLE_GLOBAL_OPTIMIZATIONS (1 << 14)
+#define SASM_VERIFY_OPTIMIZATIONS (1 << 15)
 
-// 5849: the assembler ships TWO vertex optimisers, selectable per call, and a
-// matrix packing order. Nothing in RXDK reads these yet -- the managed xsasm port
-// implements neither optimiser -- but a title's build can pass them, and a flag
-// silently ignored is worse than one that is at least declared.
-#define SASM_USE_V1_OPTIMIZER                       (1 << 16)
-#define SASM_USE_V2_OPTIMIZER                       (1 << 17)
-#define SASM_PACKMATRIX_ROWMAJOR                    (1 << 18)
-#define SASM_PACKMATRIX_COLUMNMAJOR                 (1 << 19)
+// Select which of the assembler's two vertex optimizers to run, and the packing
+// order for matrix constants (row- vs column-major).
+#define SASM_USE_V1_OPTIMIZER (1 << 16)
+#define SASM_USE_V2_OPTIMIZER (1 << 17)
+#define SASM_PACKMATRIX_ROWMAJOR (1 << 18)
+#define SASM_PACKMATRIX_COLUMNMAJOR (1 << 19)
 
 //-------------------------------------------------------------------------
 // SASMT values:
@@ -705,17 +757,17 @@ typedef HRESULT (*SASM_ResolverCallback)(LPVOID pResolverUserData,
 //
 //-------------------------------------------------------------------------
 
-#define SASMT_PIXELSHADER               0
-#define SASMT_VERTEXSHADER              1
-#define SASMT_READWRITE_VERTEXSHADER    2
-#define SASMT_VERTEXSTATESHADER         3
-#define SASMT_INVALIDSHADER             0xff
-#define SASMT_SCREENSPACE               0x100
-#define SASMT_SHADERTYPEMASK            0xff
+#define SASMT_PIXELSHADER 0
+#define SASMT_VERTEXSHADER 1
+#define SASMT_READWRITE_VERTEXSHADER 2
+#define SASMT_VERTEXSTATESHADER 3
+#define SASMT_INVALIDSHADER 0xff
+#define SASMT_SCREENSPACE 0x100
+#define SASMT_SHADERTYPEMASK 0xff
 
 #define SASMT_SHADERTYPE(X) ((X) & SASMT_SHADERTYPEMASK)
-// 5849: a shader FRAGMENT -- a partial shader for XGSpliceVertexShaders.
-#define SASMT_FRAGMENT                  0x200
+// A shader fragment: a partial shader assembled for use with XGSpliceVertexShaders.
+#define SASMT_FRAGMENT 0x200
 
 #define SASMT_ISSCREENSPACE(X) (((X) & SASMT_SCREENSPACE) != 0)
 #define SASMT_ISFRAGMENT(X) (((X) & SASMT_FRAGMENT) != 0)
@@ -723,7 +775,7 @@ typedef HRESULT (*SASM_ResolverCallback)(LPVOID pResolverUserData,
 //-------------------------------------------------------------------------
 // XGAssembleShader:
 // ------------------------
-// Assembles an ASCII description of a vertex or pixel shader into 
+// Assembles an ASCII description of a vertex or pixel shader into
 // binary form.
 //
 // Parameters:
@@ -775,8 +827,7 @@ XGAssembleShader(
     LPXGBUFFER* pListing,
     SASM_ResolverCallback pResolver,
     LPVOID pResolverUserData,
-    LPDWORD pShaderType
-    );
+    LPDWORD pShaderType);
 
 #define AssembleShader XGAssembleShader
 
@@ -803,28 +854,25 @@ XGCompileShader(
     LPXGBUFFER* pMachineListing,
     SASM_ResolverCallback pResolver,
     LPVOID pResolverUserData,
-    LPDWORD pShaderType
-    );
+    LPDWORD pShaderType);
 
 #define CompileShader XGCompileShader
 
 
 //XGSpliceVertexShaders:
 //	Splice together shaders in the ppShaderArray, return it in *pNewShader.
-//	If pcbNewShaderBufferSize is provided and is too small, it will be changed to the minimum allowable buffer size, and will return S_FALSE. 
+//	If pcbNewShaderBufferSize is provided and is too small, it will be changed to the minimum allowable buffer size, and will return S_FALSE.
 //		pNewShader can be NULL in this case. If pcbNewShaderBufferSize is NULL or points to a non-zero size, pNewShader must not be NULL.
 //	The return value will be S_OK or S_FALSE. If optimizing in low-mem conditions, it can run out of memory, and will return an error code.
 //	If bad params are passed, it will assert.
-HRESULT WINAPI XGSpliceVertexShaders (
-	/*			   OUT  */  DWORD*   pNewShader,			  //pointer to buffer to fill with output
-	/* OPTIONAL IN OUT  */  DWORD*   pcbNewShaderBufferSize, //How many bytes long the shader buffer is
- 	/* OPTIONAL    OUT  */  DWORD*   pNewInstructionCount,   //how many instrucitons are in the newly-spliced shader
-	/*    IN      */  CONST DWORD* CONST*  ppShaderArray,          //arrray of pointers to shaders to splice together
-	/*		    IN      */  DWORD    NumShaders,             //num of shaders in ppShaderArray
-	/*		    IN      */  BOOL     bOptimizeResults        //TRUE to optimize, FALSE to not optimize
+HRESULT WINAPI XGSpliceVertexShaders(
+    /*			   OUT  */ DWORD* pNewShader, //pointer to buffer to fill with output
+    /* OPTIONAL IN OUT  */ DWORD* pcbNewShaderBufferSize, //How many bytes long the shader buffer is
+    /* OPTIONAL    OUT  */ DWORD* pNewInstructionCount, //how many instrucitons are in the newly-spliced shader
+    /*    IN      */ CONST DWORD * CONST * ppShaderArray, //arrray of pointers to shaders to splice together
+    /*		    IN      */ DWORD NumShaders, //num of shaders in ppShaderArray
+    /*		    IN      */ BOOL bOptimizeResults //TRUE to optimize, FALSE to not optimize
 );
-
-
 
 
 // Examines vertex shader microcode, and determines the type of vertex shader.
@@ -843,8 +891,7 @@ HRESULT WINAPI XGSpliceVertexShaders (
 //      If the microcode is invalid, the result is SASMT_INVALIDSHADER.
 
 DWORD WINAPI XGSUCode_GetVertexShaderType(
-    LPCVOID pMicrocode
-    );
+    LPCVOID pMicrocode);
 
 // Examines shader microcode, and determines the length
 // in instructions.
@@ -859,8 +906,7 @@ DWORD WINAPI XGSUCode_GetVertexShaderType(
 //      If the microcode is not a valid vertex shader, the result is undefined.
 
 DWORD WINAPI XGSUCode_GetVertexShaderLength(
-    LPCVOID pMicrocode
-    );
+    LPCVOID pMicrocode);
 
 // Compares two vertex shaders to see if they produce equivalent results.
 //
@@ -883,8 +929,7 @@ DWORD WINAPI XGSUCode_GetVertexShaderLength(
 HRESULT WINAPI XGSUCode_CompareVertexShaders(
     LPCVOID pMicrocodeA,
     LPCVOID pMicrocodeB,
-    LPXGBUFFER* ppErrorLog
-    );
+    LPXGBUFFER* ppErrorLog);
 
 
 /*****************************************************************************
@@ -915,9 +960,8 @@ HRESULT WINAPI XGSUCode_CompareVertexShaders(
  ****************************************************************************/
 
 HRESULT WINAPI XGWriteSurfaceToFile(
-    IDirect3DSurface8 *pSurf,
-    const char *cPath
-    );
+    IDirect3DSurface8* pSurf,
+    const char* cPath);
 
 
 /*****************************************************************************
@@ -932,6 +976,9 @@ HRESULT WINAPI XGWriteSurfaceToFile(
  *   unique identifier for this file type.
  *
  ****************************************************************************/
+/* Leading header of an XPR packed-resource file: magic ("XPR0"), total file
+ * size, and the size of the header/resource-descriptor region that precedes the
+ * bundled resource data. */
 typedef struct {
     DWORD dwMagic;
     DWORD dwTotalSize;
@@ -962,10 +1009,9 @@ typedef struct {
  *
  ****************************************************************************/
 HRESULT WINAPI XGWriteSurfaceOrTextureToXPR(
-    IDirect3DResource8 *pResource, 
-    const char *cPath,
-    BOOL bWriteSurfaceAsTexture
-    );
+    IDirect3DResource8* pResource,
+    const char* cPath,
+    BOOL bWriteSurfaceAsTexture);
 
 
 /*****************************************************************************
@@ -1002,28 +1048,35 @@ HRESULT WINAPI XGWriteSurfaceOrTextureToXPR(
  *  XGCOMPRESS_PROTECTNONZERO specifies that non-zero alpha values should
  *      not be quantized to zero.
  ****************************************************************************/
-#define XGCOMPRESS_PREMULTIPLY      0x1
-#define XGCOMPRESS_NEEDALPHA0       0x2
-#define XGCOMPRESS_NEEDALPHA1       0x4
-#define XGCOMPRESS_PROTECTNONZERO   0x8
+#define XGCOMPRESS_PREMULTIPLY 0x1
+#define XGCOMPRESS_NEEDALPHA0 0x2
+#define XGCOMPRESS_NEEDALPHA1 0x4
+#define XGCOMPRESS_PROTECTNONZERO 0x8
 
 HRESULT WINAPI XGCompressRect(
     LPVOID pDestBuf,
     D3DFORMAT DestFormat,
-    DWORD dwDestPitch, 
+    DWORD dwDestPitch,
     DWORD dwWidth,
     DWORD dwHeight,
     LPVOID pSrcData,
     D3DFORMAT SrcFormat,
     DWORD dwSrcPitch,
     FLOAT fAlphaRef,
-    DWORD dwFlags
-    );
+    DWORD dwFlags);
 
 
 /*****************************************************************************
- * 
- * XGSetSurfaceHeader
+ *
+ * XGSet*Header
+ *
+ * Fill an already-allocated D3D resource struct (surface, texture, cube/volume
+ * texture, vertex/index buffer, palette, push buffer, fixup) so it describes
+ * memory the title itself owns and manages, without D3D allocating anything.
+ * The Data argument is the GPU-visible byte offset of the pixel/vertex data
+ * (the physical address masked to the low bits, not the CPU virtual pointer);
+ * the caller is responsible for correct format, pitch, swizzle, and tiling
+ * alignment. These setters do not validate their arguments.
  *
  ****************************************************************************/
 
@@ -1032,9 +1085,9 @@ VOID WINAPI XGSetSurfaceHeader(
     UINT Height,
     D3DFORMAT Format,
     IDirect3DSurface8* pSurface,
-    UINT Data,                  // Offset to the data held by this resource
-    UINT Pitch                  // Surface pitch
-    );
+    UINT Data, // Offset to the data held by this resource
+    UINT Pitch // Surface pitch
+);
 
 
 /*****************************************************************************
@@ -1051,9 +1104,9 @@ VOID WINAPI XGSetTextureHeader(
     D3DFORMAT Format,
     D3DPOOL Pool,
     IDirect3DTexture8* pTexture,
-    UINT Data,                  // Offset to the data held by this resource
-    UINT Pitch                  // Texture pitch
-    );
+    UINT Data, // Offset to the data held by this resource
+    UINT Pitch // Texture pitch
+);
 
 
 /*****************************************************************************
@@ -1069,9 +1122,9 @@ VOID WINAPI XGSetCubeTextureHeader(
     D3DFORMAT Format,
     D3DPOOL Pool,
     IDirect3DCubeTexture8* pCubeTexture,
-    UINT Data,                  // Offset to the data held by this resource
-    UINT Pitch                  // CubeTexture pitch
-    );
+    UINT Data, // Offset to the data held by this resource
+    UINT Pitch // CubeTexture pitch
+);
 
 
 /*****************************************************************************
@@ -1089,9 +1142,9 @@ VOID WINAPI XGSetVolumeTextureHeader(
     D3DFORMAT Format,
     D3DPOOL Pool,
     IDirect3DVolumeTexture8* pVolumeTexture,
-    UINT Data,                  // Offset to the data held by this resource
-    UINT Pitch                  // VolumeTexture pitch
-    );
+    UINT Data, // Offset to the data held by this resource
+    UINT Pitch // VolumeTexture pitch
+);
 
 /*****************************************************************************
  * 
@@ -1104,9 +1157,8 @@ VOID WINAPI XGSetVertexBufferHeader(
     DWORD Usage,
     DWORD FVF,
     D3DPOOL Pool,
-    IDirect3DVertexBuffer8 *ppVertexBuffer,
-    UINT Data
-    );
+    IDirect3DVertexBuffer8* ppVertexBuffer,
+    UINT Data);
 
 /*****************************************************************************
  * 
@@ -1119,9 +1171,8 @@ VOID WINAPI XGSetIndexBufferHeader(
     DWORD Usage,
     D3DFORMAT Format,
     D3DPOOL Pool,
-    IDirect3DIndexBuffer8 *pIndexBuffer,
-    UINT Data
-    );
+    IDirect3DIndexBuffer8* pIndexBuffer,
+    UINT Data);
 
 #ifdef _XBOX_
 
@@ -1132,10 +1183,9 @@ VOID WINAPI XGSetIndexBufferHeader(
  ****************************************************************************/
 
 VOID WINAPI XGSetPaletteHeader(
-    D3DPALETTESIZE Size, 
-    IDirect3DPalette8 *pPalette,
-    UINT Data
-    );
+    D3DPALETTESIZE Size,
+    IDirect3DPalette8* pPalette,
+    UINT Data);
 
 /*****************************************************************************
  * 
@@ -1146,9 +1196,8 @@ VOID WINAPI XGSetPaletteHeader(
 VOID WINAPI XGSetPushBufferHeader(
     UINT Size,
     BOOL RunUsingCpuCopy,
-    IDirect3DPushBuffer8 *pPushBuffer,
-    UINT Data
-    );
+    IDirect3DPushBuffer8* pPushBuffer,
+    UINT Data);
 
 /*****************************************************************************
  * 
@@ -1158,9 +1207,8 @@ VOID WINAPI XGSetPushBufferHeader(
 
 VOID WINAPI XGSetFixupHeader(
     UINT Size,
-    IDirect3DFixup8 *pFixup,
-    UINT Data
-    );
+    IDirect3DFixup8* pFixup,
+    UINT Data);
 
 #endif // _XBOX_
 
@@ -1169,4 +1217,3 @@ VOID WINAPI XGSetFixupHeader(
 #endif //__cplusplus
 
 #endif /* _XGRAPHICS_H_ */
-

@@ -1,6 +1,23 @@
+/*
+ * 2026 - Team Resurgent
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * Part of RXDK - see LICENSE.md for the full GNU GPL v3.
+ */
+
+/*
+ * File-system and object type definitions used by the Nt and Io file APIs.
+ * Defines the information-class enumerations (FILE_INFORMATION_CLASS,
+ * FS_INFORMATION_CLASS) and the corresponding query/set payload structures, the
+ * IO_STATUS_BLOCK completion record, broken-down time fields, memory and SID
+ * descriptors, and OBJECT_ATTRIBUTES with its initializer. Each info-class enum
+ * value selects the identically named FILE_ or FILE_FS_ structure.
+ */
+
 #ifndef XBOXKRNL_TYPES_FILE_H
 #define XBOXKRNL_TYPES_FILE_H
 
+/* Broken-down calendar time (Weekday 0 = Sunday); converts to/from a 64-bit
+ * system time via the Rtl time routines. */
 typedef struct _TIME_FIELDS {
     SHORT Year;
     SHORT Month;
@@ -17,9 +34,10 @@ typedef enum _WAIT_TYPE {
     WaitAny = 1
 } WAIT_TYPE;
 
+/* Result of an I/O operation: final Status and an Information count whose meaning
+ * is operation-specific (bytes transferred, disposition taken, etc.). */
 typedef struct _IO_STATUS_BLOCK {
-    union
-    {
+    union {
         NTSTATUS Status;
         PVOID Pointer;
     };
@@ -27,6 +45,8 @@ typedef struct _IO_STATUS_BLOCK {
     ULONG_PTR Information;
 } IO_STATUS_BLOCK, *PIO_STATUS_BLOCK;
 
+/* Volume information classes for NtQueryVolumeInformationFile; each selects the
+ * matching FILE_FS_* structure. */
 typedef enum _FSINFOCLASS {
     FileFsVolumeInformation = 1,
     FileFsLabelInformation,
@@ -84,6 +104,8 @@ typedef struct _FILE_FS_ATTRIBUTE_INFORMATION {
     OCHAR FileSystemName[1];
 } FILE_FS_ATTRIBUTE_INFORMATION, *PFILE_FS_ATTRIBUTE_INFORMATION;
 
+/* Describes a virtual-address region as returned by NtQueryVirtualMemory:
+ * base/allocation base, size, state, and protection. */
 typedef struct _MEMORY_BASIC_INFORMATION {
     PVOID BaseAddress;
     PVOID AllocationBase;
@@ -105,6 +127,8 @@ typedef struct _SID {
     DWORD SubAuthority[1];
 } SID, *PISID;
 
+/* File information classes for NtQueryInformationFile / NtSetInformationFile and
+ * directory enumeration; each selects the matching FILE_* structure below. */
 typedef enum _FILE_INFORMATION_CLASS {
     FileDirectoryInformation = 1,
     FileFullDirectoryInformation,
@@ -343,8 +367,7 @@ typedef struct _FILE_COMPRESSION_INFORMATION {
 typedef struct _FILE_OBJECTID_INFORMATION {
     LONGLONG FileReference;
     UCHAR ObjectId[16];
-    union
-    {
+    union {
         struct
         {
             UCHAR BirthVolumeId[16];
@@ -403,33 +426,40 @@ typedef struct _FILE_TRACKING_INFORMATION {
     CHAR ObjectInformation[1];
 } FILE_TRACKING_INFORMATION, *PFILE_TRACKING_INFORMATION;
 
+/* Names an object for open/create calls: an optional RootDirectory handle the
+ * ObjectName is relative to, plus OBJ_* Attributes. The Xbox variant carries no
+ * security descriptor. Initialize with InitializeObjectAttributes. */
 typedef struct _OBJECT_ATTRIBUTES {
-        HANDLE RootDirectory;
-        PANSI_STRING ObjectName;
-        ULONG Attributes;
+    HANDLE RootDirectory;
+    PANSI_STRING ObjectName;
+    ULONG Attributes;
 } OBJECT_ATTRIBUTES, *POBJECT_ATTRIBUTES;
 
-#define OBJ_INHERIT                   0x00000002L
-#define OBJ_PERMANENT                 0x00000010L
-#define OBJ_EXCLUSIVE                 0x00000020L
-#define OBJ_CASE_INSENSITIVE          0x00000040L
-#define OBJ_OPENIF                    0x00000080L
-#define OBJ_OPENLINK                  0x00000100L
-#define OBJ_VALID_ATTRIBUTES          0x000001F2L
+/* OBJECT_ATTRIBUTES.Attributes flags: inheritance, permanence, exclusive open,
+ * case-insensitive match, open-if-exists, and open-link behavior. */
+#define OBJ_INHERIT 0x00000002L
+#define OBJ_PERMANENT 0x00000010L
+#define OBJ_EXCLUSIVE 0x00000020L
+#define OBJ_CASE_INSENSITIVE 0x00000040L
+#define OBJ_OPENIF 0x00000080L
+#define OBJ_OPENLINK 0x00000100L
+#define OBJ_VALID_ATTRIBUTES 0x000001F2L
 // The Xbox OBJECT_ATTRIBUTES has no SecurityDescriptor, so the XDK macro takes 4 args
 // (p, n, a, r). Desktop-NT code (and some of our own libs) passes a 5th. Accept both: the
 // body ignores the security descriptor either way.
-#define RXDK_IOA4(p, n, a, r) { \
-    (p)->RootDirectory = (r); \
-    (p)->Attributes = (a); \
-    (p)->ObjectName = (n); \
-}
+#define RXDK_IOA4(p, n, a, r) \
+    { \
+        (p)->RootDirectory = (r); \
+        (p)->Attributes = (a); \
+        (p)->ObjectName = (n); \
+    }
 #define RXDK_IOA5(p, n, a, r, s) RXDK_IOA4(p, n, a, r)
 #define RXDK_IOA_PICK(_1, _2, _3, _4, _5, NAME, ...) NAME
 #define InitializeObjectAttributes(...) \
     RXDK_IOA_PICK(__VA_ARGS__, RXDK_IOA5, RXDK_IOA4)(__VA_ARGS__)
 
-#define ObDosDevicesDirectory()        ((HANDLE)-3)
-#define ObWin32NamedObjectsDirectory() ((HANDLE)-4)
+/* Pseudo-handles for the well-known namespace roots, usable as RootDirectory. */
+#define ObDosDevicesDirectory() ((HANDLE) - 3)
+#define ObWin32NamedObjectsDirectory() ((HANDLE) - 4)
 
 #endif

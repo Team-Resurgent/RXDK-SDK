@@ -1,3 +1,9 @@
+/*
+ * 2026 - Team Resurgent
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * Part of RXDK - see LICENSE.md for the full GNU GPL v3.
+ */
+
 #pragma once
 //
 // xtl.h - the RXDK master distribution umbrella (clean-room equivalent of the
@@ -27,11 +33,11 @@
 #define NT_INCLUDED
 #endif
 
-#include <stdarg.h>   /* va_list, used by winbase.h (matches XDK XTL.h) */
+#include <stdarg.h> /* va_list, used by winbase.h (matches XDK XTL.h) */
 #include <windef.h>
 #include <winbase.h>
-#include <guiddef.h>     /* GUID/REFGUID/REFIID/DECLSPEC_SELECTANY for COM interfaces */
-#include <xdk_compat.h>  /* Win32/COM names the device public headers need (see file) */
+#include <guiddef.h> /* GUID/REFGUID/REFIID/DECLSPEC_SELECTANY for COM interfaces */
+#include <xdk_compat.h> /* Win32/COM names the device public headers need (see file) */
 #include <xbox.h>
 #include <xkbd.h>
 

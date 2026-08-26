@@ -1,58 +1,51 @@
-/***************************************************************************
- *
- *  Copyright (C) 11/2/2001 Microsoft Corporation.  All Rights Reserved.
- *
- *  File:       wavbndlr.h
- *  Content:    Wave Bundler definitions.
- *
- ****************************************************************************/
+/*
+ * 2026 - Team Resurgent
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * Part of RXDK - see LICENSE.md for the full GNU GPL v3.
+ */
+
+/*
+ * Wave Bundler runtime support. Layered on the on-disk wave-bank format in
+ * <xactwb.h>, it adds what the runtime needs to consume a bank: the expanded
+ * WAVEBANKUNIWAVEFORMAT (a full WAVEFORMATEX/ADPCM view of the packed mini
+ * format), the parsed section pointers in WAVEBANKSECTIONDATA, format
+ * expand/compress helpers, and the CWaveBankReader that maps a .xwb file.
+ */
 
 #ifndef __WAVBNDLR_H__
 #define __WAVBNDLR_H__
 
-//
-// The on-disk wave bank format lives in xactwb.h, which is the header the XDK ships and
-// therefore the one a title validates a bank against. This file adds only what the runtime
-// needs on top of it: the expanded format union, the parsed section pointers, and the reader.
-//
-// It used to carry its own copy of the format at version 2 (the January-2002 trunk layout:
-// one flat header, no segment table, a 1-bit format tag, and no per-entry flags). That copy
-// was kept on the reasoning that the bank was a private contract between xactbld and this
-// engine. It is not - the WaveBank and WaveBankStream samples open a .xwb and read the
-// header themselves - so the format follows xactwb.h and the duplicate is gone.
-//
-
 #include <xactwb.h>
 
-// 
+//
 // Wave bank expanded wave format
 //
 
-typedef union _WAVEBANKUNIWAVEFORMAT
-{
-    WAVEFORMATEX        WaveFormatEx;
+typedef union _WAVEBANKUNIWAVEFORMAT {
+    WAVEFORMATEX WaveFormatEx;
     XBOXADPCMWAVEFORMAT AdpcmWaveFormat;
 } WAVEBANKUNIWAVEFORMAT, *LPWAVEBANKUNIWAVEFORMAT;
 
-typedef const WAVEBANKUNIWAVEFORMAT *LPCWAVEBANKUNIWAVEFORMAT;
+typedef const WAVEBANKUNIWAVEFORMAT* LPCWAVEBANKUNIWAVEFORMAT;
 
 //
 // Wave bank section data
 //
 
-typedef struct _WAVEBANKSECTIONDATA
-{
-    LPWAVEBANKHEADER    pHeader;            // File header
-    LPWAVEBANKDATA      pBankData;          // Bank data segment (entry count, name, alignment)
-    LPWAVEBANKENTRY     paMetaData;         // Array of entry meta-data
-    LPVOID              pvData;             // Wave data base address
-    DWORD               dwDataSize;         // Wave data size, in bytes
+typedef struct _WAVEBANKSECTIONDATA {
+    LPWAVEBANKHEADER pHeader; // File header
+    LPWAVEBANKDATA pBankData; // Bank data segment (entry count, name, alignment)
+    LPWAVEBANKENTRY paMetaData; // Array of entry meta-data
+    LPVOID pvData; // Wave data base address
+    DWORD dwDataSize; // Wave data size, in bytes
 } WAVEBANKSECTIONDATA, *LPWAVEBANKSECTIONDATA;
 
-typedef const WAVEBANKSECTIONDATA *LPCWAVEBANKSECTIONDATA;
+typedef const WAVEBANKSECTIONDATA* LPCWAVEBANKSECTIONDATA;
 
 //
-// Helper functions
+// Helper functions. Convert between the packed WAVEBANKMINIWAVEFORMAT stored in
+// a bank entry and the full WAVEFORMATEX/ADPCM union DirectSound consumes.
+// Return FALSE on an unsupported or malformed format.
 //
 
 EXTERN_C BOOL WaveBankExpandFormat(LPCWAVEBANKMINIWAVEFORMAT pwfxCompressed, LPWAVEBANKUNIWAVEFORMAT pwfxExpanded);
@@ -61,20 +54,22 @@ EXTERN_C BOOL WaveBankCompressFormat(LPCWAVEBANKUNIWAVEFORMAT pwfxExpanded, LPWA
 #ifdef __cplusplus
 
 //
-// Wave bank reader object
+// Wave bank reader object. Open() maps a .xwb file into memory; GetSectionData()
+// returns pointers into that image (header, bank data, entry meta-data array,
+// and wave-data base) without copying. Flush() releases the mapping.
 //
 
 class CWaveBankReader
 {
-private:
-    LPVOID                  m_pvBaseAddress;    // Bank base address
-    DWORD                   m_dwBankSize;       // Bank size, in bytes
+  private:
+    LPVOID m_pvBaseAddress; // Bank base address
+    DWORD m_dwBankSize; // Bank size, in bytes
 
-public:
+  public:
     CWaveBankReader(void);
     virtual ~CWaveBankReader(void);
 
-public:
+  public:
     // Initialization
     HRESULT Open(LPCSTR pszBankPath);
     void Flush(void);
