@@ -238,6 +238,8 @@ int pipe2(int __fildes[2], int flags) __picolibc_export;
 #if __POSIX_VISIBLE >= 200809 || __XSI_VISIBLE >= 500
 ssize_t pread(int __fd, void *__buf, size_t __nbytes, off_t __offset) __picolibc_export;
 ssize_t pwrite(int __fd, const void *__buf, size_t __nbytes, off_t __offset) __picolibc_export;
+ssize_t copy_file_range(int __infd, off_t *__inoff, int __outfd, off_t *__outoff,
+                        size_t __len, unsigned int __flags) __picolibc_export;
 #endif
 ssize_t read(int __fd, void *__buf, size_t __nbyte) __picolibc_export;
 #if __BSD_VISIBLE
@@ -335,6 +337,7 @@ int setdtablesize(int) __picolibc_export;
 #if __BSD_VISIBLE || __XSI_VISIBLE >= 500
 void sync(void) __picolibc_export;
 #endif
+int syncfs(int __fd) __picolibc_export;
 
 #if __BSD_VISIBLE || __POSIX_VISIBLE >= 200112 || __XSI_VISIBLE >= 4
 ssize_t readlink(const char * __restrict __path, char * __restrict __buf,
@@ -533,6 +536,8 @@ int     unlinkat(int, const char *, int) __picolibc_export;
 #define _SC_LEVEL4_CACHE_ASSOC           135
 #define _SC_LEVEL4_CACHE_LINESIZE        136
 #define _SC_POSIX_26_VERSION             137
+#define _SC_NPROCESSORS_CONF             138
+#define _SC_NPROCESSORS_ONLN             139
 
 /*
  *  pathconf values per IEEE Std 1003.1, 2008 Edition
