@@ -594,14 +594,28 @@ int vfprintf_s(FILE * __restrict stream, const char * __restrict fmt,
 #endif
 
 /*
- * The format of tmpnam names is TXXXXXX, which works with mktemp
+ * P_tmpdir must be empty or end with a path separator; L_tmpnam must fit
+ * P_tmpdir + the template + NUL. The build may set these via meson/cmake tmpdir
+ * (__L_tmpnam/__P_tmpdir). Otherwise each console uses its own writable scratch
+ * drive: the original Xbox (i386) has the Z: utility drive ("Z:\Txxxxxx"); the
+ * Xbox 360 (PowerPC) uses the cache: partition ("cache:\Txxxxxx" -- the same
+ * writable mount RXDK-360 puts its syslog on). L_tmpnam=16 fits either.
  */
-#define L_tmpnam 16 /* RXDK: room for "Z:\\Txxxxxx" scratch paths (was 8) */
+#ifdef __L_tmpnam
+#define L_tmpnam __L_tmpnam
+#else
+#define L_tmpnam 16 /* room for "Z:\\Txxxxxx" / "cache:\\Txxxxxx" scratch paths (was 8) */
+#endif
 
-/*
- * RXDK tmpfile/tmpnam place scratch files on the Z: utility drive.
- */
-#define P_tmpdir "Z:\\"
+#if __MISC_VISIBLE || XSI_VISIBLE
+#ifdef __P_tmpdir
+#define P_tmpdir __P_tmpdir
+#elif defined(__i386__)
+#define P_tmpdir "Z:\\" /* original Xbox: scratch files on the Z: utility drive */
+#else
+#define P_tmpdir "cache:\\" /* Xbox 360: writable cache partition */
+#endif
+#endif
 
 /*
  * We don't have any way of knowing any underlying POSIX limits,
