@@ -14,10 +14,15 @@
    multibyte encoding, which is the behaviour Xbox paths and gamertags want. */
 #define __IO_WCHAR 1
 /* Default printf/scanf I/O variant = double ('d'): float formatting/parsing for
-   printf, scanf, and iostream num_put/num_get. Backed by the Ryu engines
-   (dtoa_ryu.c etc., compiled in libs/libc/build.zig). Was 0 (no float ->
-   picolibc emitted the "*float*" placeholder for %f/%g). */
+   printf, scanf, and iostream num_put/num_get. Was 0 (no float -> picolibc
+   emitted the "*float*" placeholder for %f/%g). */
 #define __IO_DEFAULT 'd'
+/* Exact binary <-> decimal conversion: the Ryu sources (dtoa_ryu.c etc.) are
+   what build/sdk/libc.json compiles, not the approximate *_engine.c ones. */
+#define __IO_FLOAT_EXACT 1
+/* printf produces every requested significant digit of a double exactly
+   (dtoa_big.c), as glibc and MSVC do, rather than zero-filling past 17. */
+#define __IO_FLOAT_ALL_DIGITS 1
 #define __NEWLIB_VERSION "4.3.0"
 #define _NEWLIB_VERSION "4.3.0"
 #define _PICOLIBC_MINOR__ 8
@@ -34,3 +39,13 @@
 #define __HAVE_POSIX_LOCALE_API 1
 #define __OBSOLETE_MATH_FLOAT 0
 #define __OBSOLETE_MATH_DOUBLE 0
+
+/* long double is the 64-bit double type on the original Xbox, as with the XDK's
+   MSVC compiler and on the Xbox 360: libc, libcpp and every SDK library are
+   built with -mlong-double-64, and an object built with clang's 80-bit
+   i686-pc-windows-gnu default would disagree with them on its size and on the
+   long double math and printf entry points. The RXDK build passes the flag;
+   other build systems must too. */
+#if defined(__SIZEOF_LONG_DOUBLE__) && __SIZEOF_LONG_DOUBLE__ != 8
+#error "RXDK: compile with -mlong-double-64 (long double is the 64-bit double type on the original Xbox)"
+#endif
